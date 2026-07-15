@@ -5,15 +5,8 @@ receivers:
         endpoint: 0.0.0.0:4317
       http:
         endpoint: 0.0.0.0:4318
-  filelog:
-    include:
-      - /var/lib/docker/containers/*/*.log
-    include_file_path: true
-    operators:
-      - type: json_parser
-        timestamp:
-          parse_from: attributes.time
-          layout: '%Y-%m-%dT%H:%M:%S.%LZ'
+  # filelog disabled: rootless Docker/Podman doesn't expose /var/lib/docker/containers.
+  # Enable in a later PR using a rootless-compatible log source (docker events / OTLP push from apps).
 
 processors:
   batch:
@@ -40,11 +33,10 @@ processors:
           - delete_key(attributes, "apikey") where IsMatch(attributes["apikey"], ".*")
 
 exporters:
-  loki:
-    endpoint: http://loki:3100/loki/api/v1/push
-    default_labels_enabled:
-      exporter: true
-      job: true
+  otlphttp/loki:
+    endpoint: http://loki:3100/otlp
+    tls:
+      insecure: true
   otlp/tempo:
     endpoint: http://tempo:4317
     tls:
@@ -56,9 +48,9 @@ exporters:
 service:
   pipelines:
     logs:
-      receivers: [filelog, otlp]
+      receivers: [otlp]
       processors: [batch, transform]
-      exporters: [loki]
+      exporters: [otlphttp/loki]
     traces:
       receivers: [otlp]
       processors: [batch]

@@ -1,10 +1,12 @@
+logger:
+  level: info
+
 kafka:
   brokers:
     - broker1:9092
     - broker2:9092
     - broker3:9092
   clientId: kminion
-  rackId: ""
   tls:
     enabled: false
   sasl:
@@ -13,21 +15,20 @@ kafka:
 minion:
   consumerGroups:
     enabled: true
-    allowedGroupIdRegex: ".*"
-    ignoredGroupIdRegex: ""
     scrapeMode: adminApi
+    granularity: partition
+    allowedGroups: [".*"]
+    ignoredGroups: []
   topics:
+    granularity: partition
+    allowedTopics: [".*"]
+    ignoredTopics: []
+  logDirs:
     enabled: true
-    allowedTopicNameRegex: ".*"
-    ignoredTopicNameRegex: "^_"
   endToEnd:
     enabled: false
 
-server:
-  metricsNamespace: kminion
-  listenPort: 8080
-  exporter:
-    enabled: true
-
-logger:
-  level: info
+exporter:
+  namespace: kminion
+  host: 0.0.0.0
+  port: 8080

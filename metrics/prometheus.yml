@@ -77,34 +77,34 @@ scrape_configs:
         labels:
           env: 'development'
 
-  # Cruise Control
-  - job_name: 'cruise-control'
-    static_configs:
-      - targets: ['cruise-control:9090']
-        labels:
-          env: 'development'
-          cluster: 'kafka-kraft-cluster'
+  # Cruise Control — deferred to PR#5
+  # - job_name: 'cruise-control'
+  #   static_configs:
+  #     - targets: ['cruise-control:9090']
+  #       labels:
+  #         env: 'development'
+  #         cluster: 'kafka-kraft-cluster'
 
   # Loki self-metrics
   - job_name: 'loki'
+    metrics_path: /metrics
     static_configs:
       - targets: ['loki:3100']
-        metrics_path: /metrics
         labels:
           env: 'development'
 
   # Tempo self-metrics
   - job_name: 'tempo'
+    metrics_path: /metrics
     static_configs:
       - targets: ['tempo:3200']
-        metrics_path: /metrics
         labels:
           env: 'development'
 
   # Pyroscope self-metrics
   - job_name: 'pyroscope'
+    metrics_path: /metrics
     static_configs:
       - targets: ['pyroscope:4040']
-        metrics_path: /metrics
         labels:
           env: 'development'
