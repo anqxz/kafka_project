@@ -1,0 +1,33 @@
+kafka:
+  brokers:
+    - broker1:9092
+    - broker2:9092
+    - broker3:9092
+  clientId: kminion
+  rackId: ""
+  tls:
+    enabled: false
+  sasl:
+    enabled: false
+
+minion:
+  consumerGroups:
+    enabled: true
+    allowedGroupIdRegex: ".*"
+    ignoredGroupIdRegex: ""
+    scrapeMode: adminApi
+  topics:
+    enabled: true
+    allowedTopicNameRegex: ".*"
+    ignoredTopicNameRegex: "^_"
+  endToEnd:
+    enabled: false
+
+server:
+  metricsNamespace: kminion
+  listenPort: 8080
+  exporter:
+    enabled: true
+
+logger:
+  level: info

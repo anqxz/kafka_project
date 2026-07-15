@@ -332,6 +332,7 @@ services:
       - "127.0.0.1:9090:9090"
     volumes:
       - ../metrics/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ../metrics/rules:/etc/prometheus/rules:ro
       - prometheus-data:/prometheus
     depends_on:
       - broker1
@@ -348,7 +349,7 @@ services:
     environment:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: admin
-      GF_INSTALL_PLUGINS: "grafana-clock-panel,grafana-simple-json-datasource"
+      GF_INSTALL_PLUGINS: "grafana-clock-panel,grafana-simple-json-datasource,grafana-pyroscope-datasource"
     ports:
       - "127.0.0.1:3000:3000"
     volumes:
@@ -357,9 +358,190 @@ services:
       - ../metrics/grafana/datasources:/etc/grafana/provisioning/datasources
     depends_on:
       - prometheus
+      - loki
+      - tempo
+      - pyroscope
     networks:
       - observability
       - edge
+
+  # ── PR 2: Observability + Platform Stack ────────────────────────────────────
+
+  # KMinion — Kafka lag/topic metrics; scraped by Prometheus internally.
+  # Networks: kafka-data (brokers) + observability (Prometheus scrape).
+  kminion:
+    image: redpandadata/kminion:latest
+    container_name: kminion
+    volumes:
+      - ./config/kminion.yaml:/etc/kminion/config.yaml:ro
+    environment:
+      CONFIG_FILEPATH: /etc/kminion/config.yaml
+    depends_on:
+      - broker1
+      - broker2
+      - broker3
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/metrics"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - kafka-data
+      - observability
+
+  # OTel Collector — single pipeline for logs, traces, metrics.
+  # Networks: observability only (loki/tempo/prometheus targets are co-located).
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: otel-collector
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes:
+      - ./config/otel-collector.yaml:/etc/otelcol/config.yaml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:13133/"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - observability
+
+  # Loki — log aggregation backend; single-binary mode, filesystem storage.
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    command: ["-config.file=/etc/loki/config.yaml"]
+    volumes:
+      - ./config/loki-config.yaml:/etc/loki/config.yaml:ro
+      - loki-data:/loki
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3100/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - observability
+
+  # Tempo — distributed tracing backend; single-binary mode, local storage.
+  tempo:
+    image: grafana/tempo:latest
+    container_name: tempo
+    command: ["-config.file=/etc/tempo/config.yaml"]
+    volumes:
+      - ./config/tempo-config.yaml:/etc/tempo/config.yaml:ro
+      - tempo-data:/tmp/tempo
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3200/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - observability
+
+  # Pyroscope — continuous profiling backend; single-binary mode.
+  pyroscope:
+    image: grafana/pyroscope:latest
+    container_name: pyroscope
+    command: ["server", "--config.file=/etc/pyroscope/config.yaml"]
+    volumes:
+      - ./config/pyroscope.yaml:/etc/pyroscope/config.yaml:ro
+      - pyroscope-data:/data
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:4040/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - observability
+
+  # Alertmanager — alert routing to ntfy webhook.
+  # Networks: observability only — not exposed to host.
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+    volumes:
+      - ./config/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager-data:/alertmanager
+    depends_on:
+      - prometheus
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9093/-/healthy"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - observability
+
+  # Blackbox Exporter — synthetic HTTP/TCP probe endpoint.
+  blackbox-exporter:
+    image: prom/blackbox-exporter:latest
+    container_name: blackbox-exporter
+    command:
+      - '--config.file=/etc/blackbox_exporter/blackbox.yml'
+    volumes:
+      - ./config/blackbox.yml:/etc/blackbox_exporter/blackbox.yml:ro
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9115/-/healthy"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - observability
+
+  # Cruise Control — Kafka rebalancing and anomaly detection.
+  # Networks: kafka-data (brokers) + observability (metrics) + edge (UI 127.0.0.1:9095).
+  cruise-control:
+    image: bhavikkumar/cruise-control:latest
+    container_name: cruise-control
+    ports:
+      - "127.0.0.1:9095:9090"
+    volumes:
+      - ./config/cruise-control.properties:/opt/cruise-control/config/cruisecontrol.properties:ro
+    depends_on:
+      - broker1
+      - broker2
+      - broker3
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9090/kafkacruisecontrol/state"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - kafka-data
+      - observability
+      - edge
+
+  # ntfy — notification service for Alertmanager webhook.
+  # Networks: edge only (receives webhook from alertmanager via observability→edge routing).
+  ntfy:
+    image: binwiederhier/ntfy:latest
+    container_name: ntfy
+    command: ["serve", "--config=/etc/ntfy/ntfy.yml"]
+    ports:
+      - "127.0.0.1:8082:80"
+    volumes:
+      - ./config/ntfy.yml:/etc/ntfy/ntfy.yml:ro
+      - ntfy-data:/var/lib/ntfy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:80/v1/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - edge
+      - observability
 
 networks:
   kafka-quorum:
@@ -388,3 +570,8 @@ volumes:
   prometheus-data:
   grafana-data:
   localstack-data:
+  loki-data:
+  tempo-data:
+  pyroscope-data:
+  alertmanager-data:
+  ntfy-data:

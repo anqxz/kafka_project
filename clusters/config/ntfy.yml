@@ -1,0 +1,20 @@
+base-url: http://localhost:8082
+listen-http: ":80"
+
+# Proxy settings
+behind-proxy: true
+
+# Auth — deny by default; no users defined in lab
+auth-default-access: deny-all
+
+# Logging
+log-level: warn
+
+# Cache — in-memory for lab use
+cache-duration: 12h
+
+# Attachments disabled in lab
+attachment-cache-dir: ""
+attachment-total-size-limit: 0
+attachment-file-size-limit: 0
+attachment-expiry-duration: ""
