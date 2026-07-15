@@ -15,6 +15,7 @@ Design documentation for evolving `kafka_project` from a working lab into a plat
 **Status:**
 - PR 1 in flight on branch `feat/pr1-network-segmentation` — runbook + verification in [doc 01 §6](01-NETWORK-ARCHITECTURE.md#6-pr-1--implementation-runbook).
 - **PR 2 in flight** on branch `feat/pr2-observability-stack` — runbook in [doc 02 §7](02-INTEGRATION-ARCHITECTURE.md#7-pr-2-runbook--observability--platform-stack).
+- **PR 5 in flight** on branch `feat/pr5-broker-jmx-sidecar-isolation` — closes observability→broker:9092 blast-radius gap; runbook + verification in [doc 01 §7](01-NETWORK-ARCHITECTURE.md#7-pr-5--broker-jmx-sidecar-isolation).
 
 ### Applying PR 1 locally
 

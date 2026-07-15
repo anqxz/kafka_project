@@ -24,25 +24,30 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:9090']
 
-  # Kafka Controllers - JMX Exporter metrics
+  # Kafka Controllers — scraped via JMX sidecar containers (PR 5).
+  # controllerN-jmx bridges kafka-quorum (JMX RMI → controllerN:9101) + observability (:5556/metrics).
+  # Controllers themselves are NOT on the observability network; only the sidecars are.
   - job_name: 'kafka-controllers'
     static_configs:
       - targets:
-          - 'controller1:7071'
-          - 'controller2:7071'
-          - 'controller3:7071'
+          - 'controller1-jmx:5556'
+          - 'controller2-jmx:5556'
+          - 'controller3-jmx:5556'
         labels:
           env: 'development'
           cluster: 'kafka-kraft-cluster'
           role: 'controller'
 
-  # Kafka Brokers - JMX Exporter metrics
+  # Kafka Brokers — scraped via JMX sidecar containers (PR 5).
+  # brokerN-jmx bridges kafka-data (JMX RMI → brokerN:9101) + observability (:5556/metrics).
+  # Brokers themselves are NOT on the observability network; only the sidecars are.
+  # This prevents any observability-zone container from reaching broker:9092 (data-plane entry point).
   - job_name: 'kafka-brokers'
     static_configs:
       - targets:
-          - 'broker1:7071'
-          - 'broker2:7071'
-          - 'broker3:7071'
+          - 'broker1-jmx:5556'
+          - 'broker2-jmx:5556'
+          - 'broker3-jmx:5556'
         labels:
           env: 'development'
           cluster: 'kafka-kraft-cluster'

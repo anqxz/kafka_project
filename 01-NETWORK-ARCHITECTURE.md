@@ -52,13 +52,23 @@ networks:
 
 services:
   controller1:
-    networks: [kafka-quorum, observability]
+    networks: [kafka-quorum]
     # ports: REMOVED — no host exposure of quorum or JMX
+    # PR 5: removed from observability; controller1-jmx sidecar handles Prometheus scrape.
+
+  controller1-jmx:   # PR 5 sidecar
+    networks: [kafka-quorum, observability]
+    # Connects to controller1:9101 via JMX RMI (kafka-quorum) and exposes :5556/metrics (observability)
 
   broker1:
-    networks: [kafka-quorum, kafka-data, observability]
+    networks: [kafka-quorum, kafka-data, edge]
     ports:
       - "9092:29092"   # EXTERNAL listener only, keep only if host clients exist
+    # PR 5: removed from observability; broker1-jmx sidecar handles Prometheus scrape.
+
+  broker1-jmx:   # PR 5 sidecar
+    networks: [kafka-data, observability]
+    # Connects to broker1:9101 via JMX RMI (kafka-data) and exposes :5556/metrics (observability)
 
   kafka-connect:
     networks: [kafka-data, aws-sim, observability, edge]
@@ -150,7 +160,7 @@ Note the `127.0.0.1:` prefix on every published admin surface — the lab should
 | controller1–3 | CONTROLLER (Raft) | 9093 | kafka-quorum | ❌ |
 | broker1–3 | PLAINTEXT→SASL_SSL (internal) | 9092 | kafka-data | ❌ |
 | broker1–3 | EXTERNAL | 29092 | edge (optional) | 9092/9093/9094 |
-| broker/controller | JMX exporter HTTP | 7071 | observability | ❌ |
+| brokerN-jmx, controllerN-jmx | JMX exporter HTTP (PR 5 sidecar) | 5556 | observability | ❌ |
 | kafka-connect | REST | 8083 | edge | 127.0.0.1:8083 |
 | schema-registry | HTTP | 8081 | kafka-data | ❌ (AKHQ/Connect reach it internally) |
 | localstack | Gateway | 4566 | aws-sim | ❌ (use `docker exec awslocal`) |
@@ -197,8 +207,10 @@ Scope of this PR: **only what exists today** (controllers, brokers, akhq, locals
 2. Assigned every service to its zone(s):
    | Service | Networks |
    |---|---|
-   | controller1–3 | `kafka-quorum`, `observability` |
-   | broker1–3 | `kafka-quorum`, `kafka-data`, `observability`, `edge` |
+   | controller1–3 | `kafka-quorum` only *(PR 5: `observability` removed)* |
+   | controller1–3-jmx | `kafka-quorum`, `observability` *(PR 5 sidecars)* |
+   | broker1–3 | `kafka-quorum`, `kafka-data`, `edge` *(PR 5: `observability` removed)* |
+   | broker1–3-jmx | `kafka-data`, `observability` *(PR 5 sidecars)* |
    | schema-registry, akhq | `kafka-data`, `edge` |
    | kafka-connect | `kafka-data`, `edge` |
    | localstack | `kafka-data`, `edge` (temporary — becomes `aws-sim` in a later PR) |
@@ -283,3 +295,82 @@ Data is preserved (volumes are untouched).
 - New services (kminion, alertmanager, otel-collector, loki, tempo, pyroscope, mcp-kafka, cruise-control, kroxylicious, toxiproxy, loadgen) → PRs 3–9. They will attach to the zones defined here.
 - Dedicated `aws-sim` network for LocalStack → moves out of `kafka-data` when the S3 traffic is proxied through Kroxylicious/toxiproxy in PR 6/PR 9.
 - SASL / ACLs / TLS → PRs 8+.
+
+## 7. PR 5 — Broker JMX Sidecar Isolation
+
+### 7.1 Problem
+
+PR 1 added network segmentation but placed every broker and controller on **both** `kafka-data`/`kafka-quorum` AND the `observability` network. The justification was that Prometheus needed to scrape the in-process `jmx-exporter` agent (running on `:7071`). However, Kafka's `PLAINTEXT://:9092` listener binds **all** attached network interfaces, meaning any container on the `observability` network could reach `broker:9092` — a producer/consumer entry point.
+
+Live proof:
+
+```bash
+docker run --rm --network observability alpine sh -c 'nc -zv broker1 9092'
+# Connection to broker1 9092 port [tcp/*] succeeded!
+```
+
+This violated the blast-radius promise in §1 and the F9 guardrail in `04-SECURITY-GUARDRAILS.md`.
+
+### 7.2 Fix — Standalone JMX Sidecar Containers
+
+Instead of connecting brokers/controllers to `observability`, six lightweight **sidecar containers** (`brokerN-jmx`, `controllerN-jmx`) bridge the two zones:
+
+```
+              kafka-data / kafka-quorum         observability
+              ──────────────────────────         ─────────────
+  brokerN ──[9101 JMX RMI]──► brokerN-jmx ──[:5556/metrics]──► prometheus
+```
+
+Each sidecar:
+- Image: `bitnami/jmx-exporter:0.20.0` (pinned)
+- Config: `clusters/config/jmx-exporter-brokerN.yml` (same rules as the old in-process agent, plus `hostPort: brokerN:9101`)
+- Networks: `kafka-data` (brokers) or `kafka-quorum` (controllers) + `observability`
+- No host port published
+- Healthcheck: `wget -qO- http://localhost:5556/metrics`
+
+Brokers and controllers have `KAFKA_JMX_PORT: 9101` and `KAFKA_JMX_HOSTNAME: <nodename>` already set, so the sidecar can connect over JMX RMI immediately. The in-process `-javaagent:...jmx_prometheus_javaagent.jar=7071:...` is removed from `KAFKA_OPTS` on all six nodes.
+
+Prometheus scrape targets change:
+- `controller1:7071` → `controller1-jmx:5556`
+- `broker1:7071` → `broker1-jmx:5556`
+
+### 7.3 Apply
+
+```bash
+git switch feat/pr5-broker-jmx-sidecar-isolation
+cd clusters
+docker compose config --quiet      # must exit 0
+docker compose up -d
+docker compose ps
+```
+
+### 7.4 Verification
+
+```bash
+# 1. Brokers are no longer on observability network
+docker inspect broker1 -f '{{range $k,$v := .NetworkSettings.Networks}}{{$k}} {{end}}'
+# Expected: does NOT contain "observability"
+
+# 2. Sidecar is on both networks
+docker inspect broker1-jmx -f '{{range $k,$v := .NetworkSettings.Networks}}{{$k}} {{end}}'
+# Expected: contains both "kafka-data" and "observability"
+
+# 3. Blast-radius test — MUST FAIL (connection refused/timeout)
+docker run --rm --network observability alpine sh -c 'nc -zvw3 broker1 9092 2>&1'
+# Expected: "nc: connect to broker1 port 9092 (tcp) failed: Connection refused" or timeout
+# Any "succeeded" here is a merge-blocker.
+
+# 4. Prometheus can scrape via sidecar
+docker exec prometheus wget -qO- http://broker1-jmx:5556/metrics | head -3
+# Expected: "# HELP kafka_*" lines
+
+# 5. Sidecars healthy
+docker compose ps broker1-jmx broker2-jmx broker3-jmx controller1-jmx controller2-jmx controller3-jmx
+# Expected: all "healthy"
+```
+
+### 7.5 Out of scope
+
+- TLS on JMX RMI (`-Dcom.sun.jndi.rmi.object.trustURLCodebase=false` is already default in JDK 17+) → deferred.
+- JMX auth (username/password) → deferred to PR 8 (SASL phase).
+- The observability→broker:9092 blast radius is now **closed**.
