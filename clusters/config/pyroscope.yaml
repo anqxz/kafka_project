@@ -1,0 +1,16 @@
+server:
+  http_listen_port: 4040
+
+storage:
+  backend: local
+  local:
+    path: /data/pyroscope
+
+pyroscopedb:
+  data_path: /data/pyroscope
+
+self-profiling:
+  disable_push: false
+
+analytics:
+  reporting_enabled: false

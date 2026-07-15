@@ -6,6 +6,17 @@ global:
   external_labels:
     monitor: 'kafka-monitor'
 
+# Alerting — route to Alertmanager inside observability network
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager:9093
+
+# Rule files
+rule_files:
+  - /etc/prometheus/rules/kafka.rules.yml
+
 # Scrape configurations
 scrape_configs:
   # Prometheus self-monitoring
@@ -36,3 +47,64 @@ scrape_configs:
           env: 'development'
           cluster: 'kafka-kraft-cluster'
           role: 'broker'
+
+  # KMinion — Kafka consumer lag and topic metrics
+  - job_name: 'kminion'
+    static_configs:
+      - targets: ['kminion:8080']
+        labels:
+          env: 'development'
+          cluster: 'kafka-kraft-cluster'
+
+  # OTel Collector self-metrics
+  - job_name: 'otel-collector'
+    static_configs:
+      - targets: ['otel-collector:8889']
+        labels:
+          env: 'development'
+
+  # Alertmanager self-metrics
+  - job_name: 'alertmanager'
+    static_configs:
+      - targets: ['alertmanager:9093']
+        labels:
+          env: 'development'
+
+  # Blackbox Exporter
+  - job_name: 'blackbox-exporter'
+    static_configs:
+      - targets: ['blackbox-exporter:9115']
+        labels:
+          env: 'development'
+
+  # Cruise Control
+  - job_name: 'cruise-control'
+    static_configs:
+      - targets: ['cruise-control:9090']
+        labels:
+          env: 'development'
+          cluster: 'kafka-kraft-cluster'
+
+  # Loki self-metrics
+  - job_name: 'loki'
+    static_configs:
+      - targets: ['loki:3100']
+        metrics_path: /metrics
+        labels:
+          env: 'development'
+
+  # Tempo self-metrics
+  - job_name: 'tempo'
+    static_configs:
+      - targets: ['tempo:3200']
+        metrics_path: /metrics
+        labels:
+          env: 'development'
+
+  # Pyroscope self-metrics
+  - job_name: 'pyroscope'
+    static_configs:
+      - targets: ['pyroscope:4040']
+        metrics_path: /metrics
+        labels:
+          env: 'development'

@@ -1,0 +1,33 @@
+groups:
+  - name: kafka.rules
+    interval: 30s
+    rules:
+      - alert: UnderReplicatedPartitions
+        expr: kafka_server_replicamanager_underreplicatedpartitions > 0
+        for: 1m
+        labels:
+          severity: critical
+          cluster: kafka-kraft-cluster
+        annotations:
+          summary: "Kafka under-replicated partitions on {{ $labels.instance }}"
+          description: "{{ $value }} partition(s) are under-replicated on broker {{ $labels.instance }}. Data durability at risk."
+
+      - alert: ConsumerLag
+        expr: kminion_kafka_consumer_group_topic_partition_lag > 10000
+        for: 5m
+        labels:
+          severity: warning
+          cluster: kafka-kraft-cluster
+        annotations:
+          summary: "High consumer lag for group {{ $labels.groupId }}"
+          description: "Consumer group {{ $labels.groupId }} on topic {{ $labels.topic }} partition {{ $labels.partition }} has lag {{ $value }} (threshold: 10000)."
+
+      - alert: BrokerDown
+        expr: up{job="kafka-brokers"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          cluster: kafka-kraft-cluster
+        annotations:
+          summary: "Kafka broker {{ $labels.instance }} is down"
+          description: "Broker {{ $labels.instance }} has been unreachable for more than 1 minute. Check container status."
