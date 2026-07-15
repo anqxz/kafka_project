@@ -4,15 +4,23 @@ version: "3.8"
 # Four zones replace the flat kafka-project_default network:
 #   kafka-quorum    controllers <-> brokers (metadata plane, KRaft)
 #   kafka-data      producers/consumers/connect/schema-registry/akhq <-> brokers
-#   observability   prometheus scrape targets (jmx-exporter :7071) and grafana
+#   observability   prometheus scrape targets and grafana (NO direct Kafka node membership — see PR 5)
 #   edge            host-facing UIs, all bound to 127.0.0.1
 #
 # Removed from host: controller quorum ports (19093-19095), JMX RMI (9101-9103, 19101-19103),
 # JMX-exporter scrape ports (7071-7073, 17071-17073). None of these should ever be host-reachable.
+#
+# PR 5 — Broker JMX sidecar isolation (see 01-NETWORK-ARCHITECTURE.md §7).
+# Brokers and controllers are REMOVED from the observability network. Instead, six lightweight
+# jmx-exporter sidecar containers (brokerN-jmx, controllerN-jmx) bridge exactly one Kafka network
+# (kafka-data or kafka-quorum) + observability. They scrape JMX RMI on :9101 from the internal
+# network and expose /metrics on :5556 to Prometheus. This closes the blast-radius gap where any
+# observability-network container could reach broker:9092 (a producer/consumer entry point).
 
 services:
 
-  # Controllers (KRaft controllers) — kafka-quorum only + observability for scrape.
+  # Controllers (KRaft controllers) — kafka-quorum only.
+  # PR 5: removed from observability network; controller1-jmx sidecar handles Prometheus scrape.
   controller1:
     image: confluentinc/cp-kafka:7.7.1
     container_name: controller1
@@ -28,13 +36,11 @@ services:
       KAFKA_LOG4J_LOGGERS: "org.apache.kafka=DEBUG"
       KAFKA_JMX_PORT: "9101"
       KAFKA_JMX_HOSTNAME: "controller1"
-      KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml"
+      # PR 5: in-process jmx-exporter agent removed; standalone sidecar controller1-jmx takes over.
     volumes:
       - controller1-data:/var/lib/kafka/data
-      - ../metrics/jmx-exporter:/opt/jmx_exporter
     networks:
       - kafka-quorum
-      - observability
 
   controller2:
     image: confluentinc/cp-kafka:7.7.1
@@ -51,13 +57,11 @@ services:
       KAFKA_LOG4J_LOGGERS: "org.apache.kafka=DEBUG"
       KAFKA_JMX_PORT: "9101"
       KAFKA_JMX_HOSTNAME: "controller2"
-      KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml"
+      # PR 5: in-process jmx-exporter agent removed; standalone sidecar controller2-jmx takes over.
     volumes:
       - controller2-data:/var/lib/kafka/data
-      - ../metrics/jmx-exporter:/opt/jmx_exporter
     networks:
       - kafka-quorum
-      - observability
 
   controller3:
     image: confluentinc/cp-kafka:7.7.1
@@ -74,16 +78,15 @@ services:
       KAFKA_LOG4J_LOGGERS: "org.apache.kafka=DEBUG"
       KAFKA_JMX_PORT: "9101"
       KAFKA_JMX_HOSTNAME: "controller3"
-      KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml"
+      # PR 5: in-process jmx-exporter agent removed; standalone sidecar controller3-jmx takes over.
     volumes:
       - controller3-data:/var/lib/kafka/data
-      - ../metrics/jmx-exporter:/opt/jmx_exporter
     networks:
       - kafka-quorum
-      - observability
 
-  # Brokers — quorum (talk to controllers), data (clients), observability (scrape),
+  # Brokers — quorum (talk to controllers), data (clients),
   # edge (EXTERNAL listener published to 127.0.0.1 for host producers/consumers).
+  # PR 5: removed from observability network; broker1-jmx sidecar handles Prometheus scrape.
   broker1:
     image: confluentinc/cp-kafka:7.7.1
     container_name: broker1
@@ -102,7 +105,7 @@ services:
       KAFKA_LOG4J_LOGGERS: "org.apache.kafka=DEBUG"
       KAFKA_JMX_PORT: "9101"
       KAFKA_JMX_HOSTNAME: "broker1"
-      KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml"
+      # PR 5: in-process jmx-exporter agent removed; standalone sidecar broker1-jmx takes over.
     ports:
       - "127.0.0.1:9092:29092"
     depends_on:
@@ -111,11 +114,9 @@ services:
       - controller3
     volumes:
       - broker1-data:/var/lib/kafka/data
-      - ../metrics/jmx-exporter:/opt/jmx_exporter
     networks:
       - kafka-quorum
       - kafka-data
-      - observability
       - edge
 
   broker2:
@@ -136,7 +137,7 @@ services:
       KAFKA_LOG4J_LOGGERS: "org.apache.kafka=DEBUG"
       KAFKA_JMX_PORT: "9101"
       KAFKA_JMX_HOSTNAME: "broker2"
-      KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml"
+      # PR 5: in-process jmx-exporter agent removed; standalone sidecar broker2-jmx takes over.
     ports:
       - "127.0.0.1:9093:29092"
     depends_on:
@@ -145,11 +146,9 @@ services:
       - controller3
     volumes:
       - broker2-data:/var/lib/kafka/data
-      - ../metrics/jmx-exporter:/opt/jmx_exporter
     networks:
       - kafka-quorum
       - kafka-data
-      - observability
       - edge
 
   broker3:
@@ -170,7 +169,7 @@ services:
       KAFKA_LOG4J_LOGGERS: "org.apache.kafka=DEBUG"
       KAFKA_JMX_PORT: "9101"
       KAFKA_JMX_HOSTNAME: "broker3"
-      KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml"
+      # PR 5: in-process jmx-exporter agent removed; standalone sidecar broker3-jmx takes over.
     ports:
       - "127.0.0.1:9094:29092"
     depends_on:
@@ -179,11 +178,9 @@ services:
       - controller3
     volumes:
       - broker3-data:/var/lib/kafka/data
-      - ../metrics/jmx-exporter:/opt/jmx_exporter
     networks:
       - kafka-quorum
       - kafka-data
-      - observability
       - edge
 
   # AKHQ — data (client connectivity to brokers, JMX via container hostnames) + edge (UI on 127.0.0.1).
@@ -218,6 +215,140 @@ services:
     networks:
       - kafka-data
       - edge
+
+  # ─── PR 5: JMX sidecar containers ───────────────────────────────────────────────────────────────
+  # Each sidecar connects to its Kafka node via JMX RMI over the internal network (kafka-quorum or
+  # kafka-data) and exposes /metrics on :5556 to Prometheus over the observability network.
+  # No host ports. No access to broker:9092 from the observability zone.
+  # Image: bitnami/jmx-exporter:0.20.0 (pinned; exposes HTTP /metrics on :5556 by default)
+  # Config: clusters/config/jmx-exporter-<node>.yml (per-node hostPort, shared rules block)
+
+  controller1-jmx:
+    image: bitnami/jmx-exporter:0.20.0
+    container_name: controller1-jmx
+    user: "1001"
+    command:
+      - "5556"
+      - /config/jmx-exporter-controller1.yml
+    volumes:
+      - ./config:/config:ro
+    depends_on:
+      - controller1
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:5556/metrics >/dev/null"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    networks:
+      - kafka-quorum
+      - observability
+
+  controller2-jmx:
+    image: bitnami/jmx-exporter:0.20.0
+    container_name: controller2-jmx
+    user: "1001"
+    command:
+      - "5556"
+      - /config/jmx-exporter-controller2.yml
+    volumes:
+      - ./config:/config:ro
+    depends_on:
+      - controller2
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:5556/metrics >/dev/null"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    networks:
+      - kafka-quorum
+      - observability
+
+  controller3-jmx:
+    image: bitnami/jmx-exporter:0.20.0
+    container_name: controller3-jmx
+    user: "1001"
+    command:
+      - "5556"
+      - /config/jmx-exporter-controller3.yml
+    volumes:
+      - ./config:/config:ro
+    depends_on:
+      - controller3
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:5556/metrics >/dev/null"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    networks:
+      - kafka-quorum
+      - observability
+
+  broker1-jmx:
+    image: bitnami/jmx-exporter:0.20.0
+    container_name: broker1-jmx
+    user: "1001"
+    command:
+      - "5556"
+      - /config/jmx-exporter-broker1.yml
+    volumes:
+      - ./config:/config:ro
+    depends_on:
+      - broker1
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:5556/metrics >/dev/null"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    networks:
+      - kafka-data
+      - observability
+
+  broker2-jmx:
+    image: bitnami/jmx-exporter:0.20.0
+    container_name: broker2-jmx
+    user: "1001"
+    command:
+      - "5556"
+      - /config/jmx-exporter-broker2.yml
+    volumes:
+      - ./config:/config:ro
+    depends_on:
+      - broker2
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:5556/metrics >/dev/null"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    networks:
+      - kafka-data
+      - observability
+
+  broker3-jmx:
+    image: bitnami/jmx-exporter:0.20.0
+    container_name: broker3-jmx
+    user: "1001"
+    command:
+      - "5556"
+      - /config/jmx-exporter-broker3.yml
+    volumes:
+      - ./config:/config:ro
+    depends_on:
+      - broker3
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:5556/metrics >/dev/null"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    networks:
+      - kafka-data
+      - observability
+  # ─── end PR 5 sidecars ──────────────────────────────────────────────────────────────────────────
 
   # LocalStack — reachable by Connect on kafka-data; host access on 127.0.0.1:4566 for aws CLI/tests.
   # Wide 4510-4559 host range removed (services now consumed only via 4566 gateway).

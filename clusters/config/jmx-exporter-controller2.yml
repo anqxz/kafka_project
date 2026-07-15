@@ -1,0 +1,88 @@
+---
+# PR 5 — JMX sidecar config for controller2.
+# The standalone jmx-exporter connects to controller2:9101 over JMX RMI (shared kafka-quorum network)
+# and exposes /metrics on :5556 for Prometheus to scrape (observability network).
+hostPort: controller2:9101
+username:
+password:
+
+ssl: false
+
+rules:
+  # ReplicaManager — partition count, leader count, under-replicated, ISR shrinks/expansions
+  - pattern: "kafka.server<type=ReplicaManager, name=(.+)><>Value"
+    name: "kafka_server_replicamanager_$1"
+    type: GAUGE
+    labels:
+      service: kafka-controller
+
+  - pattern: "kafka.server<type=ReplicaManager, name=(.+)><>Count"
+    name: "kafka_server_replicamanager_$1_total"
+    type: COUNTER
+    labels:
+      service: kafka-controller
+
+  # BrokerTopicMetrics — bytes in/out, messages in, fetch/produce request rates
+  - pattern: "kafka.server<type=BrokerTopicMetrics, name=(.+)><>Count"
+    name: "kafka_server_brokertopicmetrics_$1_total"
+    type: COUNTER
+    labels:
+      service: kafka-controller
+
+  - pattern: "kafka.server<type=BrokerTopicMetrics, name=(.+), topic=(.+)><>Count"
+    name: "kafka_server_brokertopicmetrics_$1_total"
+    type: COUNTER
+    labels:
+      service: kafka-controller
+      topic: "$2"
+
+  # Network — request queue size, response queue size
+  - pattern: "kafka.network<type=RequestMetrics, name=(.+), request=(.+)><>Count"
+    name: "kafka_network_requestmetrics_$1_total"
+    type: COUNTER
+    labels:
+      service: kafka-controller
+      request: "$2"
+
+  - pattern: "kafka.network<type=RequestMetrics, name=(.+), request=(.+)><>(\d+)thPercentile"
+    name: "kafka_network_requestmetrics_$1_percentile"
+    type: GAUGE
+    labels:
+      service: kafka-controller
+      request: "$2"
+      quantile: "0.$3"
+
+  # Purgatory — delayed fetch/produce
+  - pattern: "kafka.server<type=DelayedOperationPurgatory, name=(.+), delayedOperation=(.+)><>Value"
+    name: "kafka_server_delayedoperationpurgatory_$1"
+    type: GAUGE
+    labels:
+      service: kafka-controller
+      delayed_operation: "$2"
+
+  # Log size
+  - pattern: "kafka.log<type=LogManager, name=(.+)><>Value"
+    name: "kafka_log_logmanager_$1"
+    type: GAUGE
+    labels:
+      service: kafka-controller
+
+  # Controller — active controller count, offline partitions, leader elections
+  - pattern: "kafka.controller<type=KafkaController, name=(.+)><>Value"
+    name: "kafka_controller_kafkacontroller_$1"
+    type: GAUGE
+    labels:
+      service: kafka-controller
+
+  # Catch-all — anything not matched above
+  - pattern: "kafka.(\\w+)<type=(.+), name=(.+)><>Value"
+    name: "kafka_$1_$2_$3"
+    type: GAUGE
+    labels:
+      service: kafka-controller
+
+  - pattern: "kafka.(\\w+)<type=(.+), name=(.+)><>Count"
+    name: "kafka_$1_$2_$3_total"
+    type: COUNTER
+    labels:
+      service: kafka-controller
