@@ -15,6 +15,6 @@ cache-duration: 12h
 
 # Attachments disabled in lab
 attachment-cache-dir: ""
-attachment-total-size-limit: 0
-attachment-file-size-limit: 0
-attachment-expiry-duration: ""
+attachment-total-size-limit: "0"
+attachment-file-size-limit: "0"
+attachment-expiry-duration: "3h"
