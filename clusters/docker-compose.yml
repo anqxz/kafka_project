@@ -1,8 +1,18 @@
 version: "3.8"
 
+# PR 1 — Network segmentation (see 01-NETWORK-ARCHITECTURE.md).
+# Four zones replace the flat kafka-project_default network:
+#   kafka-quorum    controllers <-> brokers (metadata plane, KRaft)
+#   kafka-data      producers/consumers/connect/schema-registry/akhq <-> brokers
+#   observability   prometheus scrape targets (jmx-exporter :7071) and grafana
+#   edge            host-facing UIs, all bound to 127.0.0.1
+#
+# Removed from host: controller quorum ports (19093-19095), JMX RMI (9101-9103, 19101-19103),
+# JMX-exporter scrape ports (7071-7073, 17071-17073). None of these should ever be host-reachable.
+
 services:
 
-  # Controllers (KRaft controllers)
+  # Controllers (KRaft controllers) — kafka-quorum only + observability for scrape.
   controller1:
     image: confluentinc/cp-kafka:latest
     container_name: controller1
@@ -18,13 +28,12 @@ services:
       KAFKA_JMX_PORT: "9101"
       KAFKA_JMX_HOSTNAME: "controller1"
       KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml"
-    ports:
-      - "19093:9093"
-      - "19101:9101"
-      - "17071:7071"
     volumes:
       - controller1-data:/var/lib/kafka/data
       - ../metrics/jmx-exporter:/opt/jmx_exporter
+    networks:
+      - kafka-quorum
+      - observability
 
   controller2:
     image: confluentinc/cp-kafka:latest
@@ -41,13 +50,12 @@ services:
       KAFKA_JMX_PORT: "9101"
       KAFKA_JMX_HOSTNAME: "controller2"
       KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml"
-    ports:
-      - "19094:9093"
-      - "19102:9101"
-      - "17072:7071"
     volumes:
       - controller2-data:/var/lib/kafka/data
       - ../metrics/jmx-exporter:/opt/jmx_exporter
+    networks:
+      - kafka-quorum
+      - observability
 
   controller3:
     image: confluentinc/cp-kafka:latest
@@ -64,15 +72,15 @@ services:
       KAFKA_JMX_PORT: "9101"
       KAFKA_JMX_HOSTNAME: "controller3"
       KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml"
-    ports:
-      - "19095:9093"
-      - "19103:9101"
-      - "17073:7071"
     volumes:
       - controller3-data:/var/lib/kafka/data
       - ../metrics/jmx-exporter:/opt/jmx_exporter
+    networks:
+      - kafka-quorum
+      - observability
 
-  # Brokers (KRaft brokers)
+  # Brokers — quorum (talk to controllers), data (clients), observability (scrape),
+  # edge (EXTERNAL listener published to 127.0.0.1 for host producers/consumers).
   broker1:
     image: confluentinc/cp-kafka:latest
     container_name: broker1
@@ -92,9 +100,7 @@ services:
       KAFKA_JMX_HOSTNAME: "broker1"
       KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml"
     ports:
-      - "9092:29092"
-      - "9101:9101"
-      - "7071:7071"
+      - "127.0.0.1:9092:29092"
     depends_on:
       - controller1
       - controller2
@@ -102,6 +108,11 @@ services:
     volumes:
       - broker1-data:/var/lib/kafka/data
       - ../metrics/jmx-exporter:/opt/jmx_exporter
+    networks:
+      - kafka-quorum
+      - kafka-data
+      - observability
+      - edge
 
   broker2:
     image: confluentinc/cp-kafka:latest
@@ -122,9 +133,7 @@ services:
       KAFKA_JMX_HOSTNAME: "broker2"
       KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml"
     ports:
-      - "9093:29092"
-      - "9102:9101"
-      - "7072:7071"
+      - "127.0.0.1:9093:29092"
     depends_on:
       - controller1
       - controller2
@@ -132,6 +141,11 @@ services:
     volumes:
       - broker2-data:/var/lib/kafka/data
       - ../metrics/jmx-exporter:/opt/jmx_exporter
+    networks:
+      - kafka-quorum
+      - kafka-data
+      - observability
+      - edge
 
   broker3:
     image: confluentinc/cp-kafka:latest
@@ -152,9 +166,7 @@ services:
       KAFKA_JMX_HOSTNAME: "broker3"
       KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml"
     ports:
-      - "9094:29092"
-      - "9103:9101"
-      - "7073:7071"
+      - "127.0.0.1:9094:29092"
     depends_on:
       - controller1
       - controller2
@@ -162,8 +174,14 @@ services:
     volumes:
       - broker3-data:/var/lib/kafka/data
       - ../metrics/jmx-exporter:/opt/jmx_exporter
+    networks:
+      - kafka-quorum
+      - kafka-data
+      - observability
+      - edge
 
-  # AKHQ (formerly known as KafkaHQ) - Kafka GUI
+  # AKHQ — data (client connectivity to brokers, JMX via container hostnames) + edge (UI on 127.0.0.1).
+  # JMX targets now use each broker's internal port 9101 (host-mapped ports removed).
   akhq:
     image: tchiotludo/akhq:latest
     container_name: akhq
@@ -174,67 +192,53 @@ services:
             kafka-kraft-cluster:
               properties:
                 bootstrap.servers: "broker1:9092,broker2:9092,broker3:9092"
-              # JMX Configuration
               jmx:
                 - name: broker1
                   url: "broker1:9101"
                 - name: broker2
-                  url: "broker2:9102"
+                  url: "broker2:9101"
                 - name: broker3
-                  url: "broker3:9103"
-              # Kafka Connect Configuration
+                  url: "broker3:9101"
               connect:
                 - name: "kafka-connect"
                   url: "http://kafka-connect:8083"
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     depends_on:
       - broker1
       - broker2
       - broker3
       - kafka-connect
+    networks:
+      - kafka-data
+      - edge
 
-  # LocalStack - Local AWS Cloud Stack
-  # Simula múltiplos serviços AWS localmente
-  # S3: Armazenamento de dados do Kafka
-  # Secrets Manager: Credenciais Kafka/Connect
-  # SSM: Configurações do cluster
-  # CloudWatch + Logs: Monitoramento e logs
-  # SNS + SQS: Notificações e filas
-  # Lambda: Processamento serverless de eventos Kafka
-  # KMS: Criptografia de dados
-  # IAM + STS: Autenticação e autorização
+  # LocalStack — reachable by Connect on kafka-data; host access on 127.0.0.1:4566 for aws CLI/tests.
+  # Wide 4510-4559 host range removed (services now consumed only via 4566 gateway).
+  # NOTE: docker.sock mount is an accepted lab risk (F6 in 04-SECURITY-GUARDRAILS.md); required for
+  # LOCAL Lambda executor. LAMBDA_DOCKER_NETWORK pinned to the deterministic kafka-data name.
   localstack:
     image: localstack/localstack:latest
     container_name: localstack
     environment:
-      # Serviços habilitados
       SERVICES: s3,ssm,secretsmanager,iam,sts,cloudwatch,logs,sns,sqs,lambda,kms,events
       DEBUG: 0
       DATA_DIR: /var/lib/localstack
       HOSTNAME_EXTERNAL: localstack
       AWS_DEFAULT_REGION: us-east-1
-      
-      # Persistência e performance
       PERSIST_STORAGE: 1
       EAGER_SERVICE_LOADING: 1
       SKIP_SSL_CERT_DOWNLOAD: 1
-      
-      # Lambda configuration
       LAMBDA_EXECUTOR: docker-reuse
-      LAMBDA_DOCKER_NETWORK: kafka-project_default
+      LAMBDA_DOCKER_NETWORK: kafka-data
       LAMBDA_REMOVE_CONTAINERS: true
-      
-      # Logs
       LS_LOG: warn
-      
     ports:
-      - "4566:4566"      # LocalStack Gateway
-      - "4510-4559:4510-4559"  # External services
+      - "127.0.0.1:4566:4566"
     volumes:
       - localstack-data:/var/lib/localstack
       - ./localstack-init:/etc/localstack/init/ready.d
-      - /var/run/docker.sock:/var/run/docker.sock  # Para Lambda
+      - /var/run/docker.sock:/var/run/docker.sock
     tmpfs:
       - /tmp
     healthcheck:
@@ -243,8 +247,11 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+    networks:
+      - kafka-data
+      - edge
 
-  # Schema Registry
+  # Schema Registry — kafka-data only; UI on 127.0.0.1 via edge for developer convenience.
   schema-registry:
     image: confluentinc/cp-schema-registry:latest
     container_name: schema-registry
@@ -254,13 +261,16 @@ services:
       SCHEMA_REGISTRY_LISTENERS: "http://0.0.0.0:8081"
       SCHEMA_REGISTRY_DEBUG: "true"
     ports:
-      - "8081:8081"
+      - "127.0.0.1:8081:8081"
     depends_on:
       - broker1
       - broker2
       - broker3
+    networks:
+      - kafka-data
+      - edge
 
-  # Kafka Connect - S3 Sink
+  # Kafka Connect — kafka-data (brokers + localstack S3) + edge (REST 127.0.0.1:8083).
   kafka-connect:
     image: confluentinc/cp-kafka-connect:latest
     container_name: kafka-connect
@@ -281,12 +291,11 @@ services:
       CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
       CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components"
       CONNECT_LOG4J_LOGGERS: "org.apache.kafka.connect=INFO"
-      # AWS Configuration for LocalStack
       AWS_ACCESS_KEY_ID: "test"
       AWS_SECRET_ACCESS_KEY: "test"
       AWS_DEFAULT_REGION: "us-east-1"
     ports:
-      - "8083:8083"
+      - "127.0.0.1:8083:8083"
     depends_on:
       localstack:
         condition: service_healthy
@@ -306,8 +315,11 @@ services:
         confluent-hub install --no-prompt confluentinc/kafka-connect-s3:10.5.0
         echo "Launching Kafka Connect..."
         /etc/confluent/docker/run
+    networks:
+      - kafka-data
+      - edge
 
-  # Prometheus - Metrics collection and storage
+  # Prometheus — observability (scrape targets) + edge (UI 127.0.0.1:9090).
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
@@ -317,7 +329,7 @@ services:
       - '--web.console.libraries=/usr/share/prometheus/console_libraries'
       - '--web.console.templates=/usr/share/prometheus/consoles'
     ports:
-      - "9090:9090"
+      - "127.0.0.1:9090:9090"
     volumes:
       - ../metrics/prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus-data:/prometheus
@@ -325,8 +337,11 @@ services:
       - broker1
       - broker2
       - broker3
+    networks:
+      - observability
+      - edge
 
-  # Grafana - Metrics visualization
+  # Grafana — observability (reach Prometheus) + edge (UI 127.0.0.1:3000).
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
@@ -335,13 +350,33 @@ services:
       GF_SECURITY_ADMIN_PASSWORD: admin
       GF_INSTALL_PLUGINS: "grafana-clock-panel,grafana-simple-json-datasource"
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     volumes:
       - grafana-data:/var/lib/grafana
       - ../metrics/grafana/dashboards:/etc/grafana/provisioning/dashboards
       - ../metrics/grafana/datasources:/etc/grafana/provisioning/datasources
     depends_on:
       - prometheus
+    networks:
+      - observability
+      - edge
+
+networks:
+  kafka-quorum:
+    name: kafka-quorum
+    driver: bridge
+    internal: true
+  kafka-data:
+    name: kafka-data
+    driver: bridge
+    internal: true
+  observability:
+    name: observability
+    driver: bridge
+    internal: true
+  edge:
+    name: edge
+    driver: bridge
 
 volumes:
   controller1-data:
