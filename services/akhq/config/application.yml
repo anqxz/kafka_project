@@ -1,0 +1,15 @@
+akhq:
+  connections:
+    kafka-kraft-cluster:
+      properties:
+        bootstrap.servers: "broker1:9092,broker2:9092,broker3:9092"
+      jmx:
+        - name: broker1
+          url: "broker1:9101"
+        - name: broker2
+          url: "broker2:9101"
+        - name: broker3
+          url: "broker3:9101"
+      connect:
+        - name: "kafka-connect"
+          url: "http://kafka-connect:8083"
