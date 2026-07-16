@@ -1,0 +1,174 @@
+---
+# JMX Exporter configuration for Kafka metrics
+# This configuration exports Kafka JMX metrics to Prometheus format
+
+# Lowercasing
+lowercaseOutputName: true
+lowercaseOutputLabelNames: true
+
+# Whitelist of ObjectNames to query
+whitelistObjectNames:
+  - "kafka.controller:*"
+  - "kafka.server:*"
+  - "kafka.network:*"
+  - "kafka.log:*"
+  - "kafka.cluster:*"
+  - "kafka.coordinator:*"
+  - "java.lang:*"
+
+# Rules to extract and transform metrics
+rules:
+  # Kafka Server - BrokerTopicMetrics
+  - pattern: kafka.server<type=BrokerTopicMetrics, name=(.+), topic=(.+)><>Count
+    name: kafka_server_brokertopicmetrics_$1_total
+    type: COUNTER
+    labels:
+      topic: "$2"
+
+  - pattern: kafka.server<type=BrokerTopicMetrics, name=(.+)><>Count
+    name: kafka_server_brokertopicmetrics_$1_total
+    type: COUNTER
+
+  - pattern: kafka.server<type=BrokerTopicMetrics, name=(.+), topic=(.+)><>OneMinuteRate
+    name: kafka_server_brokertopicmetrics_$1_rate
+    type: GAUGE
+    labels:
+      topic: "$2"
+
+  - pattern: kafka.server<type=BrokerTopicMetrics, name=(.+)><>OneMinuteRate
+    name: kafka_server_brokertopicmetrics_$1_rate
+    type: GAUGE
+
+  # Kafka Server - ReplicaManager
+  - pattern: kafka.server<type=ReplicaManager, name=(.+)><>Value
+    name: kafka_server_replicamanager_$1
+    type: GAUGE
+
+  - pattern: kafka.server<type=ReplicaManager, name=(.+)><>OneMinuteRate
+    name: kafka_server_replicamanager_$1
+    type: GAUGE
+
+  # Kafka Server - Partition metrics
+  - pattern: kafka.server<type=ReplicaManager, name=(.+), topic=(.+), partition=(.+)><>Value
+    name: kafka_server_replicamanager_$1
+    type: GAUGE
+    labels:
+      topic: "$2"
+      partition: "$3"
+
+  # Kafka Network - RequestMetrics
+  - pattern: kafka.network<type=RequestMetrics, name=(.+), request=(.+), quantile=(.+)><>Value
+    name: kafka_network_requestmetrics_$1
+    type: GAUGE
+    labels:
+      request: "$2"
+      quantile: "$3"
+
+  - pattern: kafka.network<type=RequestMetrics, name=(.+), request=(.+)><>Count
+    name: kafka_network_requestmetrics_$1_total
+    type: COUNTER
+    labels:
+      request: "$2"
+
+  - pattern: kafka.network<type=RequestMetrics, name=(.+), request=(.+)><>OneMinuteRate
+    name: kafka_network_requestmetrics_$1_rate
+    type: GAUGE
+    labels:
+      request: "$2"
+
+  - pattern: kafka.network<type=RequestMetrics, name=(.+)><>Value
+    name: kafka_network_requestmetrics_$1
+    type: GAUGE
+
+  # Kafka Controller
+  - pattern: kafka.controller<type=KafkaController, name=(.+)><>Value
+    name: kafka_controller_kafkacontroller_$1
+    type: GAUGE
+
+  - pattern: kafka.controller<type=ControllerStats, name=(.+)><>OneMinuteRate
+    name: kafka_controller_controllerstats_$1_rate
+    type: GAUGE
+
+  - pattern: kafka.controller<type=ControllerStats, name=(.+)><>Count
+    name: kafka_controller_controllerstats_$1_total
+    type: COUNTER
+
+  # Kafka Log metrics
+  - pattern: kafka.log<type=Log, name=(.+), topic=(.+), partition=(.+)><>Value
+    name: kafka_log_log_$1
+    type: GAUGE
+    labels:
+      topic: "$2"
+      partition: "$3"
+
+  - pattern: kafka.log<type=LogFlushStats, name=(.+)><>Count
+    name: kafka_log_logflushstats_$1_total
+    type: COUNTER
+
+  - pattern: kafka.log<type=LogFlushStats, name=(.+)><>OneMinuteRate
+    name: kafka_log_logflushstats_$1_rate
+    type: GAUGE
+
+  # Kafka Cluster - Partition metrics
+  - pattern: kafka.cluster<type=Partition, name=(.+), topic=(.+), partition=(.+)><>Value
+    name: kafka_cluster_partition_$1
+    type: GAUGE
+    labels:
+      topic: "$2"
+      partition: "$3"
+
+  # Kafka Server - DelayedOperationPurgatory
+  - pattern: kafka.server<type=DelayedOperationPurgatory, name=(.+), delayedOperation=(.+)><>Value
+    name: kafka_server_delayedoperationpurgatory_$1
+    type: GAUGE
+    labels:
+      operation: "$2"
+
+  # Kafka Server - Request Handler Pool
+  - pattern: kafka.server<type=KafkaRequestHandlerPool, name=(.+)><>OneMinuteRate
+    name: kafka_server_kafkarequesthandlerpool_$1
+    type: GAUGE
+
+  - pattern: kafka.server<type=KafkaRequestHandlerPool, name=(.+)><>Count
+    name: kafka_server_kafkarequesthandlerpool_$1_total
+    type: COUNTER
+
+  # JVM Memory Metrics
+  - pattern: 'java.lang<type=Memory><HeapMemoryUsage>(\w+)'
+    name: jvm_memory_heap_$1
+    type: GAUGE
+
+  - pattern: 'java.lang<type=Memory><NonHeapMemoryUsage>(\w+)'
+    name: jvm_memory_nonheap_$1
+    type: GAUGE
+
+  - pattern: 'java.lang<type=Memory><ObjectPendingFinalizationCount>(\w+)'
+    name: jvm_memory_objects_pending_finalization
+    type: GAUGE
+
+  # JVM GC Metrics
+  - pattern: 'java.lang<type=GarbageCollector, name=(.+)><>CollectionCount'
+    name: jvm_gc_collection_count_total
+    type: COUNTER
+    labels:
+      gc: "$1"
+
+  - pattern: 'java.lang<type=GarbageCollector, name=(.+)><>CollectionTime'
+    name: jvm_gc_collection_time_ms_total
+    type: COUNTER
+    labels:
+      gc: "$1"
+
+  # JVM Thread Metrics
+  - pattern: 'java.lang<type=Threading><>(\w+)'
+    name: jvm_threads_$1
+    type: GAUGE
+
+  # Catch-all for other important metrics
+  - pattern: kafka.(\w+)<type=(.+), name=(.+)><>Value
+    name: kafka_$1_$2_$3
+    type: GAUGE
+
+  - pattern: kafka.(\w+)<type=(.+), name=(.+)><>Count
+    name: kafka_$1_$2_$3_total
+    type: COUNTER
