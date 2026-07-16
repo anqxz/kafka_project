@@ -1,0 +1,537 @@
+{
+  "title": "Client — Topics, Producers, Consumer Lag, Connectors",
+  "uid": "client-kafka",
+  "tags": [
+    "client",
+    "kafka",
+    "topic"
+  ],
+  "schemaVersion": 38,
+  "version": 2,
+  "refresh": "30s",
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "topic",
+        "label": "Topic",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "query": "label_values(kafka_server_replicamanager_partitioncount, topic_name)",
+        "includeAll": true,
+        "multi": true,
+        "refresh": 2,
+        "sort": 1
+      },
+      {
+        "name": "group",
+        "label": "Consumer Group",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "query": "label_values(kminion_kafka_consumer_group_topic_lag{topic_name=~\"$topic\"}, group_id)",
+        "includeAll": true,
+        "multi": true,
+        "refresh": 2,
+        "sort": 1
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "row",
+      "title": "Overview",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Selected Topics",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 1
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "count(count by (topic_name) (kafka_server_replicamanager_partitioncount{topic_name=~\"$topic\"}))",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Partitions",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 1
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum(kafka_server_replicamanager_partitioncount{topic_name=~\"$topic\"})",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Total Lag (msgs)",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 1
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum(kminion_kafka_consumer_group_topic_lag{topic_name=~\"$topic\",group_id=~\"$group\"})",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Consumer Groups",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 1
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "count(count by (group_id) (kminion_kafka_consumer_group_topic_lag{topic_name=~\"$topic\",group_id=~\"$group\"}))",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "type": "row",
+      "title": "Topic Metrics",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 5
+      }
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "Log End Offset (per topic)",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 6
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum by (topic_name) (kminion_kafka_topic_partition_high_water_mark{topic_name=~\"$topic\"})",
+          "refId": "A",
+          "legendFormat": "{{topic_name}}"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "type": "timeseries",
+      "title": "Messages Ingested /sec (approx via HWM delta)",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 6
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum by (topic_name) (rate(kminion_kafka_topic_partition_high_water_mark{topic_name=~\"$topic\"}[5m]))",
+          "refId": "A",
+          "legendFormat": "{{topic_name}}"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "type": "timeseries",
+      "title": "Log Size (bytes)",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 14
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum by (topic_name) (kminion_kafka_topic_log_dir_size_total_bytes{topic_name=~\"$topic\"})",
+          "refId": "A",
+          "legendFormat": "{{topic_name}}"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "type": "timeseries",
+      "title": "Under-Replicated Partitions (broker-wide)",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 14
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum(kafka_server_replicamanager_underreplicatedpartitions)",
+          "refId": "A",
+          "legendFormat": "URP"
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "type": "row",
+      "title": "Producer / Broker-side per Topic",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 22
+      }
+    },
+    {
+      "id": 21,
+      "type": "timeseries",
+      "title": "Bytes In /sec by Topic",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 23
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum by (topic) (rate(kafka_server_brokertopicmetrics_bytesinpersec_total{topic=~\"$topic\"}[5m]))",
+          "refId": "A",
+          "legendFormat": "{{topic}}"
+        }
+      ]
+    },
+    {
+      "id": 22,
+      "type": "timeseries",
+      "title": "Messages In /sec by Topic",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 23
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum by (topic) (rate(kafka_server_brokertopicmetrics_messagesinpersec_total{topic=~\"$topic\"}[5m]))",
+          "refId": "A",
+          "legendFormat": "{{topic}}"
+        }
+      ]
+    },
+    {
+      "id": 23,
+      "type": "timeseries",
+      "title": "Bytes Out /sec by Topic (consumers)",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 31
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum by (topic) (rate(kafka_server_brokertopicmetrics_bytesoutpersec_total{topic=~\"$topic\"}[5m]))",
+          "refId": "A",
+          "legendFormat": "{{topic}}"
+        }
+      ]
+    },
+    {
+      "id": 24,
+      "type": "timeseries",
+      "title": "Failed Produce Requests /sec",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 31
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum by (topic) (rate(kafka_server_brokertopicmetrics_failedproducerequestspersec_total{topic=~\"$topic\"}[5m]))",
+          "refId": "A",
+          "legendFormat": "{{topic}}"
+        }
+      ]
+    },
+    {
+      "id": 30,
+      "type": "row",
+      "title": "Consumer Lag",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 39
+      }
+    },
+    {
+      "id": 31,
+      "type": "timeseries",
+      "title": "Lag by Group / Topic",
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 40
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum by (group_id, topic_name) (kminion_kafka_consumer_group_topic_lag{topic_name=~\"$topic\",group_id=~\"$group\"})",
+          "refId": "A",
+          "legendFormat": "{{group_id}} / {{topic_name}}"
+        }
+      ]
+    },
+    {
+      "id": 32,
+      "type": "table",
+      "title": "Lag Snapshot (topk)",
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 50
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "topk(50, sum by (group_id, topic_name, partition_id) (kminion_kafka_consumer_group_topic_lag{topic_name=~\"$topic\",group_id=~\"$group\"}))",
+          "refId": "A",
+          "format": "table",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "id": 40,
+      "type": "row",
+      "title": "Kafka Connect (via internal topics + connector-owned topics)",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 60
+      }
+    },
+    {
+      "id": 41,
+      "type": "timeseries",
+      "title": "Connect internal topic activity (_connect-*)",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 61
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum by (topic_name) (rate(kminion_kafka_topic_partition_high_water_mark{topic_name=~\"_connect-.*\"}[5m]))",
+          "refId": "A",
+          "legendFormat": "{{topic_name}}"
+        }
+      ]
+    },
+    {
+      "id": 42,
+      "type": "timeseries",
+      "title": "Connect consumer-group lag (connect-*)",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 61
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum by (group_id, topic_name) (kminion_kafka_consumer_group_topic_lag{group_id=~\"connect-.*\"})",
+          "refId": "A",
+          "legendFormat": "{{group_id}} / {{topic_name}}"
+        }
+      ]
+    },
+    {
+      "id": 43,
+      "type": "table",
+      "title": "Connect groups snapshot",
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 69
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum by (group_id, topic_name) (kminion_kafka_consumer_group_topic_lag{group_id=~\"connect-.*\"})",
+          "refId": "A",
+          "format": "table",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "id": 44,
+      "type": "logs",
+      "title": "Logs",
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 77
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "options": {
+        "showTime": true,
+        "wrapLogMessage": true,
+        "enableLogDetails": true,
+        "dedupStrategy": "none",
+        "sortOrder": "Descending"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{service_name=~\"kafka-producer|kafka-consumer|kafka-client.*\"} |= ``",
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          }
+        }
+      ]
+    },
+    {
+      "id": 45,
+      "type": "table",
+      "title": "Traces (TraceQL)",
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 77
+      },
+      "datasource": {
+        "type": "tempo",
+        "uid": "tempo"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "traceqlSearch",
+          "query": "{resource.service.name=~\"kafka-producer|kafka-consumer|kafka-client.*\"}",
+          "datasource": {
+            "type": "tempo",
+            "uid": "tempo"
+          },
+          "limit": 20,
+          "tableType": "traces"
+        }
+      ]
+    }
+  ]
+}

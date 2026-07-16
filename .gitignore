@@ -21,3 +21,8 @@ temp/
 # Environment files
 .env.local
 .env.*.local
+
+# Python virtualenv
+.venv/
+__pycache__/
+*.pyc

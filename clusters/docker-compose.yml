@@ -379,6 +379,7 @@ services:
   kminion:
     image: redpandadata/kminion:latest
     container_name: kminion
+    restart: unless-stopped
     volumes:
       - ./config/kminion.yaml:/etc/kminion/config.yaml:ro
     environment:
@@ -403,6 +404,9 @@ services:
     image: otel/opentelemetry-collector-contrib:latest
     container_name: otel-collector
     command: ["--config=/etc/otelcol/config.yaml"]
+    ports:
+      - "127.0.0.1:4317:4317"   # OTLP gRPC
+      - "127.0.0.1:4318:4318"   # OTLP HTTP
     volumes:
       - ./config/otel-collector.yaml:/etc/otelcol/config.yaml:ro
       # Container log filelog mount removed: rootless Docker/Podman doesn't expose
@@ -551,17 +555,33 @@ networks:
     name: kafka-quorum
     driver: bridge
     internal: true
+    ipam:
+      config:
+        - subnet: 10.89.3.0/24
+          gateway: 10.89.3.1
   kafka-data:
     name: kafka-data
     driver: bridge
     internal: true
+    ipam:
+      config:
+        - subnet: 10.89.2.0/24
+          gateway: 10.89.2.1
   observability:
     name: observability
     driver: bridge
     internal: true
+    ipam:
+      config:
+        - subnet: 10.89.0.0/24
+          gateway: 10.89.0.1
   edge:
     name: edge
     driver: bridge
+    ipam:
+      config:
+        - subnet: 10.89.1.0/24
+          gateway: 10.89.1.1
 
 volumes:
   controller1-data:

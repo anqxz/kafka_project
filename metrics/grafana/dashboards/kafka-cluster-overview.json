@@ -299,7 +299,7 @@
       "pluginVersion": "8.0.0",
       "targets": [
         {
-          "expr": "rate(kafka_server_brokertopicmetrics_messagesin_total[5m])",
+          "expr": "rate(kafka_server_brokertopicmetrics_messagesinpersec_total[5m])",
           "legendFormat": "{{instance}}",
           "refId": "A"
         }
@@ -380,12 +380,12 @@
       "pluginVersion": "8.0.0",
       "targets": [
         {
-          "expr": "rate(kafka_server_brokertopicmetrics_bytesin_total[5m])",
+          "expr": "rate(kafka_server_brokertopicmetrics_bytesinpersec_total[5m])",
           "legendFormat": "In - {{instance}}",
           "refId": "A"
         },
         {
-          "expr": "rate(kafka_server_brokertopicmetrics_bytesout_total[5m])",
+          "expr": "rate(kafka_server_brokertopicmetrics_bytesoutpersec_total[5m])",
           "legendFormat": "Out - {{instance}}",
           "refId": "B"
         }
@@ -626,12 +626,12 @@
       "pluginVersion": "8.0.0",
       "targets": [
         {
-          "expr": "kafka_network_requestmetrics_totaltimems{request=\"Produce\",quantile=\"0.99\"}",
+          "expr": "kafka_network_requestmetrics_totaltimems_total{request=\"Produce\",quantile=\"0.99\"}",
           "legendFormat": "Produce p99 - {{instance}}",
           "refId": "A"
         },
         {
-          "expr": "kafka_network_requestmetrics_totaltimems{request=\"FetchConsumer\",quantile=\"0.99\"}",
+          "expr": "kafka_network_requestmetrics_totaltimems_total{request=\"FetchConsumer\",quantile=\"0.99\"}",
           "legendFormat": "Fetch p99 - {{instance}}",
           "refId": "B"
         }
@@ -712,12 +712,12 @@
       "pluginVersion": "8.0.0",
       "targets": [
         {
-          "expr": "rate(kafka_network_requestmetrics_requests_total{request=\"Produce\"}[5m])",
+          "expr": "rate(kafka_network_requestmetrics_requestspersec_total{request=\"Produce\"}[5m])",
           "legendFormat": "Produce - {{instance}}",
           "refId": "A"
         },
         {
-          "expr": "rate(kafka_network_requestmetrics_requests_total{request=\"FetchConsumer\"}[5m])",
+          "expr": "rate(kafka_network_requestmetrics_requestspersec_total{request=\"FetchConsumer\"}[5m])",
           "legendFormat": "Fetch - {{instance}}",
           "refId": "B"
         }
@@ -1216,6 +1216,66 @@
       ],
       "title": "Request Handler Idle %",
       "type": "timeseries"
+    },
+    {
+      "id": 17,
+      "type": "logs",
+      "title": "Logs",
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 52
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "options": {
+        "showTime": true,
+        "wrapLogMessage": true,
+        "enableLogDetails": true,
+        "dedupStrategy": "none",
+        "sortOrder": "Descending"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{service_name=~\"broker[123]|kminion|otel.*\"} |= ``",
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          }
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "type": "table",
+      "title": "Traces (TraceQL)",
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 52
+      },
+      "datasource": {
+        "type": "tempo",
+        "uid": "tempo"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "queryType": "traceqlSearch",
+          "query": "{resource.service.name=~\"broker[123]|kminion|otel.*\"}",
+          "datasource": {
+            "type": "tempo",
+            "uid": "tempo"
+          },
+          "limit": 20,
+          "tableType": "traces"
+        }
+      ]
     }
   ],
   "refresh": "10s",
@@ -1236,5 +1296,5 @@
   "timezone": "",
   "title": "Kafka Cluster Overview",
   "uid": "kafka-cluster-overview",
-  "version": 0
+  "version": 1
 }
