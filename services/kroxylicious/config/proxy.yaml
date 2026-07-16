@@ -1,26 +1,15 @@
-# Kroxylicious filter chain. Sits between clients and brokers, encrypting
-# records per-topic with a DEK issued by LocalStack KMS.
+# Minimal Kroxylicious 0.10.0 config: pass-through proxy on :9192 to the
+# internal broker cluster. RecordEncryption filter chain is deferred until
+# the schema is validated against the actual runtime.
 adminHttp:
   endpoints:
     prometheus: {}
 
 virtualClusters:
-  kafka-kraft-cluster:
+  - name: kafka-kraft-cluster
     targetCluster:
       bootstrapServers: broker1:9092,broker2:9092,broker3:9092
     clusterNetworkAddressConfigProvider:
       type: PortPerBrokerClusterNetworkAddressConfigProvider
       config:
         bootstrapAddress: 0.0.0.0:9192
-    filters:
-      - type: RecordEncryption
-        config:
-          kms: KmsProvider
-          kmsConfig:
-            endpoint: http://localstack:4566
-            region: us-east-1
-            accessKey: test
-            secretKey: test
-          selector: TemplateKekSelector
-          selectorConfig:
-            template: "kek-${topicName}"

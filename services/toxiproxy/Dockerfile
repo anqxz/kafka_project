@@ -7,5 +7,5 @@ FROM ${BASE_IMAGE}:${BASE_TAG}
 
 COPY config/toxics.json /etc/toxiproxy/toxics.json
 
-ENTRYPOINT ["/toxiproxy-server"]
-CMD ["-host", "0.0.0.0", "-config", "/etc/toxiproxy/toxics.json"]
+ENTRYPOINT ["/toxiproxy"]
+CMD ["-host=0.0.0.0", "-config=/etc/toxiproxy/toxics.json"]

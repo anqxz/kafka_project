@@ -5,3 +5,5 @@ ARG BASE_TAG=0.10.0
 FROM ${BASE_IMAGE}:${BASE_TAG}
 
 COPY config/proxy.yaml /opt/kroxylicious/config/proxy.yaml
+
+CMD ["-c", "/opt/kroxylicious/config/proxy.yaml"]
