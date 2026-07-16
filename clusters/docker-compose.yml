@@ -31,7 +31,7 @@ services:
       KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml"
     volumes:
       - controller1-data:/var/lib/kafka/data
-      - ../metrics/jmx-exporter:/opt/jmx_exporter
+      - ../services/controller/config/jmx:/opt/jmx_exporter
     networks:
       - kafka-quorum
       - observability
@@ -54,7 +54,7 @@ services:
       KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml"
     volumes:
       - controller2-data:/var/lib/kafka/data
-      - ../metrics/jmx-exporter:/opt/jmx_exporter
+      - ../services/controller/config/jmx:/opt/jmx_exporter
     networks:
       - kafka-quorum
       - observability
@@ -77,7 +77,7 @@ services:
       KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml"
     volumes:
       - controller3-data:/var/lib/kafka/data
-      - ../metrics/jmx-exporter:/opt/jmx_exporter
+      - ../services/controller/config/jmx:/opt/jmx_exporter
     networks:
       - kafka-quorum
       - observability
@@ -111,7 +111,7 @@ services:
       - controller3
     volumes:
       - broker1-data:/var/lib/kafka/data
-      - ../metrics/jmx-exporter:/opt/jmx_exporter
+      - ../services/broker/config/jmx:/opt/jmx_exporter
     networks:
       - kafka-quorum
       - kafka-data
@@ -145,7 +145,7 @@ services:
       - controller3
     volumes:
       - broker2-data:/var/lib/kafka/data
-      - ../metrics/jmx-exporter:/opt/jmx_exporter
+      - ../services/broker/config/jmx:/opt/jmx_exporter
     networks:
       - kafka-quorum
       - kafka-data
@@ -179,7 +179,7 @@ services:
       - controller3
     volumes:
       - broker3-data:/var/lib/kafka/data
-      - ../metrics/jmx-exporter:/opt/jmx_exporter
+      - ../services/broker/config/jmx:/opt/jmx_exporter
     networks:
       - kafka-quorum
       - kafka-data
@@ -338,8 +338,8 @@ services:
     ports:
       - "127.0.0.1:9090:9090"
     volumes:
-      - ../metrics/prometheus.yml:/etc/prometheus/prometheus.yml
-      - ../metrics/rules:/etc/prometheus/rules:ro
+      - ../services/prometheus/config/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ../services/prometheus/config/rules:/etc/prometheus/rules:ro
       - prometheus-data:/prometheus
     depends_on:
       - broker1
@@ -361,8 +361,8 @@ services:
       - "127.0.0.1:3000:3000"
     volumes:
       - grafana-data:/var/lib/grafana
-      - ../metrics/grafana/dashboards:/etc/grafana/provisioning/dashboards
-      - ../metrics/grafana/datasources:/etc/grafana/provisioning/datasources
+      - ../services/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ../services/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
     depends_on:
       - prometheus
       - loki
@@ -381,7 +381,7 @@ services:
     container_name: kminion
     restart: unless-stopped
     volumes:
-      - ./config/kminion.yaml:/etc/kminion/config.yaml:ro
+      - ../services/kminion/config/kminion.yaml:/etc/kminion/config.yaml:ro
     environment:
       CONFIG_FILEPATH: /etc/kminion/config.yaml
     depends_on:
@@ -408,7 +408,7 @@ services:
       - "127.0.0.1:4317:4317"   # OTLP gRPC
       - "127.0.0.1:4318:4318"   # OTLP HTTP
     volumes:
-      - ./config/otel-collector.yaml:/etc/otelcol/config.yaml:ro
+      - ../services/otel-collector/config/otel-collector.yaml:/etc/otelcol/config.yaml:ro
       # Container log filelog mount removed: rootless Docker/Podman doesn't expose
       # /var/lib/docker/containers. Filelog receiver disabled in otel-collector.yaml.
       # Log ingestion via OTLP push from apps or a rootless-compatible tail agent (later PR).
@@ -427,7 +427,7 @@ services:
     container_name: loki
     command: ["-config.file=/etc/loki/config.yaml"]
     volumes:
-      - ./config/loki-config.yaml:/etc/loki/config.yaml:ro
+      - ../services/loki/config/loki.yaml:/etc/loki/config.yaml:ro
       - loki-data:/loki
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:3100/ready"]
@@ -444,7 +444,7 @@ services:
     container_name: tempo
     command: ["-config.file=/etc/tempo/config.yaml"]
     volumes:
-      - ./config/tempo-config.yaml:/etc/tempo/config.yaml:ro
+      - ../services/tempo/config/tempo.yaml:/etc/tempo/config.yaml:ro
       - tempo-data:/tmp/tempo
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:3200/ready"]
@@ -461,7 +461,7 @@ services:
     container_name: pyroscope
     command: ["server", "--config.file=/etc/pyroscope/config.yaml"]
     volumes:
-      - ./config/pyroscope.yaml:/etc/pyroscope/config.yaml:ro
+      - ../services/pyroscope/config/pyroscope.yaml:/etc/pyroscope/config.yaml:ro
       - pyroscope-data:/data
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:4040/ready"]
@@ -481,7 +481,7 @@ services:
       - '--config.file=/etc/alertmanager/alertmanager.yml'
       - '--storage.path=/alertmanager'
     volumes:
-      - ./config/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - ../services/alertmanager/config/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
       - alertmanager-data:/alertmanager
     depends_on:
       - prometheus
@@ -501,7 +501,7 @@ services:
     command:
       - '--config.file=/etc/blackbox_exporter/blackbox.yml'
     volumes:
-      - ./config/blackbox.yml:/etc/blackbox_exporter/blackbox.yml:ro
+      - ../services/blackbox-exporter/config/blackbox.yml:/etc/blackbox_exporter/blackbox.yml:ro
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:9115/-/healthy"]
       interval: 15s
@@ -519,7 +519,7 @@ services:
   #   ports:
   #     - "127.0.0.1:9095:9090"
   #   volumes:
-  #     - ./config/cruise-control.properties:/opt/cruise-control/config/cruisecontrol.properties:ro
+  #     - ../services/cruise-control/config/cruisecontrol.properties:/opt/cruise-control/config/cruisecontrol.properties:ro
   #   depends_on:
   #     - broker1
   #     - broker2
@@ -538,7 +538,7 @@ services:
     ports:
       - "127.0.0.1:8082:80"
     volumes:
-      - ./config/ntfy.yml:/etc/ntfy/ntfy.yml:ro
+      - ../services/ntfy/config/ntfy.yml:/etc/ntfy/ntfy.yml:ro
       - ntfy-data:/var/lib/ntfy
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:80/v1/health"]
