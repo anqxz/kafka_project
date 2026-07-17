@@ -138,7 +138,10 @@ O projeto inclui um script helper para facilitar comandos comuns:
 ./kafka.sh test-connection    # Testa conectividade
 ./kafka.sh run-producer       # Executa producer de exemplo
 ./kafka.sh connector-status   # Status do S3 connector
-./kafka.sh metrics            # Mostra URLs de métricas
+./kafka.sh ui                 # Mostra URLs de todas UIs
+./kafka.sh doctor             # Diagnóstico de podman/DNS/OTLP
+./kafka.sh build [svc]        # Rebuilda imagem(s)
+./kafka.sh run-loadgen        # Sobe container loadgen (tráfego contínuo)
 ```
 
 ### Gerenciar Conector S3
@@ -193,12 +196,12 @@ curl http://localhost:8083/ | jq '.'
 ### Ver logs
 ```bash
 # Logs de um serviço específico
-podman-compose logs -f broker1
-podman-compose logs -f kafka-connect
-podman-compose logs -f localstack
+./kafka.sh logs broker1
+./kafka.sh logs kafka-connect
+./kafka.sh logs localstack
 
 # Logs de todos os brokers
-podman-compose logs -f broker1 broker2 broker3
+./kafka.sh logs broker1 broker2 broker3
 ```
 
 ### Parar o ambiente
@@ -316,7 +319,7 @@ kafka-project/
 curl http://localhost:8083/connector-plugins | jq '.[] | select(.class | contains("S3"))'
 
 # Ver logs do Kafka Connect
-podman-compose logs -f kafka-connect
+./kafka.sh logs kafka-connect
 
 # Verificar status do conector
 ./s3-connector.sh status
@@ -346,7 +349,7 @@ podman exec -it localstack awslocal s3 mb s3://kafka-events-bucket
 ### Brokers não iniciam
 ```bash
 # Verifique os logs
-podman-compose logs broker1
+./kafka.sh logs broker1
 
 # Verifique se os controllers estão rodando
 podman-compose ps | grep controller

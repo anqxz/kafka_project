@@ -1,14 +1,6 @@
-version: "3.8"
-
-# PR 1 — Network segmentation (see 01-NETWORK-ARCHITECTURE.md).
-# Four zones replace the flat kafka-project_default network:
-#   kafka-quorum    controllers <-> brokers (metadata plane, KRaft)
-#   kafka-data      producers/consumers/connect/schema-registry/akhq <-> brokers
-#   observability   prometheus scrape targets (jmx-exporter :7071) and grafana
-#   edge            host-facing UIs, all bound to 127.0.0.1
-#
-# Removed from host: controller quorum ports (19093-19095), JMX RMI (9101-9103, 19101-19103),
-# JMX-exporter scrape ports (7071-7073, 17071-17073). None of these should ever be host-reachable.
+# Kafka + observability stack. Every service builds from services/<name>/;
+# central version pins live in .env. Network zones: kafka-quorum (KRaft),
+# kafka-data (clients↔brokers), observability (scrape+telemetry), edge (host UIs).
 
 services:
 
@@ -247,7 +239,6 @@ services:
       - edge
 
   # AKHQ — data (client connectivity to brokers, JMX via container hostnames) + edge (UI on 127.0.0.1).
-  # JMX targets now use each broker's internal port 9101 (host-mapped ports removed).
   akhq:
     build:
       context: ../services/akhq
@@ -266,9 +257,6 @@ services:
       - edge
 
   # LocalStack — reachable by Connect on kafka-data; host access on 127.0.0.1:4566 for aws CLI/tests.
-  # Wide 4510-4559 host range removed (services now consumed only via 4566 gateway).
-  # NOTE: docker.sock mount is an accepted lab risk (F6 in 04-SECURITY-GUARDRAILS.md); required for
-  # LOCAL Lambda executor. LAMBDA_DOCKER_NETWORK pinned to the deterministic kafka-data name.
   localstack:
     build:
       context: ../services/localstack
@@ -284,15 +272,11 @@ services:
       PERSIST_STORAGE: 1
       EAGER_SERVICE_LOADING: 1
       SKIP_SSL_CERT_DOWNLOAD: 1
-      # LAMBDA_EXECUTOR: docker-reuse   # disabled: rootless daemon has no /var/run/docker.sock
-      # LAMBDA_DOCKER_NETWORK: kafka-data
-      # LAMBDA_REMOVE_CONTAINERS: true
       LS_LOG: warn
     ports:
       - "127.0.0.1:4566:4566"
     volumes:
       - localstack-data:/var/lib/localstack
-      - ./localstack-init:/etc/localstack/init/ready.d
       # docker.sock mount disabled: rootless daemon (see LAMBDA_EXECUTOR note above).
       # - /var/run/docker.sock:/var/run/docker.sock
     tmpfs:
@@ -415,7 +399,6 @@ services:
     environment:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: admin
-      # GF_INSTALL_PLUGINS removed (observability net is internal:true — no grafana.com egress)
     ports:
       - "127.0.0.1:3000:3000"
     volumes:
@@ -468,9 +451,6 @@ services:
     ports:
       - "127.0.0.1:4317:4317"   # OTLP gRPC
       - "127.0.0.1:4318:4318"   # OTLP HTTP
-      # Container log filelog mount removed: rootless Docker/Podman doesn't expose
-      # /var/lib/docker/containers. Filelog receiver disabled in otel-collector.yaml.
-      # Log ingestion via OTLP push from apps or a rootless-compatible tail agent (later PR).
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:13133/"]
       interval: 15s
@@ -579,26 +559,6 @@ services:
     networks:
       - observability
 
-  # Cruise Control — DEFERRED to PR#5 (Cruise Control tuning). No public image works
-  # without a locally-built Dockerfile; ships with the broker metrics-reporter JAR in PR#5.
-  # cruise-control:
-  #   image: TBD (build from source in PR#5)
-  #   container_name: cruise-control
-  #   ports:
-  #     - "127.0.0.1:9095:9090"
-  #   volumes:
-  #     - ../services/cruise-control/config/cruisecontrol.properties:/opt/cruise-control/config/cruisecontrol.properties:ro
-  #   depends_on:
-  #     - broker1
-  #     - broker2
-  #     - broker3
-  #   networks:
-  #     - kafka-data
-  #     - observability
-  #     - edge
-
-  # ntfy — notification service for Alertmanager webhook.
-  # Networks: edge only (receives webhook from alertmanager via observability→edge routing).
   ntfy:
     build:
       context: ../services/ntfy

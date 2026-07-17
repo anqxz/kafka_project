@@ -5,4 +5,4 @@ ARG BASE_IMAGE=localstack/localstack
 ARG BASE_TAG=3.8
 FROM ${BASE_IMAGE}:${BASE_TAG}
 
-COPY init/ /etc/localstack/init/
+COPY --chmod=0755 init/ /etc/localstack/init/ready.d/
