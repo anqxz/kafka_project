@@ -27,6 +27,7 @@ FROM ${BASE_IMAGE}:${BASE_TAG}
 
 ARG JMX_EXPORTER_VERSION=1.0.1
 ARG OTEL_AGENT_VERSION=2.10.0
+ARG PYROSCOPE_AGENT_VERSION=2.8.0
 
 USER root
 
@@ -38,10 +39,14 @@ ADD https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/${
 ADD https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v${OTEL_AGENT_VERSION}/opentelemetry-javaagent.jar \
     /opt/agents/opentelemetry-javaagent.jar
 
+ADD https://github.com/grafana/pyroscope-java/releases/download/v${PYROSCOPE_AGENT_VERSION}/pyroscope.jar \
+    /opt/agents/pyroscope.jar
+
 COPY --from=cc-reporter /src/cruise-control-metrics-reporter/build/libs/cruise-control-metrics-reporter-*.jar \
      /usr/share/java/kafka/cruise-control-metrics-reporter.jar
 RUN chmod 0644 /opt/jmx_exporter/jmx_prometheus_javaagent.jar \
                /opt/agents/opentelemetry-javaagent.jar \
+               /opt/agents/pyroscope.jar \
                /usr/share/java/kafka/cruise-control-metrics-reporter.jar
 
 COPY config/jmx/kafka-config.yml /opt/jmx_exporter/kafka-config.yml

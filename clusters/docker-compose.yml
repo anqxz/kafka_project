@@ -23,13 +23,18 @@ services:
       KAFKA_LOG4J_LOGGERS: "org.apache.kafka=INFO"
       KAFKA_JMX_PORT: "9101"
       KAFKA_JMX_HOSTNAME: "controller1"
-      KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml -javaagent:/opt/agents/opentelemetry-javaagent.jar"
+      KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml -javaagent:/opt/agents/opentelemetry-javaagent.jar -javaagent:/opt/agents/pyroscope.jar"
       OTEL_SERVICE_NAME: "controller1"
       OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"
       OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
       OTEL_TRACES_EXPORTER: "otlp"
       OTEL_LOGS_EXPORTER: "otlp"
       OTEL_METRICS_EXPORTER: "none"
+      PYROSCOPE_APPLICATION_NAME: "controller1"
+      PYROSCOPE_SERVER_ADDRESS: "http://pyroscope:4040"
+      PYROSCOPE_FORMAT: "jfr"
+      PYROSCOPE_PROFILER_EVENT: "cpu"
+      PYROSCOPE_PROFILER_ALLOC: "512k"
     volumes:
       - controller1-data:/var/lib/kafka/data
     networks:
@@ -54,13 +59,18 @@ services:
       KAFKA_LOG4J_LOGGERS: "org.apache.kafka=INFO"
       KAFKA_JMX_PORT: "9101"
       KAFKA_JMX_HOSTNAME: "controller2"
-      KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml -javaagent:/opt/agents/opentelemetry-javaagent.jar"
+      KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml -javaagent:/opt/agents/opentelemetry-javaagent.jar -javaagent:/opt/agents/pyroscope.jar"
       OTEL_SERVICE_NAME: "controller2"
       OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"
       OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
       OTEL_TRACES_EXPORTER: "otlp"
       OTEL_LOGS_EXPORTER: "otlp"
       OTEL_METRICS_EXPORTER: "none"
+      PYROSCOPE_APPLICATION_NAME: "controller2"
+      PYROSCOPE_SERVER_ADDRESS: "http://pyroscope:4040"
+      PYROSCOPE_FORMAT: "jfr"
+      PYROSCOPE_PROFILER_EVENT: "cpu"
+      PYROSCOPE_PROFILER_ALLOC: "512k"
     volumes:
       - controller2-data:/var/lib/kafka/data
     networks:
@@ -85,13 +95,18 @@ services:
       KAFKA_LOG4J_LOGGERS: "org.apache.kafka=INFO"
       KAFKA_JMX_PORT: "9101"
       KAFKA_JMX_HOSTNAME: "controller3"
-      KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml -javaagent:/opt/agents/opentelemetry-javaagent.jar"
+      KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml -javaagent:/opt/agents/opentelemetry-javaagent.jar -javaagent:/opt/agents/pyroscope.jar"
       OTEL_SERVICE_NAME: "controller3"
       OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"
       OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
       OTEL_TRACES_EXPORTER: "otlp"
       OTEL_LOGS_EXPORTER: "otlp"
       OTEL_METRICS_EXPORTER: "none"
+      PYROSCOPE_APPLICATION_NAME: "controller3"
+      PYROSCOPE_SERVER_ADDRESS: "http://pyroscope:4040"
+      PYROSCOPE_FORMAT: "jfr"
+      PYROSCOPE_PROFILER_EVENT: "cpu"
+      PYROSCOPE_PROFILER_ALLOC: "512k"
     volumes:
       - controller3-data:/var/lib/kafka/data
     networks:
@@ -126,13 +141,18 @@ services:
       KAFKA_LOG4J_LOGGERS: "org.apache.kafka=INFO"
       KAFKA_JMX_PORT: "9101"
       KAFKA_JMX_HOSTNAME: "broker1"
-      KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml -javaagent:/opt/agents/opentelemetry-javaagent.jar"
+      KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml -javaagent:/opt/agents/opentelemetry-javaagent.jar -javaagent:/opt/agents/pyroscope.jar"
       OTEL_SERVICE_NAME: "broker1"
       OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"
       OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
       OTEL_TRACES_EXPORTER: "otlp"
       OTEL_LOGS_EXPORTER: "otlp"
       OTEL_METRICS_EXPORTER: "none"
+      PYROSCOPE_APPLICATION_NAME: "broker1"
+      PYROSCOPE_SERVER_ADDRESS: "http://pyroscope:4040"
+      PYROSCOPE_FORMAT: "jfr"
+      PYROSCOPE_PROFILER_EVENT: "cpu"
+      PYROSCOPE_PROFILER_ALLOC: "512k"
       KAFKA_METRIC_REPORTERS: "com.linkedin.kafka.cruisecontrol.metricsreporter.CruiseControlMetricsReporter"
       KAFKA_CRUISE_CONTROL_METRICS_TOPIC_AUTO_CREATE: "true"
       KAFKA_CRUISE_CONTROL_METRICS_TOPIC_NUM_PARTITIONS: "1"
@@ -177,13 +197,18 @@ services:
       KAFKA_LOG4J_LOGGERS: "org.apache.kafka=INFO"
       KAFKA_JMX_PORT: "9101"
       KAFKA_JMX_HOSTNAME: "broker2"
-      KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml -javaagent:/opt/agents/opentelemetry-javaagent.jar"
+      KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml -javaagent:/opt/agents/opentelemetry-javaagent.jar -javaagent:/opt/agents/pyroscope.jar"
       OTEL_SERVICE_NAME: "broker2"
       OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"
       OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
       OTEL_TRACES_EXPORTER: "otlp"
       OTEL_LOGS_EXPORTER: "otlp"
       OTEL_METRICS_EXPORTER: "none"
+      PYROSCOPE_APPLICATION_NAME: "broker2"
+      PYROSCOPE_SERVER_ADDRESS: "http://pyroscope:4040"
+      PYROSCOPE_FORMAT: "jfr"
+      PYROSCOPE_PROFILER_EVENT: "cpu"
+      PYROSCOPE_PROFILER_ALLOC: "512k"
       KAFKA_METRIC_REPORTERS: "com.linkedin.kafka.cruisecontrol.metricsreporter.CruiseControlMetricsReporter"
       KAFKA_CRUISE_CONTROL_METRICS_TOPIC_AUTO_CREATE: "true"
       KAFKA_CRUISE_CONTROL_METRICS_TOPIC_NUM_PARTITIONS: "1"
@@ -228,13 +253,18 @@ services:
       KAFKA_LOG4J_LOGGERS: "org.apache.kafka=INFO"
       KAFKA_JMX_PORT: "9101"
       KAFKA_JMX_HOSTNAME: "broker3"
-      KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml -javaagent:/opt/agents/opentelemetry-javaagent.jar"
+      KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml -javaagent:/opt/agents/opentelemetry-javaagent.jar -javaagent:/opt/agents/pyroscope.jar"
       OTEL_SERVICE_NAME: "broker3"
       OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"
       OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
       OTEL_TRACES_EXPORTER: "otlp"
       OTEL_LOGS_EXPORTER: "otlp"
       OTEL_METRICS_EXPORTER: "none"
+      PYROSCOPE_APPLICATION_NAME: "broker3"
+      PYROSCOPE_SERVER_ADDRESS: "http://pyroscope:4040"
+      PYROSCOPE_FORMAT: "jfr"
+      PYROSCOPE_PROFILER_EVENT: "cpu"
+      PYROSCOPE_PROFILER_ALLOC: "512k"
       KAFKA_METRIC_REPORTERS: "com.linkedin.kafka.cruisecontrol.metricsreporter.CruiseControlMetricsReporter"
       KAFKA_CRUISE_CONTROL_METRICS_TOPIC_AUTO_CREATE: "true"
       KAFKA_CRUISE_CONTROL_METRICS_TOPIC_NUM_PARTITIONS: "1"
@@ -318,6 +348,18 @@ services:
       SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: "broker1:9092,broker2:9092,broker3:9092"
       SCHEMA_REGISTRY_LISTENERS: "http://0.0.0.0:8081"
       SCHEMA_REGISTRY_DEBUG: "true"
+      KAFKA_OPTS: "-javaagent:/opt/agents/pyroscope.jar -javaagent:/opt/agents/opentelemetry-javaagent.jar -javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml"
+      OTEL_SERVICE_NAME: "schema-registry"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
+      OTEL_TRACES_EXPORTER: "otlp"
+      OTEL_LOGS_EXPORTER: "otlp"
+      OTEL_METRICS_EXPORTER: "none"
+      PYROSCOPE_APPLICATION_NAME: "schema-registry"
+      PYROSCOPE_SERVER_ADDRESS: "http://pyroscope:4040"
+      PYROSCOPE_FORMAT: "jfr"
+      PYROSCOPE_PROFILER_EVENT: "cpu"
+      PYROSCOPE_PROFILER_ALLOC: "512k"
     ports:
       - "127.0.0.1:8081:8081"
     depends_on:
@@ -327,6 +369,7 @@ services:
     networks:
       - kafka-data
       - edge
+      - observability
 
   # Kafka Connect — kafka-data (brokers + localstack S3) + edge (REST 127.0.0.1:8083).
   kafka-connect:
@@ -355,6 +398,18 @@ services:
       AWS_ACCESS_KEY_ID: "test"
       AWS_SECRET_ACCESS_KEY: "test"
       AWS_DEFAULT_REGION: "us-east-1"
+      KAFKA_OPTS: "-javaagent:/opt/agents/pyroscope.jar -javaagent:/opt/agents/opentelemetry-javaagent.jar -javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml"
+      OTEL_SERVICE_NAME: "kafka-connect"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
+      OTEL_TRACES_EXPORTER: "otlp"
+      OTEL_LOGS_EXPORTER: "otlp"
+      OTEL_METRICS_EXPORTER: "none"
+      PYROSCOPE_APPLICATION_NAME: "kafka-connect"
+      PYROSCOPE_SERVER_ADDRESS: "http://pyroscope:4040"
+      PYROSCOPE_FORMAT: "jfr"
+      PYROSCOPE_PROFILER_EVENT: "cpu"
+      PYROSCOPE_PROFILER_ALLOC: "512k"
     ports:
       - "127.0.0.1:8083:8083"
     depends_on:
@@ -371,6 +426,7 @@ services:
     networks:
       - kafka-data
       - edge
+      - observability
 
   # Prometheus — observability (scrape targets) + edge (UI 127.0.0.1:9090).
   prometheus:
