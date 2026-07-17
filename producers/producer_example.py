@@ -11,6 +11,8 @@ Uso:
 """
 
 from kafka import KafkaProducer
+from opentelemetry import trace
+from opentelemetry.propagate import inject
 import json
 import time
 import logging
@@ -22,6 +24,13 @@ logging.basicConfig(
     format='%(asctime)s %(levelname)s %(name)s otelSpanID=%(otelSpanID)s otelTraceID=%(otelTraceID)s %(message)s'
 )
 logger = logging.getLogger("kafka-producer")
+tracer = trace.get_tracer("kafka-producer")
+
+
+def _traceparent_headers():
+    carrier = {}
+    inject(carrier)
+    return [(k, v.encode("utf-8")) for k, v in carrier.items()]
 
 # Configuração
 BOOTSTRAP_SERVERS = ['localhost:9092']
@@ -104,11 +113,16 @@ def send_batch(producer, num_events=10, delay=0.5):
         key = event['user']
         
         # Enviar evento
-        future = producer.send(
-            topic=TOPIC,
-            key=key,
-            value=event
-        )
+        with tracer.start_as_current_span("events send") as span:
+            span.set_attribute("messaging.system", "kafka")
+            span.set_attribute("messaging.destination.name", TOPIC)
+            span.set_attribute("messaging.kafka.message.key", key)
+            future = producer.send(
+                topic=TOPIC,
+                key=key,
+                value=event,
+                headers=_traceparent_headers(),
+            )
         
         # Aguardar confirmação
         try:
@@ -144,7 +158,11 @@ def send_continuous(producer, events_per_second=2, duration_seconds=60):
             event = generate_event(event_id)
             key = event['user']
             
-            future = producer.send(topic=TOPIC, key=key, value=event)
+            with tracer.start_as_current_span("events send") as span:
+                span.set_attribute("messaging.system", "kafka")
+                span.set_attribute("messaging.destination.name", TOPIC)
+                span.set_attribute("messaging.kafka.message.key", key)
+                future = producer.send(topic=TOPIC, key=key, value=event, headers=_traceparent_headers())
             
             try:
                 record_metadata = future.get(timeout=10)
