@@ -368,14 +368,6 @@ services:
         condition: service_started
       schema-registry:
         condition: service_started
-    command:
-      - bash
-      - -c
-      - |
-        echo "Installing S3 Sink Connector..."
-        confluent-hub install --no-prompt confluentinc/kafka-connect-s3:10.5.0
-        echo "Launching Kafka Connect..."
-        /etc/confluent/docker/run
     networks:
       - kafka-data
       - edge

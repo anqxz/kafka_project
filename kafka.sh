@@ -46,7 +46,24 @@ cmd="${1:-help}"
 shift || true
 
 case "$cmd" in
-  start)         compose up -d "$@" ;;
+  start)
+    compose up -d "$@"
+    # Auto-provision S3 sink connector once Connect is reachable, unless
+    # a specific service subset was passed. Idempotent: skips if it exists.
+    if [ $# -eq 0 ]; then
+      ( sleep 15
+        for _ in $(seq 1 30); do
+          curl -sf -o /dev/null http://127.0.0.1:8083 && break
+          sleep 2
+        done
+        curl -sf -o /dev/null http://127.0.0.1:8083/connectors/s3-sink-connector && exit 0
+        curl -s -X POST -H 'Content-Type: application/json' \
+          --data @"$SCRIPT_DIR/connects/s3-sink-connector.json" \
+          http://127.0.0.1:8083/connectors >/dev/null && \
+          echo "s3-sink-connector provisioned"
+      ) &
+    fi
+    ;;
   stop)          compose down ;;
   restart)       compose restart "$@" ;;
   status)        compose ps ;;

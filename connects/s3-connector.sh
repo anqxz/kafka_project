@@ -68,7 +68,7 @@ restart() {
 # Ver arquivos no S3
 show_s3() {
     echo -e "${YELLOW}Arquivos no bucket S3:${NC}"
-    podman exec -it localstack awslocal s3 ls s3://kafka-events-bucket/ --recursive
+    docker exec -it localstack awslocal s3 ls s3://kafka-events-bucket/ --recursive
 }
 
 # Baixar arquivo do S3
@@ -80,8 +80,8 @@ download_s3() {
     fi
     
     echo -e "${YELLOW}Baixando arquivo...${NC}"
-    podman exec -it localstack awslocal s3 cp "s3://kafka-events-bucket/${FILE}" /tmp/
-    podman cp localstack:/tmp/$(basename $FILE) .
+    docker exec -it localstack awslocal s3 cp "s3://kafka-events-bucket/${FILE}" /tmp/
+    docker cp localstack:/tmp/$(basename $FILE) .
     echo -e "${GREEN}✓ Arquivo baixado: $(basename $FILE)${NC}"
 }
 
