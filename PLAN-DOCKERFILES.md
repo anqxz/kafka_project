@@ -26,8 +26,28 @@ controller/broker share one `services/broker/` image with different `command:` i
 
 ### Phase 0 — plan doc + branch
 - [x] Write this plan (`PLAN-DOCKERFILES.md`)
-- [ ] Branch: `feat/per-service-dockerfiles`
-- [ ] User review + go-ahead
+- [x] Branch: `feat/per-service-dockerfiles`
+- [x] User review + go-ahead
+
+## Outcome (all phases complete)
+
+- 25 of 25 services boot green from `./kafka.sh start` (or `docker compose up -d`).
+- Every service builds from `services/<name>/Dockerfile`; no `image:` remains
+  in `clusters/docker-compose.yml` outside comments.
+- Central version pins in `clusters/.env`.
+- JMX exporter, OpenTelemetry javaagent, and Cruise Control metrics reporter
+  are baked into the broker image (reporter built from source in an isolated
+  gradle stage — not on Maven Central). Controllers, kafka-connect, and
+  schema-registry bake JMX + OTel javaagent.
+- OTel javaagent activation env (`OTEL_SERVICE_NAME`, OTLP endpoint, exporter
+  wiring) added to every JVM service in compose.
+- New services delivered: mcp-kafka (Tier-0 FastMCP), loadgen, cruise-control,
+  kroxylicious (pass-through, filter chain TBD), toxiproxy.
+- Kroxylicious 0.10.0 required the map-form `virtualClusters:` schema and
+  `filterDefinitions: []`; noted here so future config work uses 0.10 grammar.
+- Cruise Control requires `kafka.broker.failure.detection.enable=true` under
+  KRaft (no ZK), plus explicit `hard.goals` matching `default.goals`.
+- Loadgen uses `restart: on-failure` to survive the broker warm-up race.
 
 ### Phase 1 — skeleton + config migration
 - [ ] Create `services/<name>/` for all 25 (empty dirs first)

@@ -31,7 +31,13 @@ services:
       KAFKA_LOG4J_LOGGERS: "org.apache.kafka=DEBUG"
       KAFKA_JMX_PORT: "9101"
       KAFKA_JMX_HOSTNAME: "controller1"
-      KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml"
+      KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml -javaagent:/opt/agents/opentelemetry-javaagent.jar"
+      OTEL_SERVICE_NAME: "controller1"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
+      OTEL_TRACES_EXPORTER: "otlp"
+      OTEL_LOGS_EXPORTER: "otlp"
+      OTEL_METRICS_EXPORTER: "none"
     volumes:
       - controller1-data:/var/lib/kafka/data
     networks:
@@ -56,7 +62,13 @@ services:
       KAFKA_LOG4J_LOGGERS: "org.apache.kafka=DEBUG"
       KAFKA_JMX_PORT: "9101"
       KAFKA_JMX_HOSTNAME: "controller2"
-      KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml"
+      KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml -javaagent:/opt/agents/opentelemetry-javaagent.jar"
+      OTEL_SERVICE_NAME: "controller2"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
+      OTEL_TRACES_EXPORTER: "otlp"
+      OTEL_LOGS_EXPORTER: "otlp"
+      OTEL_METRICS_EXPORTER: "none"
     volumes:
       - controller2-data:/var/lib/kafka/data
     networks:
@@ -81,7 +93,13 @@ services:
       KAFKA_LOG4J_LOGGERS: "org.apache.kafka=DEBUG"
       KAFKA_JMX_PORT: "9101"
       KAFKA_JMX_HOSTNAME: "controller3"
-      KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml"
+      KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml -javaagent:/opt/agents/opentelemetry-javaagent.jar"
+      OTEL_SERVICE_NAME: "controller3"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
+      OTEL_TRACES_EXPORTER: "otlp"
+      OTEL_LOGS_EXPORTER: "otlp"
+      OTEL_METRICS_EXPORTER: "none"
     volumes:
       - controller3-data:/var/lib/kafka/data
     networks:
@@ -111,7 +129,17 @@ services:
       KAFKA_LOG4J_LOGGERS: "org.apache.kafka=DEBUG"
       KAFKA_JMX_PORT: "9101"
       KAFKA_JMX_HOSTNAME: "broker1"
-      KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml"
+      KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml -javaagent:/opt/agents/opentelemetry-javaagent.jar"
+      OTEL_SERVICE_NAME: "broker1"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
+      OTEL_TRACES_EXPORTER: "otlp"
+      OTEL_LOGS_EXPORTER: "otlp"
+      OTEL_METRICS_EXPORTER: "none"
+      KAFKA_METRIC_REPORTERS: "com.linkedin.kafka.cruisecontrol.metricsreporter.CruiseControlMetricsReporter"
+      KAFKA_CRUISE_CONTROL_METRICS_TOPIC_AUTO_CREATE: "true"
+      KAFKA_CRUISE_CONTROL_METRICS_TOPIC_NUM_PARTITIONS: "1"
+      KAFKA_CRUISE_CONTROL_METRICS_TOPIC_REPLICATION_FACTOR: "1"
     ports:
       - "127.0.0.1:9092:29092"
     depends_on:
@@ -147,7 +175,17 @@ services:
       KAFKA_LOG4J_LOGGERS: "org.apache.kafka=DEBUG"
       KAFKA_JMX_PORT: "9101"
       KAFKA_JMX_HOSTNAME: "broker2"
-      KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml"
+      KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml -javaagent:/opt/agents/opentelemetry-javaagent.jar"
+      OTEL_SERVICE_NAME: "broker2"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
+      OTEL_TRACES_EXPORTER: "otlp"
+      OTEL_LOGS_EXPORTER: "otlp"
+      OTEL_METRICS_EXPORTER: "none"
+      KAFKA_METRIC_REPORTERS: "com.linkedin.kafka.cruisecontrol.metricsreporter.CruiseControlMetricsReporter"
+      KAFKA_CRUISE_CONTROL_METRICS_TOPIC_AUTO_CREATE: "true"
+      KAFKA_CRUISE_CONTROL_METRICS_TOPIC_NUM_PARTITIONS: "1"
+      KAFKA_CRUISE_CONTROL_METRICS_TOPIC_REPLICATION_FACTOR: "1"
     ports:
       - "127.0.0.1:9093:29092"
     depends_on:
@@ -183,7 +221,17 @@ services:
       KAFKA_LOG4J_LOGGERS: "org.apache.kafka=DEBUG"
       KAFKA_JMX_PORT: "9101"
       KAFKA_JMX_HOSTNAME: "broker3"
-      KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml"
+      KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml -javaagent:/opt/agents/opentelemetry-javaagent.jar"
+      OTEL_SERVICE_NAME: "broker3"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
+      OTEL_TRACES_EXPORTER: "otlp"
+      OTEL_LOGS_EXPORTER: "otlp"
+      OTEL_METRICS_EXPORTER: "none"
+      KAFKA_METRIC_REPORTERS: "com.linkedin.kafka.cruisecontrol.metricsreporter.CruiseControlMetricsReporter"
+      KAFKA_CRUISE_CONTROL_METRICS_TOPIC_AUTO_CREATE: "true"
+      KAFKA_CRUISE_CONTROL_METRICS_TOPIC_NUM_PARTITIONS: "1"
+      KAFKA_CRUISE_CONTROL_METRICS_TOPIC_REPLICATION_FACTOR: "1"
     ports:
       - "127.0.0.1:9094:29092"
     depends_on:
