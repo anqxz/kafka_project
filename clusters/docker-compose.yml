@@ -14,7 +14,10 @@ services:
 
   # Controllers (KRaft controllers) — kafka-quorum only + observability for scrape.
   controller1:
-    image: confluentinc/cp-kafka:7.7.1
+    build:
+      context: ../services/controller
+      args:
+        BASE_TAG: "${KAFKA_TAG}"
     container_name: controller1
     environment:
       KAFKA_PROCESS_ROLES: "controller"
@@ -28,16 +31,24 @@ services:
       KAFKA_LOG4J_LOGGERS: "org.apache.kafka=DEBUG"
       KAFKA_JMX_PORT: "9101"
       KAFKA_JMX_HOSTNAME: "controller1"
-      KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml"
+      KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml -javaagent:/opt/agents/opentelemetry-javaagent.jar"
+      OTEL_SERVICE_NAME: "controller1"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
+      OTEL_TRACES_EXPORTER: "otlp"
+      OTEL_LOGS_EXPORTER: "otlp"
+      OTEL_METRICS_EXPORTER: "none"
     volumes:
       - controller1-data:/var/lib/kafka/data
-      - ../metrics/jmx-exporter:/opt/jmx_exporter
     networks:
       - kafka-quorum
       - observability
 
   controller2:
-    image: confluentinc/cp-kafka:7.7.1
+    build:
+      context: ../services/controller
+      args:
+        BASE_TAG: "${KAFKA_TAG}"
     container_name: controller2
     environment:
       KAFKA_PROCESS_ROLES: "controller"
@@ -51,16 +62,24 @@ services:
       KAFKA_LOG4J_LOGGERS: "org.apache.kafka=DEBUG"
       KAFKA_JMX_PORT: "9101"
       KAFKA_JMX_HOSTNAME: "controller2"
-      KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml"
+      KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml -javaagent:/opt/agents/opentelemetry-javaagent.jar"
+      OTEL_SERVICE_NAME: "controller2"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
+      OTEL_TRACES_EXPORTER: "otlp"
+      OTEL_LOGS_EXPORTER: "otlp"
+      OTEL_METRICS_EXPORTER: "none"
     volumes:
       - controller2-data:/var/lib/kafka/data
-      - ../metrics/jmx-exporter:/opt/jmx_exporter
     networks:
       - kafka-quorum
       - observability
 
   controller3:
-    image: confluentinc/cp-kafka:7.7.1
+    build:
+      context: ../services/controller
+      args:
+        BASE_TAG: "${KAFKA_TAG}"
     container_name: controller3
     environment:
       KAFKA_PROCESS_ROLES: "controller"
@@ -74,10 +93,15 @@ services:
       KAFKA_LOG4J_LOGGERS: "org.apache.kafka=DEBUG"
       KAFKA_JMX_PORT: "9101"
       KAFKA_JMX_HOSTNAME: "controller3"
-      KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml"
+      KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml -javaagent:/opt/agents/opentelemetry-javaagent.jar"
+      OTEL_SERVICE_NAME: "controller3"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
+      OTEL_TRACES_EXPORTER: "otlp"
+      OTEL_LOGS_EXPORTER: "otlp"
+      OTEL_METRICS_EXPORTER: "none"
     volumes:
       - controller3-data:/var/lib/kafka/data
-      - ../metrics/jmx-exporter:/opt/jmx_exporter
     networks:
       - kafka-quorum
       - observability
@@ -85,7 +109,10 @@ services:
   # Brokers — quorum (talk to controllers), data (clients), observability (scrape),
   # edge (EXTERNAL listener published to 127.0.0.1 for host producers/consumers).
   broker1:
-    image: confluentinc/cp-kafka:7.7.1
+    build:
+      context: ../services/broker
+      args:
+        BASE_TAG: "${KAFKA_TAG}"
     container_name: broker1
     environment:
       KAFKA_PROCESS_ROLES: "broker"
@@ -102,7 +129,17 @@ services:
       KAFKA_LOG4J_LOGGERS: "org.apache.kafka=DEBUG"
       KAFKA_JMX_PORT: "9101"
       KAFKA_JMX_HOSTNAME: "broker1"
-      KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml"
+      KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml -javaagent:/opt/agents/opentelemetry-javaagent.jar"
+      OTEL_SERVICE_NAME: "broker1"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
+      OTEL_TRACES_EXPORTER: "otlp"
+      OTEL_LOGS_EXPORTER: "otlp"
+      OTEL_METRICS_EXPORTER: "none"
+      KAFKA_METRIC_REPORTERS: "com.linkedin.kafka.cruisecontrol.metricsreporter.CruiseControlMetricsReporter"
+      KAFKA_CRUISE_CONTROL_METRICS_TOPIC_AUTO_CREATE: "true"
+      KAFKA_CRUISE_CONTROL_METRICS_TOPIC_NUM_PARTITIONS: "1"
+      KAFKA_CRUISE_CONTROL_METRICS_TOPIC_REPLICATION_FACTOR: "1"
     ports:
       - "127.0.0.1:9092:29092"
     depends_on:
@@ -111,7 +148,6 @@ services:
       - controller3
     volumes:
       - broker1-data:/var/lib/kafka/data
-      - ../metrics/jmx-exporter:/opt/jmx_exporter
     networks:
       - kafka-quorum
       - kafka-data
@@ -119,7 +155,10 @@ services:
       - edge
 
   broker2:
-    image: confluentinc/cp-kafka:7.7.1
+    build:
+      context: ../services/broker
+      args:
+        BASE_TAG: "${KAFKA_TAG}"
     container_name: broker2
     environment:
       KAFKA_PROCESS_ROLES: "broker"
@@ -136,7 +175,17 @@ services:
       KAFKA_LOG4J_LOGGERS: "org.apache.kafka=DEBUG"
       KAFKA_JMX_PORT: "9101"
       KAFKA_JMX_HOSTNAME: "broker2"
-      KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml"
+      KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml -javaagent:/opt/agents/opentelemetry-javaagent.jar"
+      OTEL_SERVICE_NAME: "broker2"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
+      OTEL_TRACES_EXPORTER: "otlp"
+      OTEL_LOGS_EXPORTER: "otlp"
+      OTEL_METRICS_EXPORTER: "none"
+      KAFKA_METRIC_REPORTERS: "com.linkedin.kafka.cruisecontrol.metricsreporter.CruiseControlMetricsReporter"
+      KAFKA_CRUISE_CONTROL_METRICS_TOPIC_AUTO_CREATE: "true"
+      KAFKA_CRUISE_CONTROL_METRICS_TOPIC_NUM_PARTITIONS: "1"
+      KAFKA_CRUISE_CONTROL_METRICS_TOPIC_REPLICATION_FACTOR: "1"
     ports:
       - "127.0.0.1:9093:29092"
     depends_on:
@@ -145,7 +194,6 @@ services:
       - controller3
     volumes:
       - broker2-data:/var/lib/kafka/data
-      - ../metrics/jmx-exporter:/opt/jmx_exporter
     networks:
       - kafka-quorum
       - kafka-data
@@ -153,7 +201,10 @@ services:
       - edge
 
   broker3:
-    image: confluentinc/cp-kafka:7.7.1
+    build:
+      context: ../services/broker
+      args:
+        BASE_TAG: "${KAFKA_TAG}"
     container_name: broker3
     environment:
       KAFKA_PROCESS_ROLES: "broker"
@@ -170,7 +221,17 @@ services:
       KAFKA_LOG4J_LOGGERS: "org.apache.kafka=DEBUG"
       KAFKA_JMX_PORT: "9101"
       KAFKA_JMX_HOSTNAME: "broker3"
-      KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml"
+      KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml -javaagent:/opt/agents/opentelemetry-javaagent.jar"
+      OTEL_SERVICE_NAME: "broker3"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
+      OTEL_TRACES_EXPORTER: "otlp"
+      OTEL_LOGS_EXPORTER: "otlp"
+      OTEL_METRICS_EXPORTER: "none"
+      KAFKA_METRIC_REPORTERS: "com.linkedin.kafka.cruisecontrol.metricsreporter.CruiseControlMetricsReporter"
+      KAFKA_CRUISE_CONTROL_METRICS_TOPIC_AUTO_CREATE: "true"
+      KAFKA_CRUISE_CONTROL_METRICS_TOPIC_NUM_PARTITIONS: "1"
+      KAFKA_CRUISE_CONTROL_METRICS_TOPIC_REPLICATION_FACTOR: "1"
     ports:
       - "127.0.0.1:9094:29092"
     depends_on:
@@ -179,7 +240,6 @@ services:
       - controller3
     volumes:
       - broker3-data:/var/lib/kafka/data
-      - ../metrics/jmx-exporter:/opt/jmx_exporter
     networks:
       - kafka-quorum
       - kafka-data
@@ -189,25 +249,11 @@ services:
   # AKHQ — data (client connectivity to brokers, JMX via container hostnames) + edge (UI on 127.0.0.1).
   # JMX targets now use each broker's internal port 9101 (host-mapped ports removed).
   akhq:
-    image: tchiotludo/akhq:latest
+    build:
+      context: ../services/akhq
+      args:
+        BASE_TAG: "${AKHQ_TAG}"
     container_name: akhq
-    environment:
-      AKHQ_CONFIGURATION: |
-        akhq:
-          connections:
-            kafka-kraft-cluster:
-              properties:
-                bootstrap.servers: "broker1:9092,broker2:9092,broker3:9092"
-              jmx:
-                - name: broker1
-                  url: "broker1:9101"
-                - name: broker2
-                  url: "broker2:9101"
-                - name: broker3
-                  url: "broker3:9101"
-              connect:
-                - name: "kafka-connect"
-                  url: "http://kafka-connect:8083"
     ports:
       - "127.0.0.1:8080:8080"
     depends_on:
@@ -224,7 +270,10 @@ services:
   # NOTE: docker.sock mount is an accepted lab risk (F6 in 04-SECURITY-GUARDRAILS.md); required for
   # LOCAL Lambda executor. LAMBDA_DOCKER_NETWORK pinned to the deterministic kafka-data name.
   localstack:
-    image: localstack/localstack:3.8
+    build:
+      context: ../services/localstack
+      args:
+        BASE_TAG: "${LOCALSTACK_TAG}"
     container_name: localstack
     environment:
       SERVICES: s3,ssm,secretsmanager,iam,sts,cloudwatch,logs,sns,sqs,lambda,kms,events
@@ -260,7 +309,10 @@ services:
 
   # Schema Registry — kafka-data only; UI on 127.0.0.1 via edge for developer convenience.
   schema-registry:
-    image: confluentinc/cp-schema-registry:7.7.1
+    build:
+      context: ../services/schema-registry
+      args:
+        BASE_TAG: "${SCHEMA_REGISTRY_TAG}"
     container_name: schema-registry
     environment:
       SCHEMA_REGISTRY_HOST_NAME: schema-registry
@@ -279,7 +331,10 @@ services:
 
   # Kafka Connect — kafka-data (brokers + localstack S3) + edge (REST 127.0.0.1:8083).
   kafka-connect:
-    image: confluentinc/cp-kafka-connect:7.7.1
+    build:
+      context: ../services/kafka-connect
+      args:
+        BASE_TAG: "${CONNECT_TAG}"
     container_name: kafka-connect
     environment:
       CONNECT_BOOTSTRAP_SERVERS: "broker1:9092,broker2:9092,broker3:9092"
@@ -328,7 +383,10 @@ services:
 
   # Prometheus — observability (scrape targets) + edge (UI 127.0.0.1:9090).
   prometheus:
-    image: prom/prometheus:latest
+    build:
+      context: ../services/prometheus
+      args:
+        BASE_TAG: "${PROMETHEUS_TAG}"
     container_name: prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
@@ -338,8 +396,6 @@ services:
     ports:
       - "127.0.0.1:9090:9090"
     volumes:
-      - ../metrics/prometheus.yml:/etc/prometheus/prometheus.yml
-      - ../metrics/rules:/etc/prometheus/rules:ro
       - prometheus-data:/prometheus
     depends_on:
       - broker1
@@ -351,7 +407,10 @@ services:
 
   # Grafana — observability (reach Prometheus) + edge (UI 127.0.0.1:3000).
   grafana:
-    image: grafana/grafana:latest
+    build:
+      context: ../services/grafana
+      args:
+        BASE_TAG: "${GRAFANA_TAG}"
     container_name: grafana
     environment:
       GF_SECURITY_ADMIN_USER: admin
@@ -361,8 +420,6 @@ services:
       - "127.0.0.1:3000:3000"
     volumes:
       - grafana-data:/var/lib/grafana
-      - ../metrics/grafana/dashboards:/etc/grafana/provisioning/dashboards
-      - ../metrics/grafana/datasources:/etc/grafana/provisioning/datasources
     depends_on:
       - prometheus
       - loki
@@ -377,10 +434,12 @@ services:
   # KMinion — Kafka lag/topic metrics; scraped by Prometheus internally.
   # Networks: kafka-data (brokers) + observability (Prometheus scrape).
   kminion:
-    image: redpandadata/kminion:latest
+    build:
+      context: ../services/kminion
+      args:
+        BASE_TAG: "${KMINION_TAG}"
     container_name: kminion
-    volumes:
-      - ./config/kminion.yaml:/etc/kminion/config.yaml:ro
+    restart: unless-stopped
     environment:
       CONFIG_FILEPATH: /etc/kminion/config.yaml
     depends_on:
@@ -400,11 +459,15 @@ services:
   # OTel Collector — single pipeline for logs, traces, metrics.
   # Networks: observability only (loki/tempo/prometheus targets are co-located).
   otel-collector:
-    image: otel/opentelemetry-collector-contrib:latest
+    build:
+      context: ../services/otel-collector
+      args:
+        BASE_TAG: "${OTEL_COLLECTOR_TAG}"
     container_name: otel-collector
     command: ["--config=/etc/otelcol/config.yaml"]
-    volumes:
-      - ./config/otel-collector.yaml:/etc/otelcol/config.yaml:ro
+    ports:
+      - "127.0.0.1:4317:4317"   # OTLP gRPC
+      - "127.0.0.1:4318:4318"   # OTLP HTTP
       # Container log filelog mount removed: rootless Docker/Podman doesn't expose
       # /var/lib/docker/containers. Filelog receiver disabled in otel-collector.yaml.
       # Log ingestion via OTLP push from apps or a rootless-compatible tail agent (later PR).
@@ -419,11 +482,13 @@ services:
 
   # Loki — log aggregation backend; single-binary mode, filesystem storage.
   loki:
-    image: grafana/loki:latest
+    build:
+      context: ../services/loki
+      args:
+        BASE_TAG: "${LOKI_TAG}"
     container_name: loki
     command: ["-config.file=/etc/loki/config.yaml"]
     volumes:
-      - ./config/loki-config.yaml:/etc/loki/config.yaml:ro
       - loki-data:/loki
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:3100/ready"]
@@ -436,11 +501,13 @@ services:
 
   # Tempo — distributed tracing backend; single-binary mode, local storage.
   tempo:
-    image: grafana/tempo:2.6.0
+    build:
+      context: ../services/tempo
+      args:
+        BASE_TAG: "${TEMPO_TAG}"
     container_name: tempo
     command: ["-config.file=/etc/tempo/config.yaml"]
     volumes:
-      - ./config/tempo-config.yaml:/etc/tempo/config.yaml:ro
       - tempo-data:/tmp/tempo
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:3200/ready"]
@@ -453,11 +520,13 @@ services:
 
   # Pyroscope — continuous profiling backend; single-binary mode.
   pyroscope:
-    image: grafana/pyroscope:latest
+    build:
+      context: ../services/pyroscope
+      args:
+        BASE_TAG: "${PYROSCOPE_TAG}"
     container_name: pyroscope
     command: ["server", "--config.file=/etc/pyroscope/config.yaml"]
     volumes:
-      - ./config/pyroscope.yaml:/etc/pyroscope/config.yaml:ro
       - pyroscope-data:/data
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:4040/ready"]
@@ -471,13 +540,15 @@ services:
   # Alertmanager — alert routing to ntfy webhook.
   # Networks: observability only — not exposed to host.
   alertmanager:
-    image: prom/alertmanager:latest
+    build:
+      context: ../services/alertmanager
+      args:
+        BASE_TAG: "${ALERTMANAGER_TAG}"
     container_name: alertmanager
     command:
       - '--config.file=/etc/alertmanager/alertmanager.yml'
       - '--storage.path=/alertmanager'
     volumes:
-      - ./config/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
       - alertmanager-data:/alertmanager
     depends_on:
       - prometheus
@@ -492,12 +563,13 @@ services:
 
   # Blackbox Exporter — synthetic HTTP/TCP probe endpoint.
   blackbox-exporter:
-    image: prom/blackbox-exporter:latest
+    build:
+      context: ../services/blackbox-exporter
+      args:
+        BASE_TAG: "${BLACKBOX_EXPORTER_TAG}"
     container_name: blackbox-exporter
     command:
       - '--config.file=/etc/blackbox_exporter/blackbox.yml'
-    volumes:
-      - ./config/blackbox.yml:/etc/blackbox_exporter/blackbox.yml:ro
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:9115/-/healthy"]
       interval: 15s
@@ -515,7 +587,7 @@ services:
   #   ports:
   #     - "127.0.0.1:9095:9090"
   #   volumes:
-  #     - ./config/cruise-control.properties:/opt/cruise-control/config/cruisecontrol.properties:ro
+  #     - ../services/cruise-control/config/cruisecontrol.properties:/opt/cruise-control/config/cruisecontrol.properties:ro
   #   depends_on:
   #     - broker1
   #     - broker2
@@ -528,13 +600,15 @@ services:
   # ntfy — notification service for Alertmanager webhook.
   # Networks: edge only (receives webhook from alertmanager via observability→edge routing).
   ntfy:
-    image: binwiederhier/ntfy:latest
+    build:
+      context: ../services/ntfy
+      args:
+        BASE_TAG: "${NTFY_TAG}"
     container_name: ntfy
     command: ["serve", "--config=/etc/ntfy/ntfy.yml"]
     ports:
       - "127.0.0.1:8082:80"
     volumes:
-      - ./config/ntfy.yml:/etc/ntfy/ntfy.yml:ro
       - ntfy-data:/var/lib/ntfy
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:80/v1/health"]
@@ -546,22 +620,130 @@ services:
       - edge
       - observability
 
+  # === PHASE-7 new services ===
+
+  cruise-control:
+    build:
+      context: ../services/cruise-control
+      args:
+        CC_VERSION: "${CC_VERSION}"
+        GRADLE_TAG: "${CC_GRADLE_TAG}"
+        RUNTIME_TAG: "${CC_RUNTIME_TAG}"
+    container_name: cruise-control
+    depends_on:
+      - broker1
+      - broker2
+      - broker3
+    ports:
+      - "127.0.0.1:9095:9090"
+    networks:
+      - kafka-data
+      - observability
+
+  kroxylicious:
+    build:
+      context: ../services/kroxylicious
+      args:
+        BASE_TAG: "${KROXYLICIOUS_TAG}"
+    container_name: kroxylicious
+    depends_on:
+      - broker1
+      - localstack
+    ports:
+      - "127.0.0.1:9192:9192"
+    networks:
+      - kafka-data
+      - observability
+      - edge
+
+  toxiproxy:
+    build:
+      context: ../services/toxiproxy
+      args:
+        BASE_TAG: "${TOXIPROXY_TAG}"
+    container_name: toxiproxy
+    ports:
+      - "127.0.0.1:8474:8474"
+    networks:
+      - kafka-data
+      - edge
+
+  mcp-kafka:
+    build:
+      context: ../services/mcp-kafka
+      args:
+        PYTHON_TAG: "${MCP_KAFKA_PYTHON_TAG}"
+    container_name: mcp-kafka
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: "broker1:9092,broker2:9092,broker3:9092"
+      CONNECT_URL: "http://kafka-connect:8083"
+      SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
+      PROMETHEUS_URL: "http://prometheus:9090"
+      MCP_MODE: "read-only"
+      MCP_TRANSPORT: "sse"
+      MCP_PORT: "3001"
+    depends_on:
+      - broker1
+      - kafka-connect
+    ports:
+      - "127.0.0.1:3001:3001"
+    networks:
+      - kafka-data
+      - observability
+      - edge
+
+  loadgen:
+    build:
+      context: ../services/loadgen
+      args:
+        PYTHON_TAG: "${LOADGEN_PYTHON_TAG}"
+    container_name: loadgen
+    restart: on-failure
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: "broker1:9092,broker2:9092,broker3:9092"
+      LOADGEN_TOPIC: "events"
+      LOADGEN_RATE: "5"
+      LOADGEN_DURATION: "0"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"
+    depends_on:
+      - broker1
+      - otel-collector
+    networks:
+      - kafka-data
+      - observability
+
 networks:
   kafka-quorum:
     name: kafka-quorum
     driver: bridge
     internal: true
+    ipam:
+      config:
+        - subnet: 10.89.3.0/24
+          gateway: 10.89.3.1
   kafka-data:
     name: kafka-data
     driver: bridge
     internal: true
+    ipam:
+      config:
+        - subnet: 10.89.2.0/24
+          gateway: 10.89.2.1
   observability:
     name: observability
     driver: bridge
     internal: true
+    ipam:
+      config:
+        - subnet: 10.89.0.0/24
+          gateway: 10.89.0.1
   edge:
     name: edge
     driver: bridge
+    ipam:
+      config:
+        - subnet: 10.89.1.0/24
+          gateway: 10.89.1.1
 
 volumes:
   controller1-data:

@@ -37,6 +37,35 @@ Este projeto contém um cluster Kafka completo com KRaft (sem Zookeeper), Kafka 
 - **Prometheus**: http://localhost:9090
 - **JMX direto**: AKHQ acessa JMX diretamente, sem exporters extras!
 
+## ⚙️ Prerequisites (Podman rootless)
+
+This stack is validated on rootless Podman 4.9 (Ubuntu 24.04). Docker Engine works with no extra setup, but Podman needs:
+
+1. **netavark backend + aardvark-dns** (container-to-container DNS is required for `broker*`, `schema-registry`, `kafka-connect`, `loki`, `tempo`, etc. to resolve each other).
+
+   ```bash
+   sudo apt install -y netavark aardvark-dns
+   mkdir -p ~/.config/containers
+   printf '[network]\nnetwork_backend = "netavark"\n' > ~/.config/containers/containers.conf
+   echo netavark > ~/.local/share/containers/storage/defaultNetworkBackend
+   rm -f ~/.local/share/containers/storage/networks/*.json \
+         ~/.local/share/containers/storage/networks/netavark.lock
+   systemctl --user restart podman.socket podman.service
+   podman info --format '{{.Host.NetworkBackend}}'   # → netavark
+   ```
+
+   Without this, containers cannot resolve each other by name (CNI without `dnsname` plugin) and `kafka-connect` / `schema-registry` fail on broker DNS lookup.
+
+2. **After `podman system reset`** — restart the socket before running compose:
+
+   ```bash
+   systemctl --user restart podman.socket podman.service
+   ```
+
+   Otherwise you'll see `attempt to write a readonly database` from the stale service.
+
+3. **Network `ipam.config`** is set explicitly in `clusters/docker-compose.yml` (compose v5.3.1 crashes with `ParseAddr("<nil>")` on internal bridges when the gateway is left implicit).
+
 ## 🚀 Como Usar
 
 ### Guia Completo S3 Sink

@@ -1,6 +1,20 @@
 # 02 — System Integration Architecture
 
-> How the 12 components integrate: protocols, contracts, startup ordering, and the MCP control-plane layer.
+> How the 25 components integrate: protocols, contracts, startup ordering, and the MCP control-plane layer. All services now build from `services/<name>/Dockerfile`; central version pinning in `clusters/.env`. See `PLAN-DOCKERFILES.md` for the migration record.
+
+## 0. Stack status (bring-up)
+
+| Group | Services | Status |
+|---|---|---|
+| Kafka core | 3× controller, 3× broker | ✅ Up. JMX + OTel javaagent baked. Brokers also carry the Cruise Control metrics reporter JAR (built in an isolated gradle stage from the linkedin/cruise-control tag). |
+| Confluent JVM | kafka-connect (S3 sink baked), schema-registry | ✅ Up. JMX + OTel javaagent baked. |
+| Observability | prometheus, grafana, loki, tempo, pyroscope, alertmanager, blackbox-exporter, otel-collector, kminion, ntfy | ✅ Up. Thin config-wrap images pinned to explicit versions. |
+| Admin / storage / notify | akhq (config baked into image), localstack | ✅ Up. |
+| Rebalancer | cruise-control | ✅ Up. `hard.goals` aligned with `default.goals`; `kafka.broker.failure.detection.enable=true` for KRaft. |
+| Proxy | kroxylicious | ✅ Up (pass-through). RecordEncryption filter chain deferred — starter proxy.yaml uses the 0.10.0 map-form `virtualClusters:` schema. |
+| Fault injection | toxiproxy | ✅ Up. Starter Connect→LocalStack toxic. |
+| AI control plane | mcp-kafka | ✅ Up. Tier-0 read-only tools listed in §3.2. |
+| Synthetic traffic | loadgen | ✅ Up. OTel auto-instrumented (spans → Tempo, logs → Loki). `restart: on-failure` for broker warm-up race. |
 
 ## 1. Component Inventory & Contracts
 

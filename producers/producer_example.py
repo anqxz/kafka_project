@@ -13,8 +13,15 @@ Uso:
 from kafka import KafkaProducer
 import json
 import time
+import logging
 from datetime import datetime, timezone
 import random
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s %(levelname)s %(name)s otelSpanID=%(otelSpanID)s otelTraceID=%(otelTraceID)s %(message)s'
+)
+logger = logging.getLogger("kafka-producer")
 
 # Configuração
 BOOTSTRAP_SERVERS = ['localhost:9092']
@@ -106,10 +113,13 @@ def send_batch(producer, num_events=10, delay=0.5):
         # Aguardar confirmação
         try:
             record_metadata = future.get(timeout=10)
-            print(f"✓ [{i:3d}] {event['type']:15s} | User: {event['user']:8s} | "
-                  f"Partition: {record_metadata.partition} | Offset: {record_metadata.offset}")
+            logger.info(
+                "sent event",
+                extra={"event_id": i, "event_type": event["type"], "user": event["user"],
+                       "partition": record_metadata.partition, "offset": record_metadata.offset}
+            )
         except Exception as e:
-            print(f"✗ [{i:3d}] Erro ao enviar: {e}")
+            logger.error("send failed", extra={"event_id": i, "error": str(e)})
         
         # Delay entre mensagens
         if delay > 0:
@@ -138,12 +148,13 @@ def send_continuous(producer, events_per_second=2, duration_seconds=60):
             
             try:
                 record_metadata = future.get(timeout=10)
-                elapsed = int(time.time() - start_time)
-                print(f"[{elapsed:3d}s] {event['type']:15s} | "
-                      f"Partition: {record_metadata.partition} | "
-                      f"Offset: {record_metadata.offset}")
+                logger.info(
+                    "sent event",
+                    extra={"event_type": event["type"], "user": event["user"],
+                           "partition": record_metadata.partition, "offset": record_metadata.offset}
+                )
             except Exception as e:
-                print(f"✗ Erro: {e}")
+                logger.error("send failed", extra={"error": str(e)})
             
             event_id += 1
             time.sleep(delay)

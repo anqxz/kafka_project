@@ -2,3 +2,9 @@
 # Usando kafka-python-ng que é compatível com Python 3.13
 
 kafka-python-ng>=2.2.0
+
+# OpenTelemetry: auto-instrumentation + OTLP exporters (traces + logs)
+opentelemetry-distro>=0.48b0
+opentelemetry-exporter-otlp>=1.27.0
+opentelemetry-instrumentation-kafka-python>=0.48b0
+opentelemetry-instrumentation-logging>=0.48b0
