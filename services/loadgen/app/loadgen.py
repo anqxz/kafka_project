@@ -16,6 +16,8 @@ import time
 from datetime import datetime, timezone
 
 from kafka import KafkaProducer
+from opentelemetry import trace
+from opentelemetry.propagate import inject
 
 BOOTSTRAP = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "broker1:9092,broker2:9092,broker3:9092")
 TOPIC = os.getenv("LOADGEN_TOPIC", "events")
@@ -28,6 +30,14 @@ logging.basicConfig(
            "otelTraceID=%(otelTraceID)s %(message)s",
 )
 log = logging.getLogger("loadgen")
+tracer = trace.get_tracer("loadgen")
+
+
+def _traceparent_headers() -> list[tuple[str, bytes]]:
+    """W3C traceparent as Kafka record headers (03-DATA-FLOW §4.2)."""
+    carrier: dict[str, str] = {}
+    inject(carrier)
+    return [(k, v.encode("utf-8")) for k, v in carrier.items()]
 
 EVENT_TYPES = ["user_login", "page_view", "purchase", "add_to_cart", "search"]
 USERS = ["alice", "bob", "charlie", "david", "emma", "frank"]
@@ -73,7 +83,11 @@ def main() -> int:
         while _running:
             i += 1
             evt = make_event(i)
-            producer.send(TOPIC, key=evt["user"], value=evt)
+            with tracer.start_as_current_span("events send") as span:
+                span.set_attribute("messaging.system", "kafka")
+                span.set_attribute("messaging.destination.name", TOPIC)
+                span.set_attribute("messaging.kafka.message.key", evt["user"])
+                producer.send(TOPIC, key=evt["user"], value=evt, headers=_traceparent_headers())
             if i % 100 == 0:
                 log.info("sent batch", extra={"count": i})
             if DURATION and (time.monotonic() - start) >= DURATION:

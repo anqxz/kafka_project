@@ -1,33 +1,114 @@
 groups:
-  - name: kafka.rules
+
+  # Deadman switch — always firing. Absence at ntfy = Prometheus or
+  # Alertmanager itself is down. Docs 03 §6, 05 (Watchdog).
+  - name: watchdog
+    interval: 30s
+    rules:
+      - alert: Watchdog
+        expr: vector(1)
+        for: 0s
+        labels: {severity: none, cluster: kafka-kraft-cluster}
+        annotations:
+          summary: "Alertmanager+Prometheus liveness heartbeat"
+          description: "This alert always fires. If ntfy stops receiving it, the alerting pipeline is broken."
+
+  - name: kafka.cluster
     interval: 30s
     rules:
       - alert: UnderReplicatedPartitions
-        expr: kafka_server_replicamanager_underreplicatedpartitions > 0
+        expr: sum(kafka_server_replicamanager_underreplicatedpartitions) > 0
         for: 1m
-        labels:
-          severity: critical
-          cluster: kafka-kraft-cluster
+        labels: {severity: critical, cluster: kafka-kraft-cluster}
         annotations:
-          summary: "Kafka under-replicated partitions on {{ $labels.instance }}"
-          description: "{{ $value }} partition(s) are under-replicated on broker {{ $labels.instance }}. Data durability at risk."
+          summary: "Under-replicated partitions in the cluster"
+          description: "{{ $value }} partition(s) under-replicated. Data durability at risk."
 
-      - alert: ConsumerLag
-        expr: kminion_kafka_consumer_group_topic_partition_lag > 10000
-        for: 5m
-        labels:
-          severity: warning
-          cluster: kafka-kraft-cluster
+      - alert: OfflinePartitions
+        expr: sum(kafka_controller_kafkacontroller_offlinepartitionscount) > 0
+        for: 1m
+        labels: {severity: critical, cluster: kafka-kraft-cluster}
         annotations:
-          summary: "High consumer lag for group {{ $labels.groupId }}"
-          description: "Consumer group {{ $labels.groupId }} on topic {{ $labels.topic }} partition {{ $labels.partition }} has lag {{ $value }} (threshold: 10000)."
+          summary: "Offline partitions in the cluster"
+          description: "{{ $value }} partition(s) offline. Produce/consume failing for affected topics."
+
+      - alert: NoActiveController
+        expr: sum(kafka_controller_kafkacontroller_activecontrollercount) != 1
+        for: 2m
+        labels: {severity: critical, cluster: kafka-kraft-cluster}
+        annotations:
+          summary: "Active controller count != 1"
+          description: "Current active-controller count = {{ $value }}. Quorum degraded."
 
       - alert: BrokerDown
-        expr: up{job="kafka-brokers"} == 0
+        expr: sum(up{job="kafka-brokers"}) < 3
         for: 1m
-        labels:
-          severity: critical
-          cluster: kafka-kraft-cluster
+        labels: {severity: critical, cluster: kafka-kraft-cluster}
         annotations:
-          summary: "Kafka broker {{ $labels.instance }} is down"
-          description: "Broker {{ $labels.instance }} has been unreachable for more than 1 minute. Check container status."
+          summary: "One or more Kafka brokers down"
+          description: "Fewer than 3 brokers up. Check kafka.sh status."
+
+      - alert: ProduceRequestFailures
+        expr: sum(rate(kafka_server_brokertopicmetrics_failedproducerequestspersec_total[5m])) > 1
+        for: 5m
+        labels: {severity: warning, cluster: kafka-kraft-cluster}
+        annotations:
+          summary: "Failed produce rate > 1/s"
+          description: "Rate = {{ $value | printf \"%.2f\" }} r/s over 5m. Investigate ISR or client acks."
+
+  - name: kafka.consumer
+    interval: 30s
+    rules:
+      - alert: TopicBacklogHigh
+        expr: kminion_kafka_topic_high_water_mark_sum - kminion_kafka_topic_low_water_mark_sum > 100000
+        for: 5m
+        labels: {severity: warning, cluster: kafka-kraft-cluster}
+        annotations:
+          summary: "Topic {{ $labels.topic_name }} backlog > 100k msgs"
+          description: "{{ $value }} messages retained. Consumer(s) not keeping up or retention too high."
+
+      - alert: KminionLagMetricStale
+        expr: absent(kminion_kafka_topic_high_water_mark_sum)
+        for: 5m
+        labels: {severity: warning, cluster: kafka-kraft-cluster}
+        annotations:
+          summary: "kminion lag metrics missing"
+          description: "kminion not scraping. Lag SLIs blind — fail-open risk."
+
+  - name: platform
+    interval: 30s
+    rules:
+      - alert: OtelCollectorDown
+        expr: up{job="otel-collector"} == 0
+        for: 1m
+        labels: {severity: critical, cluster: kafka-kraft-cluster}
+        annotations:
+          summary: "OpenTelemetry Collector down"
+          description: "Logs + traces pipeline broken. Metrics scrape unaffected."
+
+      - alert: LokiOrTempoDown
+        expr: up{job=~"loki|tempo"} == 0
+        for: 2m
+        labels: {severity: warning, cluster: kafka-kraft-cluster}
+        annotations:
+          summary: "{{ $labels.job }} down"
+          description: "Signal storage degraded."
+
+      - alert: BlackboxProbeFailed
+        expr: probe_success == 0
+        for: 5m
+        labels: {severity: warning, cluster: kafka-kraft-cluster}
+        annotations:
+          summary: "Blackbox probe failed: {{ $labels.instance }}"
+          description: "Endpoint {{ $labels.instance }} unreachable for 5m."
+
+  - name: connect.s3-sink
+    interval: 30s
+    rules:
+      - alert: ConnectTaskFailed
+        expr: kafka_connect_connector_task_metrics_status{status="failed"} > 0
+        for: 1m
+        labels: {severity: critical, cluster: kafka-kraft-cluster}
+        annotations:
+          summary: "Connect task {{ $labels.connector }}/{{ $labels.task }} failed"
+          description: "S3 sink risk of stalling; lag on source topic will grow."
