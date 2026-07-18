@@ -10,6 +10,12 @@ ARG PYROSCOPE_AGENT_VERSION=2.8.0
 
 USER root
 
+# Golden-base rebuild — 04-SECURITY-GUARDRAILS §2 phase 6.
+RUN apt-get update \
+ && apt-get upgrade -y \
+ && apt-get autoremove -y \
+ && rm -rf /var/lib/apt/lists/*
+
 RUN mkdir -p /opt/agents /opt/jmx_exporter
 
 ADD https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/${JMX_EXPORTER_VERSION}/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar \

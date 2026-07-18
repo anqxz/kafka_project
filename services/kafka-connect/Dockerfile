@@ -11,6 +11,12 @@ ARG S3_CONNECTOR_VERSION=10.5.13
 
 USER root
 
+# Golden-base rebuild — 04-SECURITY-GUARDRAILS §2 phase 6.
+RUN apt-get update \
+ && apt-get upgrade -y \
+ && apt-get autoremove -y \
+ && rm -rf /var/lib/apt/lists/*
+
 RUN mkdir -p /opt/agents /opt/jmx_exporter
 
 ADD https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v${OTEL_AGENT_VERSION}/opentelemetry-javaagent.jar \

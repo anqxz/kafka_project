@@ -18,6 +18,13 @@ RUN tar -xzf /tmp/cc.tgz --strip-components=1 -C /src \
 
 FROM eclipse-temurin:${RUNTIME_TAG}
 LABEL org.opencontainers.image.source="https://github.com/linkedin/cruise-control"
+
+# Golden-base rebuild — 04-SECURITY-GUARDRAILS §2 phase 6.
+RUN apt-get update \
+ && apt-get upgrade -y \
+ && apt-get autoremove -y \
+ && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /opt/cruise-control
 COPY --from=builder /src/cruise-control/build/libs/          /opt/cruise-control/libs/
 COPY --from=builder /src/cruise-control/build/dependant-libs/ /opt/cruise-control/libs/
