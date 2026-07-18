@@ -59,4 +59,9 @@ COPY --chmod=0755 bootstrap-scram-users.sh       /usr/local/bin/bootstrap-scram-
 COPY --chmod=0755 bootstrap-acls.sh              /usr/local/bin/bootstrap-acls.sh
 COPY config/client-sasl.properties.template      /etc/kafka/client-sasl.properties.template
 
+# Boot-path: bake the admin SCRAM credential into the metadata log at
+# first-time format so the inter-broker SASL listener can be enabled
+# without a chicken-and-egg client bootstrap.
+COPY --chmod=0755 entrypoint-format-scram.sh     /usr/local/bin/entrypoint-format-scram.sh
+
 USER appuser
