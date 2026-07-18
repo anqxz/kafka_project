@@ -28,13 +28,6 @@ COPY config/jmx/kafka-config.yml /opt/jmx_exporter/kafka-config.yml
 COPY config/jaas.conf             /etc/schema-registry/jaas.conf
 COPY --chmod=0755 entrypoint-auth.sh /usr/local/bin/entrypoint-auth.sh
 
-# AWS msk-config-providers so kafkastore properties can resolve
-# ${secretsmanager:…} placeholders. 04-SECURITY-GUARDRAILS §2 phase 5.
-ARG MSK_CONFIG_PROVIDERS_VERSION=0.4.0
-ADD https://github.com/aws-samples/msk-config-providers/releases/download/r${MSK_CONFIG_PROVIDERS_VERSION}/msk-config-providers-${MSK_CONFIG_PROVIDERS_VERSION}-all.jar \
-    /usr/share/java/msk-config-providers/msk-config-providers.jar
-RUN chmod 0644 /usr/share/java/msk-config-providers/msk-config-providers.jar
-
 USER appuser
 
 ENTRYPOINT ["/usr/local/bin/entrypoint-auth.sh"]

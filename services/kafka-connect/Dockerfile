@@ -8,7 +8,6 @@ ARG OTEL_AGENT_VERSION=2.10.0
 ARG JMX_EXPORTER_VERSION=1.0.1
 ARG PYROSCOPE_AGENT_VERSION=2.8.0
 ARG S3_CONNECTOR_VERSION=10.5.13
-ARG MSK_CONFIG_PROVIDERS_VERSION=0.4.0
 
 USER root
 
@@ -30,15 +29,15 @@ RUN chmod 0644 /opt/agents/opentelemetry-javaagent.jar \
 # Bake S3 sink connector so runtime plugin download is not required.
 RUN confluent-hub install --no-prompt confluentinc/kafka-connect-s3:${S3_CONNECTOR_VERSION}
 
-# AWS msk-config-providers so worker + connector properties can resolve
-# ${secretsmanager:…} placeholders against LocalStack Secrets Manager.
-# Ships as a single fat JAR — dropping it under CONNECT_PLUGIN_PATH is
-# enough for the Kafka client's ConfigProvider SPI to pick it up.
-# 04-SECURITY-GUARDRAILS §2 phase 5.
-ADD https://github.com/aws-samples/msk-config-providers/releases/download/r${MSK_CONFIG_PROVIDERS_VERSION}/msk-config-providers-${MSK_CONFIG_PROVIDERS_VERSION}-all.jar \
-    /usr/share/java/msk-config-providers/msk-config-providers.jar
-RUN chmod 0644 /usr/share/java/msk-config-providers/msk-config-providers.jar
+# Vendor-neutral secret sourcing: Kafka Connect's built-in
+# FileConfigProvider reads passwords from files instead of env, so the
+# secret backing (K8s Secret mount, Vault sidecar, SPIRE issuance,
+# ephemeral tmpfs render) is a runtime decision — no vendor JAR baked
+# in. See services/kafka-connect/entrypoint-secrets.sh.
+COPY --chmod=0755 entrypoint-secrets.sh /usr/local/bin/entrypoint-secrets.sh
 
 COPY config/jmx/kafka-config.yml /opt/jmx_exporter/kafka-config.yml
 
 USER appuser
+
+ENTRYPOINT ["/usr/local/bin/entrypoint-secrets.sh"]
