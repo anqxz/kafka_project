@@ -47,7 +47,7 @@ jobs:
           - localstack
           - akhq
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Build image
         run: docker build -t "kproj-${{ matrix.service }}:ci" "services/${{ matrix.service }}"
       - name: Trivy — CRITICAL/HIGH
@@ -85,7 +85,7 @@ jobs:
           - mcp-kafka
           - loadgen
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Build image
         run: docker build -t "kproj-${{ matrix.service }}:ci" "services/${{ matrix.service }}"
       - uses: anchore/sbom-action@v0
@@ -98,7 +98,7 @@ jobs:
     name: Gitleaks
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - uses: gitleaks/gitleaks-action@v2
@@ -109,14 +109,14 @@ jobs:
     name: Compose config lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: docker compose -f clusters/docker-compose.yml --env-file clusters/.env config -q
 
   image-digest-drift:
     name: Image digest drift (compose)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Resolve compose to pinned digests
         run: |
           # Non-fatal: emits any float tag as a warning so a Renovate PR
