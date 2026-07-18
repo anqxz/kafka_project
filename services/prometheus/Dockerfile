@@ -18,8 +18,6 @@ RUN apk --no-cache upgrade \
 
 COPY --from=vendor /bin/prometheus              /bin/prometheus
 COPY --from=vendor /bin/promtool                /bin/promtool
-COPY --from=vendor /LICENSE                     /LICENSE
-COPY --from=vendor /NOTICE                      /NOTICE
 COPY --from=vendor /etc/prometheus/console_libraries /etc/prometheus/console_libraries
 COPY --from=vendor /etc/prometheus/consoles          /etc/prometheus/consoles
 

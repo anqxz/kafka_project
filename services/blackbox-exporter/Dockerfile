@@ -13,8 +13,6 @@ RUN apk --no-cache upgrade \
  && chown -R nobody:nobody /etc/blackbox_exporter
 
 COPY --from=vendor /bin/blackbox_exporter /bin/blackbox_exporter
-COPY --from=vendor /LICENSE               /LICENSE
-COPY --from=vendor /NOTICE                /NOTICE
 
 COPY config/blackbox.yml /etc/blackbox_exporter/blackbox.yml
 

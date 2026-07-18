@@ -14,8 +14,6 @@ RUN apk --no-cache upgrade \
 
 COPY --from=vendor /bin/alertmanager /bin/alertmanager
 COPY --from=vendor /bin/amtool       /bin/amtool
-COPY --from=vendor /LICENSE          /LICENSE
-COPY --from=vendor /NOTICE           /NOTICE
 
 COPY config/alertmanager.yml /etc/alertmanager/alertmanager.yml
 
