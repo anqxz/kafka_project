@@ -22,6 +22,20 @@ KAFKA_SASL_USERNAME = os.getenv("KAFKA_SASL_USERNAME", "")
 KAFKA_SASL_PASSWORD = os.getenv("KAFKA_SASL_PASSWORD", "")
 KAFKA_SSL_CAFILE = os.getenv("KAFKA_SSL_CAFILE", "")
 
+# Phase 5: resolve KAFKA_SASL_PASSWORD from AWS Secrets Manager when
+# KAFKA_SASL_PASSWORD_SECRET is set. Overrides the env value so rotating
+# the SCRAM password is a `secretsmanager update-secret` + container
+# restart — no image rebuild.
+_SECRET_ID = os.getenv("KAFKA_SASL_PASSWORD_SECRET", "")
+if _SECRET_ID:
+    import boto3
+    _sm = boto3.client(
+        "secretsmanager",
+        region_name=os.getenv("AWS_DEFAULT_REGION", "us-east-1"),
+        endpoint_url=os.getenv("AWS_ENDPOINT_URL", None),
+    )
+    KAFKA_SASL_PASSWORD = _sm.get_secret_value(SecretId=_SECRET_ID)["SecretString"]
+
 
 def _kafka_client_kwargs() -> dict[str, object]:
     """Common Kafka client kwargs (security protocol + optional SCRAM + optional TLS CA)."""
