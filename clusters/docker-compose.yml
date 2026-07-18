@@ -374,6 +374,8 @@ services:
       SCRAM_AKHQ_PASSWORD: "${SCRAM_AKHQ_PASSWORD}"
       SCHEMA_REGISTRY_ADMIN_USER: "${SCHEMA_REGISTRY_ADMIN_USER}"
       SCHEMA_REGISTRY_ADMIN_PASSWORD: "${SCHEMA_REGISTRY_ADMIN_PASSWORD}"
+    volumes:
+      - ../services/tls/certs:/etc/kafka/secrets:ro
     ports:
       - "127.0.0.1:8080:8080"
     depends_on:

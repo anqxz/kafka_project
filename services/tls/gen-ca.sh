@@ -57,7 +57,7 @@ leaf() {
 
 for svc in broker1 broker2 broker3 controller1 controller2 controller3 \
            schema-registry kafka-connect cruise-control kroxylicious \
-           mcp-kafka otel-collector prometheus grafana; do
+           mcp-kafka otel-collector prometheus grafana akhq; do
   leaf "$svc" "DNS:${svc},DNS:localhost,IP:127.0.0.1"
 done
 
