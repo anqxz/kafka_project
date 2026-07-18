@@ -16,6 +16,25 @@ from kafka import KafkaAdminClient, KafkaConsumer
 from kafka.errors import KafkaError
 
 BOOTSTRAP = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "broker1:9092,broker2:9092,broker3:9092")
+KAFKA_SECURITY_PROTOCOL = os.getenv("KAFKA_SECURITY_PROTOCOL", "PLAINTEXT")
+KAFKA_SASL_MECHANISM = os.getenv("KAFKA_SASL_MECHANISM", "")
+KAFKA_SASL_USERNAME = os.getenv("KAFKA_SASL_USERNAME", "")
+KAFKA_SASL_PASSWORD = os.getenv("KAFKA_SASL_PASSWORD", "")
+
+
+def _kafka_client_kwargs() -> dict[str, object]:
+    """Common Kafka client kwargs (security protocol + optional SCRAM)."""
+    kw: dict[str, object] = {
+        "bootstrap_servers": BOOTSTRAP.split(","),
+        "security_protocol": KAFKA_SECURITY_PROTOCOL,
+    }
+    if KAFKA_SASL_MECHANISM:
+        kw.update(
+            sasl_mechanism=KAFKA_SASL_MECHANISM,
+            sasl_plain_username=KAFKA_SASL_USERNAME,
+            sasl_plain_password=KAFKA_SASL_PASSWORD,
+        )
+    return kw
 CONNECT_URL = os.getenv("CONNECT_URL", "http://kafka-connect:8083")
 SCHEMA_REGISTRY_URL = os.getenv("SCHEMA_REGISTRY_URL", "http://schema-registry:8081")
 PROMETHEUS_URL = os.getenv("PROMETHEUS_URL", "http://prometheus:9090")
@@ -41,7 +60,7 @@ def _require_token(request_headers: dict[str, str]) -> None:
 
 
 def _admin() -> KafkaAdminClient:
-    return KafkaAdminClient(bootstrap_servers=BOOTSTRAP.split(","), client_id="mcp-kafka")
+    return KafkaAdminClient(client_id="mcp-kafka", **_kafka_client_kwargs())
 
 
 @mcp.tool()
@@ -133,11 +152,11 @@ def tail_topic(topic: str, max_messages: int = 20, timeout_seconds: int = 5) -> 
     timeout_seconds = min(timeout_seconds, 30)
     consumer = KafkaConsumer(
         topic,
-        bootstrap_servers=BOOTSTRAP.split(","),
         auto_offset_reset="latest",
         consumer_timeout_ms=timeout_seconds * 1000,
         client_id="mcp-kafka-tail",
         group_id=None,
+        **_kafka_client_kwargs(),
     )
     out: list[dict[str, Any]] = []
     try:
