@@ -1,29 +1,68 @@
 # Risk-accepted vulnerability IDs — union of local Trivy scan on the
-# pinned vendor tag and CI's Code Scanning alerts (Trivy DB refreshes
-# between local and CI runs, so both sources are captured). Every
-# entry is `Status:fixed` upstream; the vendor's artifact was
-# compiled/packaged before the fix landed. Renovate opens a base-tag
-# bump PR when the vendor ships a rebuilt release; clear the
-# corresponding line here when the bump lands.
+# pinned vendor tag and CI's Code Scanning alerts. Trivy DB refreshes
+# constantly, so both sources are captured. Every entry is
+# `Status:fixed` upstream; the vendor's artifact was compiled/packaged
+# before the fix landed. Renovate opens a base-tag bump PR when the
+# vendor ships a rebuilt release; clear the corresponding line here
+# when the bump lands.
 #
 # Format:
 #   <ID>  # expiry:YYYY-MM-DD  ticket:SEC-XXXX  reason:<short>
 
 CVE-2023-45288  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2024-24788  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2024-24789  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
 CVE-2024-24790  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2024-24791  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2024-34155  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
 CVE-2024-34156  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2024-34158  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2024-45336  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2024-45341  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2025-0913  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2025-22866  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2025-22870  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2025-22871  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2025-22873  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2025-4673  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2025-47906  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2025-47907  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2025-47912  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2025-58183  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2025-58185  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2025-58186  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2025-58187  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2025-58188  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2025-58189  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2025-61723  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2025-61724  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2025-61725  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
 CVE-2025-61726  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2025-61727  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2025-61728  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
 CVE-2025-61729  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2025-61730  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
 CVE-2025-68121  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
 CVE-2026-25679  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2026-27139  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2026-27142  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
 CVE-2026-27145  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
 CVE-2026-32280  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
 CVE-2026-32281  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2026-32282  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
 CVE-2026-32283  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2026-32288  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2026-32289  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
 CVE-2026-33811  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
 CVE-2026-33814  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
 CVE-2026-39820  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
 CVE-2026-39822  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2026-39823  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2026-39824  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2026-39825  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2026-39826  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
 CVE-2026-39836  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
 CVE-2026-42499  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
 CVE-2026-42504  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2026-42505  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2026-42507  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline

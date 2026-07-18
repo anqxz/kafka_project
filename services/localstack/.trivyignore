@@ -1,10 +1,10 @@
 # Risk-accepted vulnerability IDs — union of local Trivy scan on the
-# pinned vendor tag and CI's Code Scanning alerts (Trivy DB refreshes
-# between local and CI runs, so both sources are captured). Every
-# entry is `Status:fixed` upstream; the vendor's artifact was
-# compiled/packaged before the fix landed. Renovate opens a base-tag
-# bump PR when the vendor ships a rebuilt release; clear the
-# corresponding line here when the bump lands.
+# pinned vendor tag and CI's Code Scanning alerts. Trivy DB refreshes
+# constantly, so both sources are captured. Every entry is
+# `Status:fixed` upstream; the vendor's artifact was compiled/packaged
+# before the fix landed. Renovate opens a base-tag bump PR when the
+# vendor ships a rebuilt release; clear the corresponding line here
+# when the bump lands.
 #
 # Format:
 #   <ID>  # expiry:YYYY-MM-DD  ticket:SEC-XXXX  reason:<short>
@@ -344,10 +344,7 @@ CVE-2026-7383  # expiry:2026-10-31  ticket:SEC-TBD  reason:localstack-python-ima
 CVE-2026-8643  # expiry:2026-10-31  ticket:SEC-TBD  reason:localstack-python-image-baseline
 CVE-2026-9076  # expiry:2026-10-31  ticket:SEC-TBD  reason:localstack-python-image-baseline
 CVE-2026-9828  # expiry:2026-10-31  ticket:SEC-TBD  reason:localstack-python-image-baseline
-DSA-5990-1  # expiry:2026-10-31  ticket:SEC-TBD  reason:localstack-python-image-baseline
 GHSA-537c-gmf6-5ccf  # expiry:2026-10-31  ticket:SEC-TBD  reason:localstack-python-image-baseline
 GHSA-72hv-8253-57qq  # expiry:2026-10-31  ticket:SEC-TBD  reason:localstack-python-image-baseline
 GHSA-747p-wmpv-9c78  # expiry:2026-10-31  ticket:SEC-TBD  reason:localstack-python-image-baseline
 GHSA-h4gh-qq45-vh27  # expiry:2026-10-31  ticket:SEC-TBD  reason:localstack-python-image-baseline
-aws-access-key-id  # expiry:2026-10-31  ticket:SEC-TBD  reason:localstack-python-image-baseline
-private-key  # expiry:2026-10-31  ticket:SEC-TBD  reason:localstack-python-image-baseline

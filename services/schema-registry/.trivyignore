@@ -1,10 +1,10 @@
 # Risk-accepted vulnerability IDs — union of local Trivy scan on the
-# pinned vendor tag and CI's Code Scanning alerts (Trivy DB refreshes
-# between local and CI runs, so both sources are captured). Every
-# entry is `Status:fixed` upstream; the vendor's artifact was
-# compiled/packaged before the fix landed. Renovate opens a base-tag
-# bump PR when the vendor ships a rebuilt release; clear the
-# corresponding line here when the bump lands.
+# pinned vendor tag and CI's Code Scanning alerts. Trivy DB refreshes
+# constantly, so both sources are captured. Every entry is
+# `Status:fixed` upstream; the vendor's artifact was compiled/packaged
+# before the fix landed. Renovate opens a base-tag bump PR when the
+# vendor ships a rebuilt release; clear the corresponding line here
+# when the bump lands.
 #
 # Format:
 #   <ID>  # expiry:YYYY-MM-DD  ticket:SEC-XXXX  reason:<short>
@@ -32,6 +32,7 @@ CVE-2024-30171  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-ba
 CVE-2024-34397  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2024-34447  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2024-34459  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
+CVE-2024-35255  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2024-3596  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2024-4032  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2024-45490  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
