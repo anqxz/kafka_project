@@ -1,0 +1,10 @@
+# Risk-accepted CVEs for this vendor image. Each line must carry an
+# expiry date and a ticket reference — Trivy suppresses only the
+# listed IDs, everything else keeps failing loudly.
+#
+# Format:
+#   CVE-YYYY-NNNNN  # expiry:YYYY-MM-DD  ticket:SEC-XXXX  reason:<short>
+#
+# Populate after the first SARIF upload lands in Code Scanning.
+# Renovate/Dependabot will bump the pinned tag when the vendor ships
+# a patched release — clear the corresponding line here at that time.
