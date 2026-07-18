@@ -34,12 +34,17 @@ done
 grant_grp "connect" "connect-s3-sink-connector"
 grant_grp "connect" "kafka-connect-cluster"
 grant_cluster_desc "connect"
+kacls --add --allow-principal "User:connect" --operation Create --cluster
+kacls --add --allow-principal "User:loadgen" --operation Create --cluster
+kacls --add --allow-principal "User:loadgen" --operation Create --topic "events"
 
-# schema-registry → own _schemas
-for op in Read Write Describe; do
+# schema-registry → own _schemas + create it on first boot
+for op in Read Write Describe Create; do
   kacls --add --allow-principal "User:schema-registry" --operation "$op" --topic "_schemas"
 done
 grant_grp "schema-registry" "schema-registry"
+kacls --add --allow-principal "User:schema-registry" --operation DescribeConfigs --cluster
+kacls --add --allow-principal "User:schema-registry" --operation Create --cluster
 
 # kminion → read-only across the cluster (offsets + describe)
 kacls --add --allow-principal "User:kminion" --operation Describe --topic "*"
@@ -47,8 +52,15 @@ kacls --add --allow-principal "User:kminion" --operation Read --group "*"
 grant_cluster_desc "kminion"
 
 # cruise-control → cluster-alter (rebalance) + metrics topic
-kacls --add --allow-principal "User:cruise-control" --operation Alter    --cluster
-kacls --add --allow-principal "User:cruise-control" --operation Describe --cluster
+kacls --add --allow-principal "User:cruise-control" --operation Alter           --cluster
+kacls --add --allow-principal "User:cruise-control" --operation Describe        --cluster
+kacls --add --allow-principal "User:cruise-control" --operation DescribeConfigs --cluster
+kacls --add --allow-principal "User:cruise-control" --operation AlterConfigs    --cluster
+kacls --add --allow-principal "User:cruise-control" --operation Create          --cluster
+kacls --add --allow-principal "User:cruise-control" --operation ClusterAction   --cluster
+kacls --add --allow-principal "User:cruise-control" --operation Read     --topic "*"
+kacls --add --allow-principal "User:cruise-control" --operation Describe --topic "*"
+kacls --add --allow-principal "User:cruise-control" --operation Read     --group "*"
 for op in Read Write Describe; do
   kacls --add --allow-principal "User:cruise-control" --operation "$op" --topic "__CruiseControlMetrics"
 done

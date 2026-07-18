@@ -450,9 +450,7 @@ services:
       SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: "SASL_SSL://broker1:9096,SASL_SSL://broker2:9096,SASL_SSL://broker3:9096"
       SCHEMA_REGISTRY_KAFKASTORE_SECURITY_PROTOCOL: "SASL_SSL"
       SCHEMA_REGISTRY_KAFKASTORE_SASL_MECHANISM: "SCRAM-SHA-512"
-      SCHEMA_REGISTRY_KAFKASTORE_SASL_JAAS_CONFIG: 'org.apache.kafka.common.security.scram.ScramLoginModule required username="schema-registry" password="$${file:/etc/schema-registry/secrets/kafkastore.properties:password}";'
-      SCHEMA_REGISTRY_KAFKASTORE_CONFIG_PROVIDERS: "file"
-      SCHEMA_REGISTRY_KAFKASTORE_CONFIG_PROVIDERS_FILE_CLASS: "org.apache.kafka.common.config.provider.FileConfigProvider"
+      SCHEMA_REGISTRY_KAFKASTORE_SASL_JAAS_CONFIG: 'org.apache.kafka.common.security.scram.ScramLoginModule required username="schema-registry" password="${SCRAM_SR_PASSWORD}";'
       SCHEMA_REGISTRY_KAFKASTORE_SSL_TRUSTSTORE_LOCATION: "/etc/kafka/secrets/schema-registry.truststore.p12"
       SCHEMA_REGISTRY_KAFKASTORE_SSL_TRUSTSTORE_TYPE: "PKCS12"
       SCHEMA_REGISTRY_KAFKASTORE_SSL_TRUSTSTORE_PASSWORD: "${TLS_STORE_PASSWORD}"
@@ -503,25 +501,25 @@ services:
       CONNECT_BOOTSTRAP_SERVERS: "broker1:9096,broker2:9096,broker3:9096"
       CONNECT_SECURITY_PROTOCOL: "SASL_SSL"
       CONNECT_SASL_MECHANISM: "SCRAM-SHA-512"
-      CONNECT_SASL_JAAS_CONFIG: 'org.apache.kafka.common.security.scram.ScramLoginModule required username="connect" password="$${file:/etc/kafka/connect-secrets/connect.properties:password}";'
+      CONNECT_SASL_JAAS_CONFIG: 'org.apache.kafka.common.security.scram.ScramLoginModule required username="connect" password="${SCRAM_CONNECT_PASSWORD}";'
       CONNECT_SSL_TRUSTSTORE_LOCATION: "/etc/kafka/secrets/kafka-connect.truststore.p12"
       CONNECT_SSL_TRUSTSTORE_TYPE: "PKCS12"
       CONNECT_SSL_TRUSTSTORE_PASSWORD: "${TLS_STORE_PASSWORD}"
       CONNECT_PRODUCER_SECURITY_PROTOCOL: "SASL_SSL"
       CONNECT_PRODUCER_SASL_MECHANISM: "SCRAM-SHA-512"
-      CONNECT_PRODUCER_SASL_JAAS_CONFIG: 'org.apache.kafka.common.security.scram.ScramLoginModule required username="connect" password="$${file:/etc/kafka/connect-secrets/connect.properties:password}";'
+      CONNECT_PRODUCER_SASL_JAAS_CONFIG: 'org.apache.kafka.common.security.scram.ScramLoginModule required username="connect" password="${SCRAM_CONNECT_PASSWORD}";'
       CONNECT_PRODUCER_SSL_TRUSTSTORE_LOCATION: "/etc/kafka/secrets/kafka-connect.truststore.p12"
       CONNECT_PRODUCER_SSL_TRUSTSTORE_TYPE: "PKCS12"
       CONNECT_PRODUCER_SSL_TRUSTSTORE_PASSWORD: "${TLS_STORE_PASSWORD}"
       CONNECT_CONSUMER_SECURITY_PROTOCOL: "SASL_SSL"
       CONNECT_CONSUMER_SASL_MECHANISM: "SCRAM-SHA-512"
-      CONNECT_CONSUMER_SASL_JAAS_CONFIG: 'org.apache.kafka.common.security.scram.ScramLoginModule required username="connect" password="$${file:/etc/kafka/connect-secrets/connect.properties:password}";'
+      CONNECT_CONSUMER_SASL_JAAS_CONFIG: 'org.apache.kafka.common.security.scram.ScramLoginModule required username="connect" password="${SCRAM_CONNECT_PASSWORD}";'
       CONNECT_CONSUMER_SSL_TRUSTSTORE_LOCATION: "/etc/kafka/secrets/kafka-connect.truststore.p12"
       CONNECT_CONSUMER_SSL_TRUSTSTORE_TYPE: "PKCS12"
       CONNECT_CONSUMER_SSL_TRUSTSTORE_PASSWORD: "${TLS_STORE_PASSWORD}"
       CONNECT_ADMIN_SECURITY_PROTOCOL: "SASL_SSL"
       CONNECT_ADMIN_SASL_MECHANISM: "SCRAM-SHA-512"
-      CONNECT_ADMIN_SASL_JAAS_CONFIG: 'org.apache.kafka.common.security.scram.ScramLoginModule required username="connect" password="$${file:/etc/kafka/connect-secrets/connect.properties:password}";'
+      CONNECT_ADMIN_SASL_JAAS_CONFIG: 'org.apache.kafka.common.security.scram.ScramLoginModule required username="connect" password="${SCRAM_CONNECT_PASSWORD}";'
       CONNECT_ADMIN_SSL_TRUSTSTORE_LOCATION: "/etc/kafka/secrets/kafka-connect.truststore.p12"
       CONNECT_ADMIN_SSL_TRUSTSTORE_TYPE: "PKCS12"
       CONNECT_ADMIN_SSL_TRUSTSTORE_PASSWORD: "${TLS_STORE_PASSWORD}"
@@ -539,8 +537,6 @@ services:
       CONNECT_KEY_CONVERTER_SCHEMAS_ENABLE: "false"
       CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
       CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components"
-      CONNECT_CONFIG_PROVIDERS: "file"
-      CONNECT_CONFIG_PROVIDERS_FILE_CLASS: "org.apache.kafka.common.config.provider.FileConfigProvider"
       SCRAM_CONNECT_PASSWORD: "${SCRAM_CONNECT_PASSWORD}"
       CONNECT_LOG4J_LOGGERS: "org.apache.kafka.connect=INFO"
       AWS_ACCESS_KEY_ID: "test"
@@ -640,7 +636,9 @@ services:
     restart: unless-stopped
     environment:
       CONFIG_FILEPATH: /etc/kminion/config.yaml
-      SCRAM_KMINION_PASSWORD: "${SCRAM_KMINION_PASSWORD}"
+      KAFKA_SASL_PASSWORD: "${SCRAM_KMINION_PASSWORD}"
+      KAFKA_TLS_ENABLED: "true"
+      KAFKA_TLS_CAFILEPATH: "/etc/tls/ca.pem"
     volumes:
       - ../services/tls/certs:/etc/tls:ro
     depends_on:
@@ -787,7 +785,7 @@ services:
     container_name: ntfy
     command: ["serve", "--config=/etc/ntfy/ntfy.yml"]
     ports:
-      - "127.0.0.1:8082:80"
+      - "127.0.0.1:8082:8080"
     volumes:
       - ntfy-data:/var/lib/ntfy
     healthcheck:

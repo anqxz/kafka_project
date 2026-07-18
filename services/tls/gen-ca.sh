@@ -19,9 +19,14 @@ if [ -f "$TLS_DIR/ca.pem" ] && [ "$FORCE" != "1" ]; then
 fi
 
 echo "Generating lab CA under $TLS_DIR..."
+# -addext bakes the CA extensions Python's ssl module requires:
+# basicConstraints=CA:TRUE + keyCertSign in keyUsage. Without either
+# flag, opentelemetry-python + Node.js clients reject the chain.
 openssl req -x509 -new -newkey "rsa:${KEYSIZE}" -nodes \
   -keyout "$TLS_DIR/ca.key" -out "$TLS_DIR/ca.pem" \
-  -subj "/CN=kafka-project lab CA/O=lab" -days "$DAYS"
+  -subj "/CN=kafka-project lab CA/O=lab" -days "$DAYS" \
+  -addext "basicConstraints=critical,CA:TRUE" \
+  -addext "keyUsage=critical,keyCertSign,cRLSign,digitalSignature"
 
 : "${STORE_PASSWORD:=changeit}"
 
