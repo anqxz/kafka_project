@@ -1,0 +1,12 @@
+# Client-side SASL/SCRAM template. Copy per service and substitute
+# ${PRINCIPAL}/${PASSWORD}. Bootstrap servers point at the broker SASL
+# listener on :9095 (kafka-data network only).
+#
+# 04-SECURITY-GUARDRAILS §2 phase 2.
+
+bootstrap.servers=broker1:9095,broker2:9095,broker3:9095
+security.protocol=SASL_PLAINTEXT
+sasl.mechanism=SCRAM-SHA-512
+sasl.jaas.config=org.apache.kafka.common.security.scram.ScramLoginModule required \
+  username="${PRINCIPAL}" \
+  password="${PASSWORD}";
