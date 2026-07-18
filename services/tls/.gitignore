@@ -1,4 +1,5 @@
 certs/
+*.p12
 *.pem
 *.key
 *.csr
