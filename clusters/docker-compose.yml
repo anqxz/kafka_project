@@ -497,25 +497,25 @@ services:
       CONNECT_BOOTSTRAP_SERVERS: "broker1:9096,broker2:9096,broker3:9096"
       CONNECT_SECURITY_PROTOCOL: "SASL_SSL"
       CONNECT_SASL_MECHANISM: "SCRAM-SHA-512"
-      CONNECT_SASL_JAAS_CONFIG: 'org.apache.kafka.common.security.scram.ScramLoginModule required username="connect" password="${SCRAM_CONNECT_PASSWORD}";'
+      CONNECT_SASL_JAAS_CONFIG: 'org.apache.kafka.common.security.scram.ScramLoginModule required username="connect" password="$${secretsmanager:kafka/scram/connect}";'
       CONNECT_SSL_TRUSTSTORE_LOCATION: "/etc/kafka/secrets/kafka-connect.truststore.p12"
       CONNECT_SSL_TRUSTSTORE_TYPE: "PKCS12"
       CONNECT_SSL_TRUSTSTORE_PASSWORD: "${TLS_STORE_PASSWORD}"
       CONNECT_PRODUCER_SECURITY_PROTOCOL: "SASL_SSL"
       CONNECT_PRODUCER_SASL_MECHANISM: "SCRAM-SHA-512"
-      CONNECT_PRODUCER_SASL_JAAS_CONFIG: 'org.apache.kafka.common.security.scram.ScramLoginModule required username="connect" password="${SCRAM_CONNECT_PASSWORD}";'
+      CONNECT_PRODUCER_SASL_JAAS_CONFIG: 'org.apache.kafka.common.security.scram.ScramLoginModule required username="connect" password="$${secretsmanager:kafka/scram/connect}";'
       CONNECT_PRODUCER_SSL_TRUSTSTORE_LOCATION: "/etc/kafka/secrets/kafka-connect.truststore.p12"
       CONNECT_PRODUCER_SSL_TRUSTSTORE_TYPE: "PKCS12"
       CONNECT_PRODUCER_SSL_TRUSTSTORE_PASSWORD: "${TLS_STORE_PASSWORD}"
       CONNECT_CONSUMER_SECURITY_PROTOCOL: "SASL_SSL"
       CONNECT_CONSUMER_SASL_MECHANISM: "SCRAM-SHA-512"
-      CONNECT_CONSUMER_SASL_JAAS_CONFIG: 'org.apache.kafka.common.security.scram.ScramLoginModule required username="connect" password="${SCRAM_CONNECT_PASSWORD}";'
+      CONNECT_CONSUMER_SASL_JAAS_CONFIG: 'org.apache.kafka.common.security.scram.ScramLoginModule required username="connect" password="$${secretsmanager:kafka/scram/connect}";'
       CONNECT_CONSUMER_SSL_TRUSTSTORE_LOCATION: "/etc/kafka/secrets/kafka-connect.truststore.p12"
       CONNECT_CONSUMER_SSL_TRUSTSTORE_TYPE: "PKCS12"
       CONNECT_CONSUMER_SSL_TRUSTSTORE_PASSWORD: "${TLS_STORE_PASSWORD}"
       CONNECT_ADMIN_SECURITY_PROTOCOL: "SASL_SSL"
       CONNECT_ADMIN_SASL_MECHANISM: "SCRAM-SHA-512"
-      CONNECT_ADMIN_SASL_JAAS_CONFIG: 'org.apache.kafka.common.security.scram.ScramLoginModule required username="connect" password="${SCRAM_CONNECT_PASSWORD}";'
+      CONNECT_ADMIN_SASL_JAAS_CONFIG: 'org.apache.kafka.common.security.scram.ScramLoginModule required username="connect" password="$${secretsmanager:kafka/scram/connect}";'
       CONNECT_ADMIN_SSL_TRUSTSTORE_LOCATION: "/etc/kafka/secrets/kafka-connect.truststore.p12"
       CONNECT_ADMIN_SSL_TRUSTSTORE_TYPE: "PKCS12"
       CONNECT_ADMIN_SSL_TRUSTSTORE_PASSWORD: "${TLS_STORE_PASSWORD}"
@@ -532,7 +532,11 @@ services:
       CONNECT_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
       CONNECT_KEY_CONVERTER_SCHEMAS_ENABLE: "false"
       CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
-      CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components"
+      CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components,/usr/share/java/msk-config-providers"
+      CONNECT_CONFIG_PROVIDERS: "secretsmanager"
+      CONNECT_CONFIG_PROVIDERS_SECRETSMANAGER_CLASS: "com.amazonaws.kafka.config.providers.SecretsManagerConfigProvider"
+      CONNECT_CONFIG_PROVIDERS_SECRETSMANAGER_PARAM_REGION: "us-east-1"
+      CONNECT_CONFIG_PROVIDERS_SECRETSMANAGER_PARAM_ENDPOINT: "http://localstack:4566"
       CONNECT_LOG4J_LOGGERS: "org.apache.kafka.connect=INFO"
       AWS_ACCESS_KEY_ID: "test"
       AWS_SECRET_ACCESS_KEY: "test"
