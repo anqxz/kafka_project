@@ -687,6 +687,7 @@ services:
     environment:
       CRUISE_CONTROL_ADMIN_USER: "${CRUISE_CONTROL_ADMIN_USER}"
       CRUISE_CONTROL_ADMIN_PASSWORD: "${CRUISE_CONTROL_ADMIN_PASSWORD}"
+      SCRAM_CC_PASSWORD: "${SCRAM_CC_PASSWORD}"
     depends_on:
       - broker1
       - broker2
