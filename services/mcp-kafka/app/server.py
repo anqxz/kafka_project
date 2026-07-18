@@ -20,10 +20,11 @@ KAFKA_SECURITY_PROTOCOL = os.getenv("KAFKA_SECURITY_PROTOCOL", "PLAINTEXT")
 KAFKA_SASL_MECHANISM = os.getenv("KAFKA_SASL_MECHANISM", "")
 KAFKA_SASL_USERNAME = os.getenv("KAFKA_SASL_USERNAME", "")
 KAFKA_SASL_PASSWORD = os.getenv("KAFKA_SASL_PASSWORD", "")
+KAFKA_SSL_CAFILE = os.getenv("KAFKA_SSL_CAFILE", "")
 
 
 def _kafka_client_kwargs() -> dict[str, object]:
-    """Common Kafka client kwargs (security protocol + optional SCRAM)."""
+    """Common Kafka client kwargs (security protocol + optional SCRAM + optional TLS CA)."""
     kw: dict[str, object] = {
         "bootstrap_servers": BOOTSTRAP.split(","),
         "security_protocol": KAFKA_SECURITY_PROTOCOL,
@@ -34,6 +35,8 @@ def _kafka_client_kwargs() -> dict[str, object]:
             sasl_plain_username=KAFKA_SASL_USERNAME,
             sasl_plain_password=KAFKA_SASL_PASSWORD,
         )
+    if KAFKA_SSL_CAFILE:
+        kw["ssl_cafile"] = KAFKA_SSL_CAFILE
     return kw
 CONNECT_URL = os.getenv("CONNECT_URL", "http://kafka-connect:8083")
 SCHEMA_REGISTRY_URL = os.getenv("SCHEMA_REGISTRY_URL", "http://schema-registry:8081")

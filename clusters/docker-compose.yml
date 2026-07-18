@@ -838,11 +838,14 @@ services:
       MCP_TRANSPORT: "sse"
       MCP_PORT: "3001"
       MCP_AUTH_TOKEN: "${MCP_AUTH_TOKEN}"
-      KAFKA_BOOTSTRAP_SERVERS: "broker1:9095,broker2:9095,broker3:9095"
-      KAFKA_SECURITY_PROTOCOL: "SASL_PLAINTEXT"
+      KAFKA_BOOTSTRAP_SERVERS: "broker1:9096,broker2:9096,broker3:9096"
+      KAFKA_SECURITY_PROTOCOL: "SASL_SSL"
       KAFKA_SASL_MECHANISM: "SCRAM-SHA-512"
       KAFKA_SASL_USERNAME: "mcp"
       KAFKA_SASL_PASSWORD: "${SCRAM_MCP_PASSWORD}"
+      KAFKA_SSL_CAFILE: "/etc/tls/ca.pem"
+    volumes:
+      - ../services/tls/certs:/etc/tls:ro
     depends_on:
       - broker1
       - kafka-connect
