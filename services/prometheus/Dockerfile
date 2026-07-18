@@ -18,8 +18,6 @@ RUN apk --no-cache upgrade \
 
 COPY --from=vendor /bin/prometheus              /bin/prometheus
 COPY --from=vendor /bin/promtool                /bin/promtool
-COPY --from=vendor /etc/prometheus/console_libraries /etc/prometheus/console_libraries
-COPY --from=vendor /etc/prometheus/consoles          /etc/prometheus/consoles
 
 COPY config/prometheus.yml /etc/prometheus/prometheus.yml
 COPY config/rules/         /etc/prometheus/rules/
@@ -30,6 +28,4 @@ VOLUME ["/prometheus"]
 WORKDIR /prometheus
 ENTRYPOINT ["/bin/prometheus"]
 CMD ["--config.file=/etc/prometheus/prometheus.yml", \
-     "--storage.tsdb.path=/prometheus", \
-     "--web.console.libraries=/etc/prometheus/console_libraries", \
-     "--web.console.templates=/etc/prometheus/consoles"]
+     "--storage.tsdb.path=/prometheus"]
