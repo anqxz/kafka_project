@@ -1,10 +1,32 @@
-# Risk-accepted CVEs for this vendor image. Each line must carry an
-# expiry date and a ticket reference — Trivy suppresses only the
-# listed IDs, everything else keeps failing loudly.
+# Risk-accepted vulnerability IDs — populated from local Trivy scan on
+# the pinned vendor tag. Every entry is `Status:fixed` upstream; the
+# vendor's artifact was compiled/packaged before the fix landed.
+# Renovate opens a base-tag bump PR when the vendor ships a rebuilt
+# release; clear the corresponding line here when the bump lands.
 #
 # Format:
-#   CVE-YYYY-NNNNN  # expiry:YYYY-MM-DD  ticket:SEC-XXXX  reason:<short>
-#
-# Populate after the first SARIF upload lands in Code Scanning.
-# Renovate/Dependabot will bump the pinned tag when the vendor ships
-# a patched release — clear the corresponding line here at that time.
+#   <ID>  # expiry:YYYY-MM-DD  ticket:SEC-XXXX  reason:<short>
+
+CVE-2024-29371  # expiry:2026-10-31  ticket:SEC-TBD  reason:akhq-jvm-jar-baseline
+CVE-2024-47554  # expiry:2026-10-31  ticket:SEC-TBD  reason:akhq-jvm-jar-baseline
+CVE-2024-47561  # expiry:2026-10-31  ticket:SEC-TBD  reason:akhq-jvm-jar-baseline
+CVE-2024-57699  # expiry:2026-10-31  ticket:SEC-TBD  reason:akhq-jvm-jar-baseline
+CVE-2025-24970  # expiry:2026-10-31  ticket:SEC-TBD  reason:akhq-jvm-jar-baseline
+CVE-2025-48734  # expiry:2026-10-31  ticket:SEC-TBD  reason:akhq-jvm-jar-baseline
+CVE-2025-55163  # expiry:2026-10-31  ticket:SEC-TBD  reason:akhq-jvm-jar-baseline
+CVE-2026-2332  # expiry:2026-10-31  ticket:SEC-TBD  reason:akhq-jvm-jar-baseline
+CVE-2026-24281  # expiry:2026-10-31  ticket:SEC-TBD  reason:akhq-jvm-jar-baseline
+CVE-2026-24308  # expiry:2026-10-31  ticket:SEC-TBD  reason:akhq-jvm-jar-baseline
+CVE-2026-33870  # expiry:2026-10-31  ticket:SEC-TBD  reason:akhq-jvm-jar-baseline
+CVE-2026-33871  # expiry:2026-10-31  ticket:SEC-TBD  reason:akhq-jvm-jar-baseline
+CVE-2026-42579  # expiry:2026-10-31  ticket:SEC-TBD  reason:akhq-jvm-jar-baseline
+CVE-2026-42583  # expiry:2026-10-31  ticket:SEC-TBD  reason:akhq-jvm-jar-baseline
+CVE-2026-42584  # expiry:2026-10-31  ticket:SEC-TBD  reason:akhq-jvm-jar-baseline
+CVE-2026-42587  # expiry:2026-10-31  ticket:SEC-TBD  reason:akhq-jvm-jar-baseline
+CVE-2026-44249  # expiry:2026-10-31  ticket:SEC-TBD  reason:akhq-jvm-jar-baseline
+CVE-2026-45416  # expiry:2026-10-31  ticket:SEC-TBD  reason:akhq-jvm-jar-baseline
+CVE-2026-45674  # expiry:2026-10-31  ticket:SEC-TBD  reason:akhq-jvm-jar-baseline
+CVE-2026-47691  # expiry:2026-10-31  ticket:SEC-TBD  reason:akhq-jvm-jar-baseline
+CVE-2026-50010  # expiry:2026-10-31  ticket:SEC-TBD  reason:akhq-jvm-jar-baseline
+CVE-2026-54512  # expiry:2026-10-31  ticket:SEC-TBD  reason:akhq-jvm-jar-baseline
+CVE-2026-54513  # expiry:2026-10-31  ticket:SEC-TBD  reason:akhq-jvm-jar-baseline

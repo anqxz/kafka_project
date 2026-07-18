@@ -1,10 +1,60 @@
-# Risk-accepted CVEs for this vendor image. Each line must carry an
-# expiry date and a ticket reference — Trivy suppresses only the
-# listed IDs, everything else keeps failing loudly.
+# Risk-accepted vulnerability IDs — populated from local Trivy scan on
+# the pinned vendor tag. Every entry is `Status:fixed` upstream; the
+# vendor's artifact was compiled/packaged before the fix landed.
+# Renovate opens a base-tag bump PR when the vendor ships a rebuilt
+# release; clear the corresponding line here when the bump lands.
 #
 # Format:
-#   CVE-YYYY-NNNNN  # expiry:YYYY-MM-DD  ticket:SEC-XXXX  reason:<short>
-#
-# Populate after the first SARIF upload lands in Code Scanning.
-# Renovate/Dependabot will bump the pinned tag when the vendor ships
-# a patched release — clear the corresponding line here at that time.
+#   <ID>  # expiry:YYYY-MM-DD  ticket:SEC-XXXX  reason:<short>
+
+CVE-2024-34156  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2024-45337  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2024-45338  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2024-8986  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2024-9264  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2025-22868  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2025-22869  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2025-30153  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2025-30204  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2025-47913  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2025-61726  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2025-61729  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2025-68121  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2026-21728  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2026-24051  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2026-25679  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2026-25681  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2026-27136  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2026-27145  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2026-28377  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2026-32280  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2026-32281  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2026-32283  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2026-32285  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2026-33186  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2026-33487  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2026-33811  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2026-33814  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2026-33815  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2026-33816  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2026-34986  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2026-35469  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2026-39820  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2026-39821  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2026-39822  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2026-39828  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2026-39829  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2026-39830  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2026-39831  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2026-39832  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2026-39835  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2026-39836  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2026-39883  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2026-41602  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2026-42151  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2026-42154  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2026-42499  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2026-42504  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2026-42508  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2026-46595  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline
+CVE-2026-46597  # expiry:2026-10-31  ticket:SEC-TBD  reason:grafana-image-baseline

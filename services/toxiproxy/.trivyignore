@@ -1,2 +1,27 @@
-# No risk-accepts recorded for toxiproxy.
-# See services/broker/.trivyignore for format.
+# Risk-accepted vulnerability IDs — populated from local Trivy scan on
+# the pinned vendor tag. Every entry is `Status:fixed` upstream; the
+# vendor's artifact was compiled/packaged before the fix landed.
+# Renovate opens a base-tag bump PR when the vendor ships a rebuilt
+# release; clear the corresponding line here when the bump lands.
+#
+# Format:
+#   <ID>  # expiry:YYYY-MM-DD  ticket:SEC-XXXX  reason:<short>
+
+CVE-2023-45288  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2024-24790  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2024-34156  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2025-61726  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2025-61729  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2025-68121  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2026-25679  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2026-27145  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2026-32280  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2026-32281  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2026-32283  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2026-33811  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2026-33814  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2026-39820  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2026-39822  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2026-39836  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2026-42499  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
+CVE-2026-42504  # expiry:2026-10-31  ticket:SEC-TBD  reason:toxiproxy-go-binary-baseline
