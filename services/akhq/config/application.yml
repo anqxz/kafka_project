@@ -2,7 +2,10 @@ akhq:
   connections:
     kafka-kraft-cluster:
       properties:
-        bootstrap.servers: "broker1:9092,broker2:9092,broker3:9092"
+        bootstrap.servers: "broker1:9095,broker2:9095,broker3:9095"
+        security.protocol: SASL_PLAINTEXT
+        sasl.mechanism: SCRAM-SHA-512
+        sasl.jaas.config: 'org.apache.kafka.common.security.scram.ScramLoginModule required username="akhq" password="${SCRAM_AKHQ_PASSWORD:change-me-in-real-deployments}";'
       jmx:
         - name: broker1
           url: "broker1:9101"
