@@ -28,7 +28,8 @@ services:
       KAFKA_JMX_HOSTNAME: "controller1"
       KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml -javaagent:/opt/agents/opentelemetry-javaagent.jar -javaagent:/opt/agents/pyroscope.jar"
       OTEL_SERVICE_NAME: "controller1"
-      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "https://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_CERTIFICATE: "/etc/tls/ca.pem"
       OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
       OTEL_TRACES_EXPORTER: "otlp"
       OTEL_LOGS_EXPORTER: "otlp"
@@ -40,6 +41,7 @@ services:
       PYROSCOPE_PROFILER_ALLOC: "512k"
     volumes:
       - controller1-data:/var/lib/kafka/data
+      - ../services/tls/certs:/etc/tls:ro
     networks:
       - kafka-quorum
       - observability
@@ -67,7 +69,8 @@ services:
       KAFKA_JMX_HOSTNAME: "controller2"
       KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml -javaagent:/opt/agents/opentelemetry-javaagent.jar -javaagent:/opt/agents/pyroscope.jar"
       OTEL_SERVICE_NAME: "controller2"
-      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "https://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_CERTIFICATE: "/etc/tls/ca.pem"
       OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
       OTEL_TRACES_EXPORTER: "otlp"
       OTEL_LOGS_EXPORTER: "otlp"
@@ -79,6 +82,7 @@ services:
       PYROSCOPE_PROFILER_ALLOC: "512k"
     volumes:
       - controller2-data:/var/lib/kafka/data
+      - ../services/tls/certs:/etc/tls:ro
     networks:
       - kafka-quorum
       - observability
@@ -106,7 +110,8 @@ services:
       KAFKA_JMX_HOSTNAME: "controller3"
       KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml -javaagent:/opt/agents/opentelemetry-javaagent.jar -javaagent:/opt/agents/pyroscope.jar"
       OTEL_SERVICE_NAME: "controller3"
-      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "https://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_CERTIFICATE: "/etc/tls/ca.pem"
       OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
       OTEL_TRACES_EXPORTER: "otlp"
       OTEL_LOGS_EXPORTER: "otlp"
@@ -118,6 +123,7 @@ services:
       PYROSCOPE_PROFILER_ALLOC: "512k"
     volumes:
       - controller3-data:/var/lib/kafka/data
+      - ../services/tls/certs:/etc/tls:ro
     networks:
       - kafka-quorum
       - observability
@@ -165,7 +171,8 @@ services:
       KAFKA_JMX_HOSTNAME: "broker1"
       KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml -javaagent:/opt/agents/opentelemetry-javaagent.jar -javaagent:/opt/agents/pyroscope.jar"
       OTEL_SERVICE_NAME: "broker1"
-      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "https://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_CERTIFICATE: "/etc/tls/ca.pem"
       OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
       OTEL_TRACES_EXPORTER: "otlp"
       OTEL_LOGS_EXPORTER: "otlp"
@@ -188,6 +195,7 @@ services:
     volumes:
       - broker1-data:/var/lib/kafka/data
       - ../services/tls/certs:/etc/kafka/secrets:ro
+      - ../services/tls/certs:/etc/tls:ro
     networks:
       - kafka-quorum
       - kafka-data
@@ -235,7 +243,8 @@ services:
       KAFKA_JMX_HOSTNAME: "broker2"
       KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml -javaagent:/opt/agents/opentelemetry-javaagent.jar -javaagent:/opt/agents/pyroscope.jar"
       OTEL_SERVICE_NAME: "broker2"
-      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "https://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_CERTIFICATE: "/etc/tls/ca.pem"
       OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
       OTEL_TRACES_EXPORTER: "otlp"
       OTEL_LOGS_EXPORTER: "otlp"
@@ -258,6 +267,7 @@ services:
     volumes:
       - broker2-data:/var/lib/kafka/data
       - ../services/tls/certs:/etc/kafka/secrets:ro
+      - ../services/tls/certs:/etc/tls:ro
     networks:
       - kafka-quorum
       - kafka-data
@@ -305,7 +315,8 @@ services:
       KAFKA_JMX_HOSTNAME: "broker3"
       KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml -javaagent:/opt/agents/opentelemetry-javaagent.jar -javaagent:/opt/agents/pyroscope.jar"
       OTEL_SERVICE_NAME: "broker3"
-      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "https://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_CERTIFICATE: "/etc/tls/ca.pem"
       OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
       OTEL_TRACES_EXPORTER: "otlp"
       OTEL_LOGS_EXPORTER: "otlp"
@@ -328,6 +339,7 @@ services:
     volumes:
       - broker3-data:/var/lib/kafka/data
       - ../services/tls/certs:/etc/kafka/secrets:ro
+      - ../services/tls/certs:/etc/tls:ro
     networks:
       - kafka-quorum
       - kafka-data
@@ -376,6 +388,7 @@ services:
       SCHEMA_REGISTRY_ADMIN_PASSWORD: "${SCHEMA_REGISTRY_ADMIN_PASSWORD}"
     volumes:
       - ../services/tls/certs:/etc/kafka/secrets:ro
+      - ../services/tls/certs:/etc/tls:ro
     ports:
       - "127.0.0.1:8080:8080"
     depends_on:
@@ -448,7 +461,8 @@ services:
       SCHEMA_REGISTRY_ADMIN_PASSWORD: "${SCHEMA_REGISTRY_ADMIN_PASSWORD}"
       KAFKA_OPTS: "-javaagent:/opt/agents/pyroscope.jar -javaagent:/opt/agents/opentelemetry-javaagent.jar -javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml"
       OTEL_SERVICE_NAME: "schema-registry"
-      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "https://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_CERTIFICATE: "/etc/tls/ca.pem"
       OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
       OTEL_TRACES_EXPORTER: "otlp"
       OTEL_LOGS_EXPORTER: "otlp"
@@ -462,6 +476,7 @@ services:
       - "127.0.0.1:8081:8081"
     volumes:
       - ../services/tls/certs:/etc/kafka/secrets:ro
+      - ../services/tls/certs:/etc/tls:ro
     depends_on:
       - broker1
       - broker2
@@ -524,7 +539,8 @@ services:
       AWS_DEFAULT_REGION: "us-east-1"
       KAFKA_OPTS: "-javaagent:/opt/agents/pyroscope.jar -javaagent:/opt/agents/opentelemetry-javaagent.jar -javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml"
       OTEL_SERVICE_NAME: "kafka-connect"
-      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "https://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_CERTIFICATE: "/etc/tls/ca.pem"
       OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
       OTEL_TRACES_EXPORTER: "otlp"
       OTEL_LOGS_EXPORTER: "otlp"
@@ -538,6 +554,7 @@ services:
       - "127.0.0.1:8083:8083"
     volumes:
       - ../services/tls/certs:/etc/kafka/secrets:ro
+      - ../services/tls/certs:/etc/tls:ro
     depends_on:
       localstack:
         condition: service_healthy
@@ -641,8 +658,10 @@ services:
     container_name: otel-collector
     command: ["--config=/etc/otelcol/config.yaml"]
     ports:
-      - "127.0.0.1:4317:4317"   # OTLP gRPC
-      - "127.0.0.1:4318:4318"   # OTLP HTTP
+      - "127.0.0.1:4317:4317"   # OTLP gRPC (TLS)
+      - "127.0.0.1:4318:4318"   # OTLP HTTP (TLS)
+    volumes:
+      - ../services/tls/certs:/etc/tls:ro
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:13133/"]
       interval: 15s
@@ -794,6 +813,7 @@ services:
       - "127.0.0.1:9095:9090"
     volumes:
       - ../services/tls/certs:/etc/kafka/secrets:ro
+      - ../services/tls/certs:/etc/tls:ro
     networks:
       - kafka-data
       - observability
@@ -875,7 +895,8 @@ services:
       LOADGEN_TOPIC: "events"
       LOADGEN_RATE: "5"
       LOADGEN_DURATION: "0"
-      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "https://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_CERTIFICATE: "/etc/tls/ca.pem"
     volumes:
       - ../services/tls/certs:/etc/tls:ro
     depends_on:
