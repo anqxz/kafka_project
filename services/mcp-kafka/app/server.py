@@ -209,7 +209,28 @@ if __name__ == "__main__":
                 "MCP_AUTH_TOKEN is unset — SSE endpoint is open. Set the env "
                 "variable in production (04-SECURITY-GUARDRAILS F9)."
             )
-        uvicorn.run(
-            app, host="0.0.0.0", port=int(os.getenv("MCP_PORT", "3001")),
+        import ssl as _ssl
+        tls_cert = os.getenv("MCP_TLS_CERT", "")
+        tls_key  = os.getenv("MCP_TLS_KEY", "")
+        tls_ca   = os.getenv("MCP_TLS_CLIENT_CA", "")
+        uvicorn_kwargs: dict[str, object] = dict(
+            host="0.0.0.0", port=int(os.getenv("MCP_PORT", "3001")),
             log_level=os.getenv("LOG_LEVEL", "info").lower(),
         )
+        if tls_cert and tls_key:
+            uvicorn_kwargs.update(ssl_certfile=tls_cert, ssl_keyfile=tls_key)
+            if tls_ca:
+                uvicorn_kwargs.update(
+                    ssl_ca_certs=tls_ca,
+                    ssl_cert_reqs=_ssl.CERT_REQUIRED,
+                )
+            else:
+                log.warning(
+                    "MCP_TLS_CLIENT_CA unset — server-only TLS, no client cert "
+                    "verification (04-SECURITY-GUARDRAILS F9 second half)."
+                )
+        else:
+            log.warning(
+                "MCP_TLS_CERT/KEY unset — SSE endpoint runs over plaintext HTTP."
+            )
+        uvicorn.run(app, **uvicorn_kwargs)

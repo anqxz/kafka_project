@@ -866,6 +866,9 @@ services:
       KAFKA_SASL_USERNAME: "mcp"
       KAFKA_SASL_PASSWORD: "${SCRAM_MCP_PASSWORD}"
       KAFKA_SSL_CAFILE: "/etc/tls/ca.pem"
+      MCP_TLS_CERT: "/etc/tls/mcp-kafka.pem"
+      MCP_TLS_KEY: "/etc/tls/mcp-kafka.key"
+      MCP_TLS_CLIENT_CA: "/etc/tls/ca.pem"
     volumes:
       - ../services/tls/certs:/etc/tls:ro
     depends_on:
