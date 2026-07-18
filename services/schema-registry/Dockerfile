@@ -9,6 +9,10 @@ ARG PYROSCOPE_AGENT_VERSION=2.8.0
 
 USER root
 
+# Golden-base rebuild (UBI8 microdnf) — 04-SECURITY-GUARDRAILS §2 phase 6.
+RUN microdnf update -y \
+ && microdnf clean all
+
 RUN mkdir -p /opt/agents /opt/jmx_exporter
 
 ADD https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v${OTEL_AGENT_VERSION}/opentelemetry-javaagent.jar \
@@ -25,5 +29,9 @@ RUN chmod 0644 /opt/agents/opentelemetry-javaagent.jar \
                /opt/jmx_exporter/jmx_prometheus_javaagent.jar
 
 COPY config/jmx/kafka-config.yml /opt/jmx_exporter/kafka-config.yml
+COPY config/jaas.conf             /etc/schema-registry/jaas.conf
+COPY --chmod=0755 entrypoint-auth.sh /usr/local/bin/entrypoint-auth.sh
 
 USER appuser
+
+ENTRYPOINT ["/usr/local/bin/entrypoint-auth.sh"]

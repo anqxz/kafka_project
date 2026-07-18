@@ -20,6 +20,11 @@ from opentelemetry import trace
 from opentelemetry.propagate import inject
 
 BOOTSTRAP = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "broker1:9092,broker2:9092,broker3:9092")
+SASL_MECHANISM = os.getenv("KAFKA_SASL_MECHANISM", "")
+SASL_USERNAME = os.getenv("KAFKA_SASL_USERNAME", "")
+SASL_PASSWORD = os.getenv("KAFKA_SASL_PASSWORD", "")
+SECURITY_PROTOCOL = os.getenv("KAFKA_SECURITY_PROTOCOL", "PLAINTEXT")
+SSL_CAFILE = os.getenv("KAFKA_SSL_CAFILE", "")
 TOPIC = os.getenv("LOADGEN_TOPIC", "events")
 RATE = float(os.getenv("LOADGEN_RATE", "5"))
 DURATION = float(os.getenv("LOADGEN_DURATION", "0"))  # 0 = run until SIGTERM
@@ -65,7 +70,7 @@ def make_event(i: int) -> dict:
 
 
 def main() -> int:
-    producer = KafkaProducer(
+    producer_kwargs: dict[str, object] = dict(
         bootstrap_servers=BOOTSTRAP.split(","),
         value_serializer=lambda v: json.dumps(v).encode("utf-8"),
         key_serializer=lambda k: k.encode("utf-8") if k else None,
@@ -73,7 +78,17 @@ def main() -> int:
         retries=3,
         compression_type="gzip",
         client_id="loadgen",
+        security_protocol=SECURITY_PROTOCOL,
     )
+    if SASL_MECHANISM:
+        producer_kwargs.update(
+            sasl_mechanism=SASL_MECHANISM,
+            sasl_plain_username=SASL_USERNAME,
+            sasl_plain_password=SASL_PASSWORD,
+        )
+    if SSL_CAFILE:
+        producer_kwargs["ssl_cafile"] = SSL_CAFILE
+    producer = KafkaProducer(**producer_kwargs)
     log.info("loadgen started", extra={"bootstrap": BOOTSTRAP, "topic": TOPIC, "rate": RATE})
 
     delay = 1.0 / RATE if RATE > 0 else 0

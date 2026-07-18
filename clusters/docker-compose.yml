@@ -20,12 +20,16 @@ services:
       KAFKA_LISTENERS: "CONTROLLER://:9093"
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "CONTROLLER:PLAINTEXT"
       KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
+      KAFKA_SUPER_USERS: "User:admin;User:ANONYMOUS"
+      KAFKA_AUTHORIZER_CLASS_NAME: "org.apache.kafka.metadata.authorizer.StandardAuthorizer"
+      KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "false"
       KAFKA_LOG4J_LOGGERS: "org.apache.kafka=INFO"
       KAFKA_JMX_PORT: "9101"
       KAFKA_JMX_HOSTNAME: "controller1"
       KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml -javaagent:/opt/agents/opentelemetry-javaagent.jar -javaagent:/opt/agents/pyroscope.jar"
       OTEL_SERVICE_NAME: "controller1"
-      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "https://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_CERTIFICATE: "/etc/tls/ca.pem"
       OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
       OTEL_TRACES_EXPORTER: "otlp"
       OTEL_LOGS_EXPORTER: "otlp"
@@ -37,6 +41,7 @@ services:
       PYROSCOPE_PROFILER_ALLOC: "512k"
     volumes:
       - controller1-data:/var/lib/kafka/data
+      - ../services/tls/certs:/etc/tls:ro
     networks:
       - kafka-quorum
       - observability
@@ -56,12 +61,16 @@ services:
       KAFKA_LISTENERS: "CONTROLLER://:9093"
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "CONTROLLER:PLAINTEXT"
       KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
+      KAFKA_SUPER_USERS: "User:admin;User:ANONYMOUS"
+      KAFKA_AUTHORIZER_CLASS_NAME: "org.apache.kafka.metadata.authorizer.StandardAuthorizer"
+      KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "false"
       KAFKA_LOG4J_LOGGERS: "org.apache.kafka=INFO"
       KAFKA_JMX_PORT: "9101"
       KAFKA_JMX_HOSTNAME: "controller2"
       KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml -javaagent:/opt/agents/opentelemetry-javaagent.jar -javaagent:/opt/agents/pyroscope.jar"
       OTEL_SERVICE_NAME: "controller2"
-      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "https://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_CERTIFICATE: "/etc/tls/ca.pem"
       OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
       OTEL_TRACES_EXPORTER: "otlp"
       OTEL_LOGS_EXPORTER: "otlp"
@@ -73,6 +82,7 @@ services:
       PYROSCOPE_PROFILER_ALLOC: "512k"
     volumes:
       - controller2-data:/var/lib/kafka/data
+      - ../services/tls/certs:/etc/tls:ro
     networks:
       - kafka-quorum
       - observability
@@ -92,12 +102,16 @@ services:
       KAFKA_LISTENERS: "CONTROLLER://:9093"
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "CONTROLLER:PLAINTEXT"
       KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
+      KAFKA_SUPER_USERS: "User:admin;User:ANONYMOUS"
+      KAFKA_AUTHORIZER_CLASS_NAME: "org.apache.kafka.metadata.authorizer.StandardAuthorizer"
+      KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "false"
       KAFKA_LOG4J_LOGGERS: "org.apache.kafka=INFO"
       KAFKA_JMX_PORT: "9101"
       KAFKA_JMX_HOSTNAME: "controller3"
       KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml -javaagent:/opt/agents/opentelemetry-javaagent.jar -javaagent:/opt/agents/pyroscope.jar"
       OTEL_SERVICE_NAME: "controller3"
-      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "https://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_CERTIFICATE: "/etc/tls/ca.pem"
       OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
       OTEL_TRACES_EXPORTER: "otlp"
       OTEL_LOGS_EXPORTER: "otlp"
@@ -109,6 +123,7 @@ services:
       PYROSCOPE_PROFILER_ALLOC: "512k"
     volumes:
       - controller3-data:/var/lib/kafka/data
+      - ../services/tls/certs:/etc/tls:ro
     networks:
       - kafka-quorum
       - observability
@@ -127,12 +142,25 @@ services:
       KAFKA_CLUSTER_ID: "1490b9b6-15d4-40fc-b963-5ffa822835fd"
       CLUSTER_ID: "1490b9b6-15d4-40fc-b963-5ffa822835fd"
       KAFKA_CONTROLLER_QUORUM_VOTERS: "1@controller1:9093,2@controller2:9093,3@controller3:9093"
-      KAFKA_LISTENERS: "PLAINTEXT://:9092,EXTERNAL://:29092"
-      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://broker1:9092,EXTERNAL://localhost:9092"
+      KAFKA_LISTENERS: "PLAINTEXT://:9092,EXTERNAL://:29092,SASL_PLAINTEXT://:9095,SASL_SSL://:9096"
+      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://broker1:9092,EXTERNAL://localhost:9092,SASL_PLAINTEXT://broker1:9095,SASL_SSL://broker1:9096"
       KAFKA_INTER_BROKER_LISTENER_NAME: "PLAINTEXT"
       KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT,SASL_PLAINTEXT:SASL_PLAINTEXT,SASL_SSL:SASL_SSL"
+      KAFKA_SSL_KEYSTORE_LOCATION: "/etc/kafka/secrets/broker1.keystore.p12"
+      KAFKA_SSL_KEYSTORE_TYPE: "PKCS12"
+      KAFKA_SSL_KEYSTORE_PASSWORD: "${TLS_STORE_PASSWORD}"
+      KAFKA_SSL_KEY_PASSWORD: "${TLS_STORE_PASSWORD}"
+      KAFKA_SSL_TRUSTSTORE_LOCATION: "/etc/kafka/secrets/broker1.truststore.p12"
+      KAFKA_SSL_TRUSTSTORE_TYPE: "PKCS12"
+      KAFKA_SSL_TRUSTSTORE_PASSWORD: "${TLS_STORE_PASSWORD}"
+      KAFKA_LISTENER_NAME_SASL_SSL_SASL_ENABLED_MECHANISMS: "SCRAM-SHA-512"
       KAFKA_ALLOW_PLAINTEXT_LISTENER: "yes"
+      KAFKA_SASL_ENABLED_MECHANISMS: "SCRAM-SHA-512"
+      KAFKA_LISTENER_NAME_SASL_PLAINTEXT_SASL_ENABLED_MECHANISMS: "SCRAM-SHA-512"
+      KAFKA_SUPER_USERS: "User:admin;User:ANONYMOUS"
+      KAFKA_AUTHORIZER_CLASS_NAME: "org.apache.kafka.metadata.authorizer.StandardAuthorizer"
+      KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "false"
       KAFKA_DEFAULT_REPLICATION_FACTOR: "3"
       KAFKA_MIN_INSYNC_REPLICAS: "2"
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: "3"
@@ -143,7 +171,8 @@ services:
       KAFKA_JMX_HOSTNAME: "broker1"
       KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml -javaagent:/opt/agents/opentelemetry-javaagent.jar -javaagent:/opt/agents/pyroscope.jar"
       OTEL_SERVICE_NAME: "broker1"
-      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "https://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_CERTIFICATE: "/etc/tls/ca.pem"
       OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
       OTEL_TRACES_EXPORTER: "otlp"
       OTEL_LOGS_EXPORTER: "otlp"
@@ -165,6 +194,8 @@ services:
       - controller3
     volumes:
       - broker1-data:/var/lib/kafka/data
+      - ../services/tls/certs:/etc/kafka/secrets:ro
+      - ../services/tls/certs:/etc/tls:ro
     networks:
       - kafka-quorum
       - kafka-data
@@ -183,9 +214,22 @@ services:
       KAFKA_CLUSTER_ID: "1490b9b6-15d4-40fc-b963-5ffa822835fd"
       CLUSTER_ID: "1490b9b6-15d4-40fc-b963-5ffa822835fd"
       KAFKA_CONTROLLER_QUORUM_VOTERS: "1@controller1:9093,2@controller2:9093,3@controller3:9093"
-      KAFKA_LISTENERS: "PLAINTEXT://:9092,EXTERNAL://:29092"
-      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://broker2:9092,EXTERNAL://localhost:9093"
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT"
+      KAFKA_LISTENERS: "PLAINTEXT://:9092,EXTERNAL://:29092,SASL_PLAINTEXT://:9095,SASL_SSL://:9096"
+      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://broker2:9092,EXTERNAL://localhost:9093,SASL_PLAINTEXT://broker2:9095,SASL_SSL://broker2:9096"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT,SASL_PLAINTEXT:SASL_PLAINTEXT,SASL_SSL:SASL_SSL"
+      KAFKA_SSL_KEYSTORE_LOCATION: "/etc/kafka/secrets/broker2.keystore.p12"
+      KAFKA_SSL_KEYSTORE_TYPE: "PKCS12"
+      KAFKA_SSL_KEYSTORE_PASSWORD: "${TLS_STORE_PASSWORD}"
+      KAFKA_SSL_KEY_PASSWORD: "${TLS_STORE_PASSWORD}"
+      KAFKA_SSL_TRUSTSTORE_LOCATION: "/etc/kafka/secrets/broker2.truststore.p12"
+      KAFKA_SSL_TRUSTSTORE_TYPE: "PKCS12"
+      KAFKA_SSL_TRUSTSTORE_PASSWORD: "${TLS_STORE_PASSWORD}"
+      KAFKA_LISTENER_NAME_SASL_SSL_SASL_ENABLED_MECHANISMS: "SCRAM-SHA-512"
+      KAFKA_SASL_ENABLED_MECHANISMS: "SCRAM-SHA-512"
+      KAFKA_LISTENER_NAME_SASL_PLAINTEXT_SASL_ENABLED_MECHANISMS: "SCRAM-SHA-512"
+      KAFKA_SUPER_USERS: "User:admin;User:ANONYMOUS"
+      KAFKA_AUTHORIZER_CLASS_NAME: "org.apache.kafka.metadata.authorizer.StandardAuthorizer"
+      KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "false"
       KAFKA_INTER_BROKER_LISTENER_NAME: "PLAINTEXT"
       KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
       KAFKA_ALLOW_PLAINTEXT_LISTENER: "yes"
@@ -199,7 +243,8 @@ services:
       KAFKA_JMX_HOSTNAME: "broker2"
       KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml -javaagent:/opt/agents/opentelemetry-javaagent.jar -javaagent:/opt/agents/pyroscope.jar"
       OTEL_SERVICE_NAME: "broker2"
-      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "https://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_CERTIFICATE: "/etc/tls/ca.pem"
       OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
       OTEL_TRACES_EXPORTER: "otlp"
       OTEL_LOGS_EXPORTER: "otlp"
@@ -221,6 +266,8 @@ services:
       - controller3
     volumes:
       - broker2-data:/var/lib/kafka/data
+      - ../services/tls/certs:/etc/kafka/secrets:ro
+      - ../services/tls/certs:/etc/tls:ro
     networks:
       - kafka-quorum
       - kafka-data
@@ -239,9 +286,22 @@ services:
       KAFKA_CLUSTER_ID: "1490b9b6-15d4-40fc-b963-5ffa822835fd"
       CLUSTER_ID: "1490b9b6-15d4-40fc-b963-5ffa822835fd"
       KAFKA_CONTROLLER_QUORUM_VOTERS: "1@controller1:9093,2@controller2:9093,3@controller3:9093"
-      KAFKA_LISTENERS: "PLAINTEXT://:9092,EXTERNAL://:29092"
-      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://broker3:9092,EXTERNAL://localhost:9094"
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT"
+      KAFKA_LISTENERS: "PLAINTEXT://:9092,EXTERNAL://:29092,SASL_PLAINTEXT://:9095,SASL_SSL://:9096"
+      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://broker3:9092,EXTERNAL://localhost:9094,SASL_PLAINTEXT://broker3:9095,SASL_SSL://broker3:9096"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT,SASL_PLAINTEXT:SASL_PLAINTEXT,SASL_SSL:SASL_SSL"
+      KAFKA_SSL_KEYSTORE_LOCATION: "/etc/kafka/secrets/broker3.keystore.p12"
+      KAFKA_SSL_KEYSTORE_TYPE: "PKCS12"
+      KAFKA_SSL_KEYSTORE_PASSWORD: "${TLS_STORE_PASSWORD}"
+      KAFKA_SSL_KEY_PASSWORD: "${TLS_STORE_PASSWORD}"
+      KAFKA_SSL_TRUSTSTORE_LOCATION: "/etc/kafka/secrets/broker3.truststore.p12"
+      KAFKA_SSL_TRUSTSTORE_TYPE: "PKCS12"
+      KAFKA_SSL_TRUSTSTORE_PASSWORD: "${TLS_STORE_PASSWORD}"
+      KAFKA_LISTENER_NAME_SASL_SSL_SASL_ENABLED_MECHANISMS: "SCRAM-SHA-512"
+      KAFKA_SASL_ENABLED_MECHANISMS: "SCRAM-SHA-512"
+      KAFKA_LISTENER_NAME_SASL_PLAINTEXT_SASL_ENABLED_MECHANISMS: "SCRAM-SHA-512"
+      KAFKA_SUPER_USERS: "User:admin;User:ANONYMOUS"
+      KAFKA_AUTHORIZER_CLASS_NAME: "org.apache.kafka.metadata.authorizer.StandardAuthorizer"
+      KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "false"
       KAFKA_INTER_BROKER_LISTENER_NAME: "PLAINTEXT"
       KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
       KAFKA_ALLOW_PLAINTEXT_LISTENER: "yes"
@@ -255,7 +315,8 @@ services:
       KAFKA_JMX_HOSTNAME: "broker3"
       KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml -javaagent:/opt/agents/opentelemetry-javaagent.jar -javaagent:/opt/agents/pyroscope.jar"
       OTEL_SERVICE_NAME: "broker3"
-      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "https://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_CERTIFICATE: "/etc/tls/ca.pem"
       OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
       OTEL_TRACES_EXPORTER: "otlp"
       OTEL_LOGS_EXPORTER: "otlp"
@@ -277,11 +338,42 @@ services:
       - controller3
     volumes:
       - broker3-data:/var/lib/kafka/data
+      - ../services/tls/certs:/etc/kafka/secrets:ro
+      - ../services/tls/certs:/etc/tls:ro
     networks:
       - kafka-quorum
       - kafka-data
       - observability
       - edge
+
+  # One-shot bootstrap: seeds SCRAM users + ACL matrix once brokers are up.
+  # Idempotent; restart:no so it stays terminated on subsequent `up` calls.
+  # 04-SECURITY-GUARDRAILS §2 phase 3.
+  kafka-init:
+    build:
+      context: ../services/broker
+      args:
+        BASE_TAG: "${KAFKA_TAG}"
+    container_name: kafka-init
+    restart: "no"
+    depends_on:
+      - broker1
+      - broker2
+      - broker3
+    environment:
+      BOOTSTRAP: "broker1:9092"
+      SCRAM_ADMIN_USER: "${SCRAM_ADMIN_USER}"
+      SCRAM_ADMIN_PASSWORD: "${SCRAM_ADMIN_PASSWORD}"
+      SCRAM_CONNECT_PASSWORD: "${SCRAM_CONNECT_PASSWORD}"
+      SCRAM_SR_PASSWORD: "${SCRAM_SR_PASSWORD}"
+      SCRAM_KMINION_PASSWORD: "${SCRAM_KMINION_PASSWORD}"
+      SCRAM_CC_PASSWORD: "${SCRAM_CC_PASSWORD}"
+      SCRAM_MCP_PASSWORD: "${SCRAM_MCP_PASSWORD}"
+      SCRAM_LOADGEN_PASSWORD: "${SCRAM_LOADGEN_PASSWORD}"
+      SCRAM_AKHQ_PASSWORD: "${SCRAM_AKHQ_PASSWORD}"
+    entrypoint: ["/usr/local/bin/run-init.sh"]
+    networks:
+      - kafka-data
 
   # AKHQ — data (client connectivity to brokers, JMX via container hostnames) + edge (UI on 127.0.0.1).
   akhq:
@@ -290,6 +382,13 @@ services:
       args:
         BASE_TAG: "${AKHQ_TAG}"
     container_name: akhq
+    environment:
+      SCRAM_AKHQ_PASSWORD: "${SCRAM_AKHQ_PASSWORD}"
+      SCHEMA_REGISTRY_ADMIN_USER: "${SCHEMA_REGISTRY_ADMIN_USER}"
+      SCHEMA_REGISTRY_ADMIN_PASSWORD: "${SCHEMA_REGISTRY_ADMIN_PASSWORD}"
+    volumes:
+      - ../services/tls/certs:/etc/kafka/secrets:ro
+      - ../services/tls/certs:/etc/tls:ro
     ports:
       - "127.0.0.1:8080:8080"
     depends_on:
@@ -345,12 +444,28 @@ services:
     container_name: schema-registry
     environment:
       SCHEMA_REGISTRY_HOST_NAME: schema-registry
-      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: "broker1:9092,broker2:9092,broker3:9092"
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: "SASL_SSL://broker1:9096,SASL_SSL://broker2:9096,SASL_SSL://broker3:9096"
+      SCHEMA_REGISTRY_KAFKASTORE_SECURITY_PROTOCOL: "SASL_SSL"
+      SCHEMA_REGISTRY_KAFKASTORE_SASL_MECHANISM: "SCRAM-SHA-512"
+      SCHEMA_REGISTRY_KAFKASTORE_SASL_JAAS_CONFIG: 'org.apache.kafka.common.security.scram.ScramLoginModule required username="schema-registry" password="$${file:/etc/schema-registry/secrets/kafkastore.properties:password}";'
+      SCHEMA_REGISTRY_KAFKASTORE_CONFIG_PROVIDERS: "file"
+      SCHEMA_REGISTRY_KAFKASTORE_CONFIG_PROVIDERS_FILE_CLASS: "org.apache.kafka.common.config.provider.FileConfigProvider"
+      SCHEMA_REGISTRY_KAFKASTORE_SSL_TRUSTSTORE_LOCATION: "/etc/kafka/secrets/schema-registry.truststore.p12"
+      SCHEMA_REGISTRY_KAFKASTORE_SSL_TRUSTSTORE_TYPE: "PKCS12"
+      SCHEMA_REGISTRY_KAFKASTORE_SSL_TRUSTSTORE_PASSWORD: "${TLS_STORE_PASSWORD}"
       SCHEMA_REGISTRY_LISTENERS: "http://0.0.0.0:8081"
       SCHEMA_REGISTRY_DEBUG: "true"
+      SCHEMA_REGISTRY_AUTHENTICATION_METHOD: BASIC
+      SCHEMA_REGISTRY_AUTHENTICATION_REALM: SchemaRegistry
+      SCHEMA_REGISTRY_AUTHENTICATION_ROLES: admin
+      SCHEMA_REGISTRY_OPTS: "-Djava.security.auth.login.config=/etc/schema-registry/jaas.conf"
+      SCHEMA_REGISTRY_ADMIN_USER: "${SCHEMA_REGISTRY_ADMIN_USER}"
+      SCHEMA_REGISTRY_ADMIN_PASSWORD: "${SCHEMA_REGISTRY_ADMIN_PASSWORD}"
+      SCRAM_SR_PASSWORD: "${SCRAM_SR_PASSWORD}"
       KAFKA_OPTS: "-javaagent:/opt/agents/pyroscope.jar -javaagent:/opt/agents/opentelemetry-javaagent.jar -javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml"
       OTEL_SERVICE_NAME: "schema-registry"
-      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "https://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_CERTIFICATE: "/etc/tls/ca.pem"
       OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
       OTEL_TRACES_EXPORTER: "otlp"
       OTEL_LOGS_EXPORTER: "otlp"
@@ -362,6 +477,9 @@ services:
       PYROSCOPE_PROFILER_ALLOC: "512k"
     ports:
       - "127.0.0.1:8081:8081"
+    volumes:
+      - ../services/tls/certs:/etc/kafka/secrets:ro
+      - ../services/tls/certs:/etc/tls:ro
     depends_on:
       - broker1
       - broker2
@@ -379,7 +497,31 @@ services:
         BASE_TAG: "${CONNECT_TAG}"
     container_name: kafka-connect
     environment:
-      CONNECT_BOOTSTRAP_SERVERS: "broker1:9092,broker2:9092,broker3:9092"
+      CONNECT_BOOTSTRAP_SERVERS: "broker1:9096,broker2:9096,broker3:9096"
+      CONNECT_SECURITY_PROTOCOL: "SASL_SSL"
+      CONNECT_SASL_MECHANISM: "SCRAM-SHA-512"
+      CONNECT_SASL_JAAS_CONFIG: 'org.apache.kafka.common.security.scram.ScramLoginModule required username="connect" password="$${file:/etc/kafka/connect-secrets/connect.properties:password}";'
+      CONNECT_SSL_TRUSTSTORE_LOCATION: "/etc/kafka/secrets/kafka-connect.truststore.p12"
+      CONNECT_SSL_TRUSTSTORE_TYPE: "PKCS12"
+      CONNECT_SSL_TRUSTSTORE_PASSWORD: "${TLS_STORE_PASSWORD}"
+      CONNECT_PRODUCER_SECURITY_PROTOCOL: "SASL_SSL"
+      CONNECT_PRODUCER_SASL_MECHANISM: "SCRAM-SHA-512"
+      CONNECT_PRODUCER_SASL_JAAS_CONFIG: 'org.apache.kafka.common.security.scram.ScramLoginModule required username="connect" password="$${file:/etc/kafka/connect-secrets/connect.properties:password}";'
+      CONNECT_PRODUCER_SSL_TRUSTSTORE_LOCATION: "/etc/kafka/secrets/kafka-connect.truststore.p12"
+      CONNECT_PRODUCER_SSL_TRUSTSTORE_TYPE: "PKCS12"
+      CONNECT_PRODUCER_SSL_TRUSTSTORE_PASSWORD: "${TLS_STORE_PASSWORD}"
+      CONNECT_CONSUMER_SECURITY_PROTOCOL: "SASL_SSL"
+      CONNECT_CONSUMER_SASL_MECHANISM: "SCRAM-SHA-512"
+      CONNECT_CONSUMER_SASL_JAAS_CONFIG: 'org.apache.kafka.common.security.scram.ScramLoginModule required username="connect" password="$${file:/etc/kafka/connect-secrets/connect.properties:password}";'
+      CONNECT_CONSUMER_SSL_TRUSTSTORE_LOCATION: "/etc/kafka/secrets/kafka-connect.truststore.p12"
+      CONNECT_CONSUMER_SSL_TRUSTSTORE_TYPE: "PKCS12"
+      CONNECT_CONSUMER_SSL_TRUSTSTORE_PASSWORD: "${TLS_STORE_PASSWORD}"
+      CONNECT_ADMIN_SECURITY_PROTOCOL: "SASL_SSL"
+      CONNECT_ADMIN_SASL_MECHANISM: "SCRAM-SHA-512"
+      CONNECT_ADMIN_SASL_JAAS_CONFIG: 'org.apache.kafka.common.security.scram.ScramLoginModule required username="connect" password="$${file:/etc/kafka/connect-secrets/connect.properties:password}";'
+      CONNECT_ADMIN_SSL_TRUSTSTORE_LOCATION: "/etc/kafka/secrets/kafka-connect.truststore.p12"
+      CONNECT_ADMIN_SSL_TRUSTSTORE_TYPE: "PKCS12"
+      CONNECT_ADMIN_SSL_TRUSTSTORE_PASSWORD: "${TLS_STORE_PASSWORD}"
       CONNECT_REST_PORT: 8083
       CONNECT_REST_ADVERTISED_HOST_NAME: "kafka-connect"
       CONNECT_GROUP_ID: "kafka-connect-cluster"
@@ -394,13 +536,17 @@ services:
       CONNECT_KEY_CONVERTER_SCHEMAS_ENABLE: "false"
       CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
       CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components"
+      CONNECT_CONFIG_PROVIDERS: "file"
+      CONNECT_CONFIG_PROVIDERS_FILE_CLASS: "org.apache.kafka.common.config.provider.FileConfigProvider"
+      SCRAM_CONNECT_PASSWORD: "${SCRAM_CONNECT_PASSWORD}"
       CONNECT_LOG4J_LOGGERS: "org.apache.kafka.connect=INFO"
       AWS_ACCESS_KEY_ID: "test"
       AWS_SECRET_ACCESS_KEY: "test"
       AWS_DEFAULT_REGION: "us-east-1"
       KAFKA_OPTS: "-javaagent:/opt/agents/pyroscope.jar -javaagent:/opt/agents/opentelemetry-javaagent.jar -javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml"
       OTEL_SERVICE_NAME: "kafka-connect"
-      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "https://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_CERTIFICATE: "/etc/tls/ca.pem"
       OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
       OTEL_TRACES_EXPORTER: "otlp"
       OTEL_LOGS_EXPORTER: "otlp"
@@ -412,6 +558,9 @@ services:
       PYROSCOPE_PROFILER_ALLOC: "512k"
     ports:
       - "127.0.0.1:8083:8083"
+    volumes:
+      - ../services/tls/certs:/etc/kafka/secrets:ro
+      - ../services/tls/certs:/etc/tls:ro
     depends_on:
       localstack:
         condition: service_healthy
@@ -460,8 +609,8 @@ services:
         BASE_TAG: "${GRAFANA_TAG}"
     container_name: grafana
     environment:
-      GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_SECURITY_ADMIN_USER: "${GRAFANA_ADMIN_USER}"
+      GF_SECURITY_ADMIN_PASSWORD: "${GRAFANA_ADMIN_PASSWORD}"
     ports:
       - "127.0.0.1:3000:3000"
     volumes:
@@ -488,6 +637,9 @@ services:
     restart: unless-stopped
     environment:
       CONFIG_FILEPATH: /etc/kminion/config.yaml
+      SCRAM_KMINION_PASSWORD: "${SCRAM_KMINION_PASSWORD}"
+    volumes:
+      - ../services/tls/certs:/etc/tls:ro
     depends_on:
       - broker1
       - broker2
@@ -512,8 +664,10 @@ services:
     container_name: otel-collector
     command: ["--config=/etc/otelcol/config.yaml"]
     ports:
-      - "127.0.0.1:4317:4317"   # OTLP gRPC
-      - "127.0.0.1:4318:4318"   # OTLP HTTP
+      - "127.0.0.1:4317:4317"   # OTLP gRPC (TLS)
+      - "127.0.0.1:4318:4318"   # OTLP HTTP (TLS)
+    volumes:
+      - ../services/tls/certs:/etc/tls:ro
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:13133/"]
       interval: 15s
@@ -653,12 +807,19 @@ services:
         GRADLE_TAG: "${CC_GRADLE_TAG}"
         RUNTIME_TAG: "${CC_RUNTIME_TAG}"
     container_name: cruise-control
+    environment:
+      CRUISE_CONTROL_ADMIN_USER: "${CRUISE_CONTROL_ADMIN_USER}"
+      CRUISE_CONTROL_ADMIN_PASSWORD: "${CRUISE_CONTROL_ADMIN_PASSWORD}"
+      SCRAM_CC_PASSWORD: "${SCRAM_CC_PASSWORD}"
     depends_on:
       - broker1
       - broker2
       - broker3
     ports:
       - "127.0.0.1:9095:9090"
+    volumes:
+      - ../services/tls/certs:/etc/kafka/secrets:ro
+      - ../services/tls/certs:/etc/tls:ro
     networks:
       - kafka-data
       - observability
@@ -698,13 +859,24 @@ services:
         PYTHON_TAG: "${MCP_KAFKA_PYTHON_TAG}"
     container_name: mcp-kafka
     environment:
-      KAFKA_BOOTSTRAP_SERVERS: "broker1:9092,broker2:9092,broker3:9092"
       CONNECT_URL: "http://kafka-connect:8083"
       SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
       PROMETHEUS_URL: "http://prometheus:9090"
       MCP_MODE: "read-only"
       MCP_TRANSPORT: "sse"
       MCP_PORT: "3001"
+      MCP_AUTH_TOKEN: "${MCP_AUTH_TOKEN}"
+      KAFKA_BOOTSTRAP_SERVERS: "broker1:9096,broker2:9096,broker3:9096"
+      KAFKA_SECURITY_PROTOCOL: "SASL_SSL"
+      KAFKA_SASL_MECHANISM: "SCRAM-SHA-512"
+      KAFKA_SASL_USERNAME: "mcp"
+      KAFKA_SASL_PASSWORD: "${SCRAM_MCP_PASSWORD}"
+      KAFKA_SSL_CAFILE: "/etc/tls/ca.pem"
+      MCP_TLS_CERT: "/etc/tls/mcp-kafka.pem"
+      MCP_TLS_KEY: "/etc/tls/mcp-kafka.key"
+      MCP_TLS_CLIENT_CA: "/etc/tls/ca.pem"
+    volumes:
+      - ../services/tls/certs:/etc/tls:ro
     depends_on:
       - broker1
       - kafka-connect
@@ -723,11 +895,19 @@ services:
     container_name: loadgen
     restart: on-failure
     environment:
-      KAFKA_BOOTSTRAP_SERVERS: "broker1:9092,broker2:9092,broker3:9092"
+      KAFKA_BOOTSTRAP_SERVERS: "broker1:9096,broker2:9096,broker3:9096"
+      KAFKA_SECURITY_PROTOCOL: "SASL_SSL"
+      KAFKA_SASL_MECHANISM: "SCRAM-SHA-512"
+      KAFKA_SASL_USERNAME: "loadgen"
+      KAFKA_SASL_PASSWORD: "${SCRAM_LOADGEN_PASSWORD}"
+      KAFKA_SSL_CAFILE: "/etc/tls/ca.pem"
       LOADGEN_TOPIC: "events"
       LOADGEN_RATE: "5"
       LOADGEN_DURATION: "0"
-      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "https://otel-collector:4318"
+      OTEL_EXPORTER_OTLP_CERTIFICATE: "/etc/tls/ca.pem"
+    volumes:
+      - ../services/tls/certs:/etc/tls:ro
     depends_on:
       - broker1
       - otel-collector

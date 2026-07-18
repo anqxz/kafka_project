@@ -1,0 +1,36 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:base",
+    ":semanticCommits",
+    ":dependencyDashboard"
+  ],
+  "labels": ["dependencies", "security"],
+  "packageRules": [
+    {
+      "description": "Pin every image tag in clusters/.env — that file is the single source of truth for base-image versions.",
+      "matchFileNames": ["clusters/.env"],
+      "matchDatasources": ["docker"],
+      "pinDigests": true,
+      "semanticCommitScope": "images"
+    },
+    {
+      "description": "Group all GitHub Actions bumps into a single PR — reviewers only need to open one.",
+      "matchManagers": ["github-actions"],
+      "groupName": "github-actions",
+      "semanticCommitScope": "ci"
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Extract *_TAG=vX.Y.Z from clusters/.env as docker image references. The datasource lookup name comes from the SERVICE map below.",
+      "fileMatch": ["^clusters/\\.env$"],
+      "matchStrings": [
+        "(?<depName>[A-Z0-9_]+)_TAG=(?<currentValue>[^\\s#]+)"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker"
+    }
+  ]
+}

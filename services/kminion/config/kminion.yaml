@@ -3,14 +3,18 @@ logger:
 
 kafka:
   brokers:
-    - broker1:9092
-    - broker2:9092
-    - broker3:9092
+    - broker1:9096
+    - broker2:9096
+    - broker3:9096
   clientId: kminion
   tls:
-    enabled: false
+    enabled: true
+    caFilepath: /etc/tls/ca.pem
   sasl:
-    enabled: false
+    enabled: true
+    mechanism: SCRAM-SHA-512
+    username: kminion
+    password: ${SCRAM_KMINION_PASSWORD}
 
 minion:
   consumerGroups:

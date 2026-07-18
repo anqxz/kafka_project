@@ -2,7 +2,13 @@ akhq:
   connections:
     kafka-kraft-cluster:
       properties:
-        bootstrap.servers: "broker1:9092,broker2:9092,broker3:9092"
+        bootstrap.servers: "broker1:9096,broker2:9096,broker3:9096"
+        security.protocol: SASL_SSL
+        sasl.mechanism: SCRAM-SHA-512
+        sasl.jaas.config: 'org.apache.kafka.common.security.scram.ScramLoginModule required username="akhq" password="${SCRAM_AKHQ_PASSWORD:change-me-in-real-deployments}";'
+        ssl.truststore.location: /etc/kafka/secrets/akhq.truststore.p12
+        ssl.truststore.type: PKCS12
+        ssl.truststore.password: changeit
       jmx:
         - name: broker1
           url: "broker1:9101"
@@ -13,3 +19,8 @@ akhq:
       connect:
         - name: "kafka-connect"
           url: "http://kafka-connect:8083"
+      schema-registry:
+        url: "http://schema-registry:8081"
+        basic-auth:
+          username: "${SCHEMA_REGISTRY_ADMIN_USER:admin}"
+          password: "${SCHEMA_REGISTRY_ADMIN_PASSWORD:change-me-in-real-deployments}"

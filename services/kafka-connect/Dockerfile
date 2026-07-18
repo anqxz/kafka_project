@@ -11,6 +11,10 @@ ARG S3_CONNECTOR_VERSION=10.5.13
 
 USER root
 
+# Golden-base rebuild (UBI8 microdnf) — 04-SECURITY-GUARDRAILS §2 phase 6.
+RUN microdnf update -y \
+ && microdnf clean all
+
 RUN mkdir -p /opt/agents /opt/jmx_exporter
 
 ADD https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v${OTEL_AGENT_VERSION}/opentelemetry-javaagent.jar \
@@ -29,6 +33,15 @@ RUN chmod 0644 /opt/agents/opentelemetry-javaagent.jar \
 # Bake S3 sink connector so runtime plugin download is not required.
 RUN confluent-hub install --no-prompt confluentinc/kafka-connect-s3:${S3_CONNECTOR_VERSION}
 
+# Vendor-neutral secret sourcing: Kafka Connect's built-in
+# FileConfigProvider reads passwords from files instead of env, so the
+# secret backing (K8s Secret mount, Vault sidecar, SPIRE issuance,
+# ephemeral tmpfs render) is a runtime decision — no vendor JAR baked
+# in. See services/kafka-connect/entrypoint-secrets.sh.
+COPY --chmod=0755 entrypoint-secrets.sh /usr/local/bin/entrypoint-secrets.sh
+
 COPY config/jmx/kafka-config.yml /opt/jmx_exporter/kafka-config.yml
 
 USER appuser
+
+ENTRYPOINT ["/usr/local/bin/entrypoint-secrets.sh"]

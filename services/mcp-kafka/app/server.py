@@ -5,7 +5,9 @@ Exposes cluster inspection tools an AI agent can call over SSE. Contract:
 """
 from __future__ import annotations
 
+import logging
 import os
+import secrets
 from typing import Any
 
 import requests
@@ -14,16 +16,65 @@ from kafka import KafkaAdminClient, KafkaConsumer
 from kafka.errors import KafkaError
 
 BOOTSTRAP = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "broker1:9092,broker2:9092,broker3:9092")
+KAFKA_SECURITY_PROTOCOL = os.getenv("KAFKA_SECURITY_PROTOCOL", "PLAINTEXT")
+KAFKA_SASL_MECHANISM = os.getenv("KAFKA_SASL_MECHANISM", "")
+KAFKA_SASL_USERNAME = os.getenv("KAFKA_SASL_USERNAME", "")
+KAFKA_SASL_PASSWORD = os.getenv("KAFKA_SASL_PASSWORD", "")
+KAFKA_SSL_CAFILE = os.getenv("KAFKA_SSL_CAFILE", "")
+
+# Phase 5: read KAFKA_SASL_PASSWORD from a file when
+# KAFKA_SASL_PASSWORD_FILE is set. Enterprise deployments mount the
+# file from a K8s Secret projected volume, a Vault-agent side-car, a
+# SPIFFE-issued short-lived credential, or a container-level tmpfs
+# render — any source that materialises the secret on disk. Vendor-
+# neutral by design: no AWS SDK, no MSK plugin JAR.
+_PASSWORD_FILE = os.getenv("KAFKA_SASL_PASSWORD_FILE", "")
+if _PASSWORD_FILE:
+    with open(_PASSWORD_FILE, "r", encoding="utf-8") as _f:
+        KAFKA_SASL_PASSWORD = _f.read().strip()
+
+
+def _kafka_client_kwargs() -> dict[str, object]:
+    """Common Kafka client kwargs (security protocol + optional SCRAM + optional TLS CA)."""
+    kw: dict[str, object] = {
+        "bootstrap_servers": BOOTSTRAP.split(","),
+        "security_protocol": KAFKA_SECURITY_PROTOCOL,
+    }
+    if KAFKA_SASL_MECHANISM:
+        kw.update(
+            sasl_mechanism=KAFKA_SASL_MECHANISM,
+            sasl_plain_username=KAFKA_SASL_USERNAME,
+            sasl_plain_password=KAFKA_SASL_PASSWORD,
+        )
+    if KAFKA_SSL_CAFILE:
+        kw["ssl_cafile"] = KAFKA_SSL_CAFILE
+    return kw
 CONNECT_URL = os.getenv("CONNECT_URL", "http://kafka-connect:8083")
 SCHEMA_REGISTRY_URL = os.getenv("SCHEMA_REGISTRY_URL", "http://schema-registry:8081")
 PROMETHEUS_URL = os.getenv("PROMETHEUS_URL", "http://prometheus:9090")
 MCP_MODE = os.getenv("MCP_MODE", "read-only")
+MCP_AUTH_TOKEN = os.getenv("MCP_AUTH_TOKEN", "")
+
+log = logging.getLogger("mcp-kafka")
 
 mcp = FastMCP("mcp-kafka")
 
 
+def _require_token(request_headers: dict[str, str]) -> None:
+    """Refuse the request when MCP_AUTH_TOKEN is set and the caller did not
+    send a matching Bearer token. Constant-time compare — no early return."""
+    if not MCP_AUTH_TOKEN:
+        return
+    supplied = request_headers.get("authorization", "")
+    prefix = "Bearer "
+    if not supplied.startswith(prefix):
+        raise PermissionError("missing Bearer token")
+    if not secrets.compare_digest(supplied[len(prefix):], MCP_AUTH_TOKEN):
+        raise PermissionError("bad Bearer token")
+
+
 def _admin() -> KafkaAdminClient:
-    return KafkaAdminClient(bootstrap_servers=BOOTSTRAP.split(","), client_id="mcp-kafka")
+    return KafkaAdminClient(client_id="mcp-kafka", **_kafka_client_kwargs())
 
 
 @mcp.tool()
@@ -115,11 +166,11 @@ def tail_topic(topic: str, max_messages: int = 20, timeout_seconds: int = 5) -> 
     timeout_seconds = min(timeout_seconds, 30)
     consumer = KafkaConsumer(
         topic,
-        bootstrap_servers=BOOTSTRAP.split(","),
         auto_offset_reset="latest",
         consumer_timeout_ms=timeout_seconds * 1000,
         client_id="mcp-kafka-tail",
         group_id=None,
+        **_kafka_client_kwargs(),
     )
     out: list[dict[str, Any]] = []
     try:
@@ -145,4 +196,52 @@ if __name__ == "__main__":
     if transport == "stdio":
         mcp.run()
     else:
-        mcp.run(transport="sse", host="0.0.0.0", port=int(os.getenv("MCP_PORT", "3001")))
+        import uvicorn
+        from starlette.middleware.base import BaseHTTPMiddleware
+        from starlette.responses import PlainTextResponse
+
+        class BearerAuthMiddleware(BaseHTTPMiddleware):
+            async def dispatch(self, request, call_next):
+                if MCP_AUTH_TOKEN:
+                    auth = request.headers.get("authorization", "")
+                    prefix = "Bearer "
+                    ok = (
+                        auth.startswith(prefix)
+                        and secrets.compare_digest(auth[len(prefix):], MCP_AUTH_TOKEN)
+                    )
+                    if not ok:
+                        return PlainTextResponse("unauthorized", status_code=401)
+                return await call_next(request)
+
+        app = mcp.sse_app()
+        app.add_middleware(BearerAuthMiddleware)
+        if not MCP_AUTH_TOKEN:
+            log.warning(
+                "MCP_AUTH_TOKEN is unset — SSE endpoint is open. Set the env "
+                "variable in production (04-SECURITY-GUARDRAILS F9)."
+            )
+        import ssl as _ssl
+        tls_cert = os.getenv("MCP_TLS_CERT", "")
+        tls_key  = os.getenv("MCP_TLS_KEY", "")
+        tls_ca   = os.getenv("MCP_TLS_CLIENT_CA", "")
+        uvicorn_kwargs: dict[str, object] = dict(
+            host="0.0.0.0", port=int(os.getenv("MCP_PORT", "3001")),
+            log_level=os.getenv("LOG_LEVEL", "info").lower(),
+        )
+        if tls_cert and tls_key:
+            uvicorn_kwargs.update(ssl_certfile=tls_cert, ssl_keyfile=tls_key)
+            if tls_ca:
+                uvicorn_kwargs.update(
+                    ssl_ca_certs=tls_ca,
+                    ssl_cert_reqs=_ssl.CERT_REQUIRED,
+                )
+            else:
+                log.warning(
+                    "MCP_TLS_CLIENT_CA unset — server-only TLS, no client cert "
+                    "verification (04-SECURITY-GUARDRAILS F9 second half)."
+                )
+        else:
+            log.warning(
+                "MCP_TLS_CERT/KEY unset — SSE endpoint runs over plaintext HTTP."
+            )
+        uvicorn.run(app, **uvicorn_kwargs)

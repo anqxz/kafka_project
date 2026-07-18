@@ -18,12 +18,18 @@ RUN tar -xzf /tmp/cc.tgz --strip-components=1 -C /src \
 
 FROM eclipse-temurin:${RUNTIME_TAG}
 LABEL org.opencontainers.image.source="https://github.com/linkedin/cruise-control"
+
+# Golden-base rebuild — 04-SECURITY-GUARDRAILS §2 phase 6.
+RUN apt-get update \
+ && apt-get upgrade -y \
+ && apt-get autoremove -y \
+ && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /opt/cruise-control
 COPY --from=builder /src/cruise-control/build/libs/          /opt/cruise-control/libs/
 COPY --from=builder /src/cruise-control/build/dependant-libs/ /opt/cruise-control/libs/
 COPY --from=builder /src/config/                              /opt/cruise-control/config-default/
 COPY config/cruisecontrol.properties                          /opt/cruise-control/config/cruisecontrol.properties
+COPY --chmod=0755 entrypoint-auth.sh                          /usr/local/bin/entrypoint-auth.sh
 EXPOSE 9090
-CMD ["java", "-cp", "libs/*", \
-     "com.linkedin.kafka.cruisecontrol.KafkaCruiseControlMain", \
-     "config/cruisecontrol.properties"]
+ENTRYPOINT ["/usr/local/bin/entrypoint-auth.sh"]

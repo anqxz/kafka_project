@@ -1,0 +1,25 @@
+# Risk-accepted vulnerability IDs — union of local Trivy scan on the
+# pinned vendor tag and CI's Code Scanning alerts. Trivy DB refreshes
+# constantly, so both sources are captured. Every entry is
+# `Status:fixed` upstream; the vendor's artifact was compiled/packaged
+# before the fix landed. Renovate opens a base-tag bump PR when the
+# vendor ships a rebuilt release; clear the corresponding line here
+# when the bump lands.
+#
+# Format:
+#   <ID>  # expiry:YYYY-MM-DD  ticket:SEC-XXXX  reason:<short>
+
+CVE-2026-39827  # expiry:2026-10-31  ticket:SEC-TBD  reason:vendor-binary-precedes-go-patch
+CVE-2026-39828  # expiry:2026-10-31  ticket:SEC-TBD  reason:vendor-binary-precedes-go-patch
+CVE-2026-39829  # expiry:2026-10-31  ticket:SEC-TBD  reason:vendor-binary-precedes-go-patch
+CVE-2026-39830  # expiry:2026-10-31  ticket:SEC-TBD  reason:vendor-binary-precedes-go-patch
+CVE-2026-39831  # expiry:2026-10-31  ticket:SEC-TBD  reason:vendor-binary-precedes-go-patch
+CVE-2026-39832  # expiry:2026-10-31  ticket:SEC-TBD  reason:vendor-binary-precedes-go-patch
+CVE-2026-39833  # expiry:2026-10-31  ticket:SEC-TBD  reason:vendor-binary-precedes-go-patch
+CVE-2026-39834  # expiry:2026-10-31  ticket:SEC-TBD  reason:vendor-binary-precedes-go-patch
+CVE-2026-39835  # expiry:2026-10-31  ticket:SEC-TBD  reason:vendor-binary-precedes-go-patch
+CVE-2026-42508  # expiry:2026-10-31  ticket:SEC-TBD  reason:vendor-binary-precedes-go-patch
+CVE-2026-46595  # expiry:2026-10-31  ticket:SEC-TBD  reason:vendor-binary-precedes-go-patch
+CVE-2026-46597  # expiry:2026-10-31  ticket:SEC-TBD  reason:vendor-binary-precedes-go-patch
+CVE-2026-46598  # expiry:2026-10-31  ticket:SEC-TBD  reason:vendor-binary-precedes-go-patch
+CVE-2026-46600  # expiry:2026-10-31  ticket:SEC-TBD  reason:vendor-binary-precedes-go-patch

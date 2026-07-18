@@ -1,0 +1,36 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - ci
+
+  - package-ecosystem: pip
+    directory: /services/mcp-kafka/app
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - mcp-kafka
+
+  - package-ecosystem: pip
+    directory: /services/loadgen/app
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - loadgen
+
+  - package-ecosystem: docker
+    directory: /services/broker
+    schedule:
+      interval: weekly
+    labels:
+      - dependencies
+      - docker

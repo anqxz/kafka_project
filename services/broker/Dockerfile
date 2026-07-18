@@ -31,6 +31,14 @@ ARG PYROSCOPE_AGENT_VERSION=2.8.0
 
 USER root
 
+# Golden-base rebuild — apply every vendor OS patch on top of the pinned
+# Confluent tag so Trivy CRITICAL/HIGH findings only come from CVEs
+# nobody upstream has fixed. Runs once per image build, not per boot.
+# Confluent's cp-* images sit on UBI8, so microdnf is the package tool.
+# 04-SECURITY-GUARDRAILS §2 phase 6.
+RUN microdnf update -y \
+ && microdnf clean all
+
 RUN mkdir -p /opt/agents /opt/jmx_exporter
 
 ADD https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/${JMX_EXPORTER_VERSION}/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar \
@@ -50,5 +58,19 @@ RUN chmod 0644 /opt/jmx_exporter/jmx_prometheus_javaagent.jar \
                /usr/share/java/kafka/cruise-control-metrics-reporter.jar
 
 COPY config/jmx/kafka-config.yml /opt/jmx_exporter/kafka-config.yml
+
+# Phase 2 SASL helper scripts. Not on the boot path — invoked via
+# `docker exec` to seed SCRAM users, render admin.properties, or
+# apply ACLs. See 04-SECURITY-GUARDRAILS §2.
+COPY --chmod=0755 render-admin-props.sh          /usr/local/bin/render-admin-props.sh
+COPY --chmod=0755 bootstrap-scram-users.sh       /usr/local/bin/bootstrap-scram-users.sh
+COPY --chmod=0755 bootstrap-acls.sh              /usr/local/bin/bootstrap-acls.sh
+COPY --chmod=0755 run-init.sh                    /usr/local/bin/run-init.sh
+COPY config/client-sasl.properties.template      /etc/kafka/client-sasl.properties.template
+
+# Boot-path: bake the admin SCRAM credential into the metadata log at
+# first-time format so the inter-broker SASL listener can be enabled
+# without a chicken-and-egg client bootstrap.
+COPY --chmod=0755 entrypoint-format-scram.sh     /usr/local/bin/entrypoint-format-scram.sh
 
 USER appuser
