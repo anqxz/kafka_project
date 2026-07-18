@@ -57,6 +57,7 @@ COPY config/jmx/kafka-config.yml /opt/jmx_exporter/kafka-config.yml
 COPY --chmod=0755 render-admin-props.sh          /usr/local/bin/render-admin-props.sh
 COPY --chmod=0755 bootstrap-scram-users.sh       /usr/local/bin/bootstrap-scram-users.sh
 COPY --chmod=0755 bootstrap-acls.sh              /usr/local/bin/bootstrap-acls.sh
+COPY --chmod=0755 run-init.sh                    /usr/local/bin/run-init.sh
 COPY config/client-sasl.properties.template      /etc/kafka/client-sasl.properties.template
 
 # Boot-path: bake the admin SCRAM credential into the metadata log at
