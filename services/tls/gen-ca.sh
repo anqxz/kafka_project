@@ -61,5 +61,14 @@ for svc in broker1 broker2 broker3 controller1 controller2 controller3 \
   leaf "$svc" "DNS:${svc},DNS:localhost,IP:127.0.0.1"
 done
 
+printf '%s' "${STORE_PASSWORD}" > "$TLS_DIR/keystore_creds"
+printf '%s' "${STORE_PASSWORD}" > "$TLS_DIR/truststore_creds"
+printf '%s' "${STORE_PASSWORD}" > "$TLS_DIR/key_creds"
+# Lab: TLS material is world-readable so non-root service users
+# (grafana, otel-collector, pyroscope, etc.) can consume it via the
+# same read-only bind mount. In production, the secret backing
+# (K8s Secret, Vault) enforces per-service ACLs.
+chmod 0644 "$TLS_DIR"/*
+
 echo "Done. Certs under $TLS_DIR — bind mount or COPY into service images."
 ls -1 "$TLS_DIR"

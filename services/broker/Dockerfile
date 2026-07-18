@@ -67,6 +67,8 @@ COPY --chmod=0755 bootstrap-scram-users.sh       /usr/local/bin/bootstrap-scram-
 COPY --chmod=0755 bootstrap-acls.sh              /usr/local/bin/bootstrap-acls.sh
 COPY --chmod=0755 run-init.sh                    /usr/local/bin/run-init.sh
 COPY config/client-sasl.properties.template      /etc/kafka/client-sasl.properties.template
+COPY config/kafka_server_jaas.conf               /etc/kafka/kafka_server_jaas.conf.template
+COPY --chmod=0755 entrypoint-jaas.sh             /usr/local/bin/entrypoint-jaas.sh
 
 # Boot-path: bake the admin SCRAM credential into the metadata log at
 # first-time format so the inter-broker SASL listener can be enabled
@@ -74,3 +76,5 @@ COPY config/client-sasl.properties.template      /etc/kafka/client-sasl.properti
 COPY --chmod=0755 entrypoint-format-scram.sh     /usr/local/bin/entrypoint-format-scram.sh
 
 USER appuser
+
+ENTRYPOINT ["/usr/local/bin/entrypoint-jaas.sh"]
