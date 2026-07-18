@@ -10,11 +10,9 @@ ARG PYROSCOPE_AGENT_VERSION=2.8.0
 
 USER root
 
-# Golden-base rebuild — 04-SECURITY-GUARDRAILS §2 phase 6.
-RUN apt-get update \
- && apt-get upgrade -y \
- && apt-get autoremove -y \
- && rm -rf /var/lib/apt/lists/*
+# Golden-base rebuild (UBI8 microdnf) — 04-SECURITY-GUARDRAILS §2 phase 6.
+RUN microdnf update -y \
+ && microdnf clean all
 
 RUN mkdir -p /opt/agents /opt/jmx_exporter
 

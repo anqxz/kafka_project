@@ -34,11 +34,10 @@ USER root
 # Golden-base rebuild — apply every vendor OS patch on top of the pinned
 # Confluent tag so Trivy CRITICAL/HIGH findings only come from CVEs
 # nobody upstream has fixed. Runs once per image build, not per boot.
+# Confluent's cp-* images sit on UBI8, so microdnf is the package tool.
 # 04-SECURITY-GUARDRAILS §2 phase 6.
-RUN apt-get update \
- && apt-get upgrade -y \
- && apt-get autoremove -y \
- && rm -rf /var/lib/apt/lists/*
+RUN microdnf update -y \
+ && microdnf clean all
 
 RUN mkdir -p /opt/agents /opt/jmx_exporter
 
