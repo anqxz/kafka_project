@@ -5,7 +5,7 @@
 # we patch on every rebuild.
 # 04-SECURITY-GUARDRAILS §2 phase 6.
 ARG BASE_IMAGE=prom/prometheus
-ARG BASE_TAG=v2.55.0
+ARG BASE_TAG=v3.13.1
 ARG RUNTIME_TAG=3.21
 
 FROM ${BASE_IMAGE}:${BASE_TAG} AS vendor

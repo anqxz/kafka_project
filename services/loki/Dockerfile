@@ -1,7 +1,7 @@
 # Loki multi-stage rebuild onto a patched alpine.
 # 04-SECURITY-GUARDRAILS §2 phase 6.
 ARG BASE_IMAGE=grafana/loki
-ARG BASE_TAG=3.2.0
+ARG BASE_TAG=3.7.3
 ARG RUNTIME_TAG=3.21
 
 FROM ${BASE_IMAGE}:${BASE_TAG} AS vendor

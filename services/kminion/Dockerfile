@@ -1,7 +1,7 @@
 # kminion multi-stage rebuild onto a patched alpine.
 # 04-SECURITY-GUARDRAILS §2 phase 6.
 ARG BASE_IMAGE=redpandadata/kminion
-ARG BASE_TAG=v2.2.11
+ARG BASE_TAG=v2.3.3
 ARG RUNTIME_TAG=3.21
 
 FROM ${BASE_IMAGE}:${BASE_TAG} AS vendor

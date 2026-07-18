@@ -1,7 +1,7 @@
 # Pyroscope multi-stage rebuild onto a patched alpine.
 # 04-SECURITY-GUARDRAILS §2 phase 6.
 ARG BASE_IMAGE=grafana/pyroscope
-ARG BASE_TAG=1.7.1
+ARG BASE_TAG=2.1.1
 ARG RUNTIME_TAG=3.21
 
 FROM ${BASE_IMAGE}:${BASE_TAG} AS vendor

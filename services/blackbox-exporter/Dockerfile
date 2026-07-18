@@ -1,7 +1,7 @@
 # Blackbox exporter multi-stage rebuild onto a patched alpine.
 # 04-SECURITY-GUARDRAILS §2 phase 6.
 ARG BASE_IMAGE=prom/blackbox-exporter
-ARG BASE_TAG=v0.25.0
+ARG BASE_TAG=v0.28.0
 ARG RUNTIME_TAG=3.21
 
 FROM ${BASE_IMAGE}:${BASE_TAG} AS vendor
