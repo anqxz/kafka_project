@@ -5,7 +5,9 @@ Exposes cluster inspection tools an AI agent can call over SSE. Contract:
 """
 from __future__ import annotations
 
+import logging
 import os
+import secrets
 from typing import Any
 
 import requests
@@ -18,8 +20,24 @@ CONNECT_URL = os.getenv("CONNECT_URL", "http://kafka-connect:8083")
 SCHEMA_REGISTRY_URL = os.getenv("SCHEMA_REGISTRY_URL", "http://schema-registry:8081")
 PROMETHEUS_URL = os.getenv("PROMETHEUS_URL", "http://prometheus:9090")
 MCP_MODE = os.getenv("MCP_MODE", "read-only")
+MCP_AUTH_TOKEN = os.getenv("MCP_AUTH_TOKEN", "")
+
+log = logging.getLogger("mcp-kafka")
 
 mcp = FastMCP("mcp-kafka")
+
+
+def _require_token(request_headers: dict[str, str]) -> None:
+    """Refuse the request when MCP_AUTH_TOKEN is set and the caller did not
+    send a matching Bearer token. Constant-time compare — no early return."""
+    if not MCP_AUTH_TOKEN:
+        return
+    supplied = request_headers.get("authorization", "")
+    prefix = "Bearer "
+    if not supplied.startswith(prefix):
+        raise PermissionError("missing Bearer token")
+    if not secrets.compare_digest(supplied[len(prefix):], MCP_AUTH_TOKEN):
+        raise PermissionError("bad Bearer token")
 
 
 def _admin() -> KafkaAdminClient:
@@ -145,4 +163,31 @@ if __name__ == "__main__":
     if transport == "stdio":
         mcp.run()
     else:
-        mcp.run(transport="sse", host="0.0.0.0", port=int(os.getenv("MCP_PORT", "3001")))
+        import uvicorn
+        from starlette.middleware.base import BaseHTTPMiddleware
+        from starlette.responses import PlainTextResponse
+
+        class BearerAuthMiddleware(BaseHTTPMiddleware):
+            async def dispatch(self, request, call_next):
+                if MCP_AUTH_TOKEN:
+                    auth = request.headers.get("authorization", "")
+                    prefix = "Bearer "
+                    ok = (
+                        auth.startswith(prefix)
+                        and secrets.compare_digest(auth[len(prefix):], MCP_AUTH_TOKEN)
+                    )
+                    if not ok:
+                        return PlainTextResponse("unauthorized", status_code=401)
+                return await call_next(request)
+
+        app = mcp.sse_app()
+        app.add_middleware(BearerAuthMiddleware)
+        if not MCP_AUTH_TOKEN:
+            log.warning(
+                "MCP_AUTH_TOKEN is unset — SSE endpoint is open. Set the env "
+                "variable in production (04-SECURITY-GUARDRAILS F9)."
+            )
+        uvicorn.run(
+            app, host="0.0.0.0", port=int(os.getenv("MCP_PORT", "3001")),
+            log_level=os.getenv("LOG_LEVEL", "info").lower(),
+        )

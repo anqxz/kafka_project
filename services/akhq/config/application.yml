@@ -13,3 +13,8 @@ akhq:
       connect:
         - name: "kafka-connect"
           url: "http://kafka-connect:8083"
+      schema-registry:
+        url: "http://schema-registry:8081"
+        basic-auth:
+          username: "${SCHEMA_REGISTRY_ADMIN_USER:admin}"
+          password: "${SCHEMA_REGISTRY_ADMIN_PASSWORD:change-me-in-real-deployments}"

@@ -23,7 +23,6 @@ COPY --from=builder /src/cruise-control/build/libs/          /opt/cruise-control
 COPY --from=builder /src/cruise-control/build/dependant-libs/ /opt/cruise-control/libs/
 COPY --from=builder /src/config/                              /opt/cruise-control/config-default/
 COPY config/cruisecontrol.properties                          /opt/cruise-control/config/cruisecontrol.properties
+COPY --chmod=0755 entrypoint-auth.sh                          /usr/local/bin/entrypoint-auth.sh
 EXPOSE 9090
-CMD ["java", "-cp", "libs/*", \
-     "com.linkedin.kafka.cruisecontrol.KafkaCruiseControlMain", \
-     "config/cruisecontrol.properties"]
+ENTRYPOINT ["/usr/local/bin/entrypoint-auth.sh"]

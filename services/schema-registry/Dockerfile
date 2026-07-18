@@ -25,5 +25,9 @@ RUN chmod 0644 /opt/agents/opentelemetry-javaagent.jar \
                /opt/jmx_exporter/jmx_prometheus_javaagent.jar
 
 COPY config/jmx/kafka-config.yml /opt/jmx_exporter/kafka-config.yml
+COPY config/jaas.conf             /etc/schema-registry/jaas.conf
+COPY --chmod=0755 entrypoint-auth.sh /usr/local/bin/entrypoint-auth.sh
 
 USER appuser
+
+ENTRYPOINT ["/usr/local/bin/entrypoint-auth.sh"]

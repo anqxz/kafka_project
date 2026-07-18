@@ -348,6 +348,12 @@ services:
       SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: "broker1:9092,broker2:9092,broker3:9092"
       SCHEMA_REGISTRY_LISTENERS: "http://0.0.0.0:8081"
       SCHEMA_REGISTRY_DEBUG: "true"
+      SCHEMA_REGISTRY_AUTHENTICATION_METHOD: BASIC
+      SCHEMA_REGISTRY_AUTHENTICATION_REALM: SchemaRegistry
+      SCHEMA_REGISTRY_AUTHENTICATION_ROLES: admin
+      SCHEMA_REGISTRY_OPTS: "-Djava.security.auth.login.config=/etc/schema-registry/jaas.conf"
+      SCHEMA_REGISTRY_ADMIN_USER: "${SCHEMA_REGISTRY_ADMIN_USER}"
+      SCHEMA_REGISTRY_ADMIN_PASSWORD: "${SCHEMA_REGISTRY_ADMIN_PASSWORD}"
       KAFKA_OPTS: "-javaagent:/opt/agents/pyroscope.jar -javaagent:/opt/agents/opentelemetry-javaagent.jar -javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml"
       OTEL_SERVICE_NAME: "schema-registry"
       OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"
@@ -460,8 +466,8 @@ services:
         BASE_TAG: "${GRAFANA_TAG}"
     container_name: grafana
     environment:
-      GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_SECURITY_ADMIN_USER: "${GRAFANA_ADMIN_USER}"
+      GF_SECURITY_ADMIN_PASSWORD: "${GRAFANA_ADMIN_PASSWORD}"
     ports:
       - "127.0.0.1:3000:3000"
     volumes:
@@ -653,6 +659,9 @@ services:
         GRADLE_TAG: "${CC_GRADLE_TAG}"
         RUNTIME_TAG: "${CC_RUNTIME_TAG}"
     container_name: cruise-control
+    environment:
+      CRUISE_CONTROL_ADMIN_USER: "${CRUISE_CONTROL_ADMIN_USER}"
+      CRUISE_CONTROL_ADMIN_PASSWORD: "${CRUISE_CONTROL_ADMIN_PASSWORD}"
     depends_on:
       - broker1
       - broker2
@@ -705,6 +714,7 @@ services:
       MCP_MODE: "read-only"
       MCP_TRANSPORT: "sse"
       MCP_PORT: "3001"
+      MCP_AUTH_TOKEN: "${MCP_AUTH_TOKEN}"
     depends_on:
       - broker1
       - kafka-connect
