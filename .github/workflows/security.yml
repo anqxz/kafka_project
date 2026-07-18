@@ -1,0 +1,125 @@
+name: security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * 1"   # weekly Monday sweep
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  image-scan:
+    name: Trivy scan (services/*)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - broker
+          - controller
+          - kafka-connect
+          - schema-registry
+          - cruise-control
+          - kroxylicious
+          - toxiproxy
+          - mcp-kafka
+          - loadgen
+          - grafana
+          - prometheus
+          - loki
+          - tempo
+          - pyroscope
+          - alertmanager
+          - blackbox-exporter
+          - otel-collector
+          - kminion
+          - ntfy
+          - localstack
+          - akhq
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build -t "kproj-${{ matrix.service }}:ci" "services/${{ matrix.service }}"
+      - name: Trivy — CRITICAL/HIGH
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: "kproj-${{ matrix.service }}:ci"
+          format: sarif
+          output: "trivy-${{ matrix.service }}.sarif"
+          exit-code: 1
+          ignore-unfixed: true
+          severity: "CRITICAL,HIGH"
+      - name: Upload SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: "trivy-${{ matrix.service }}.sarif"
+          category: "trivy/${{ matrix.service }}"
+
+  sbom:
+    name: SBOM (Syft) per image
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - broker
+          - controller
+          - kafka-connect
+          - schema-registry
+          - cruise-control
+          - mcp-kafka
+          - loadgen
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build -t "kproj-${{ matrix.service }}:ci" "services/${{ matrix.service }}"
+      - uses: anchore/sbom-action@v0
+        with:
+          image: "kproj-${{ matrix.service }}:ci"
+          format: cyclonedx-json
+          artifact-name: "sbom-${{ matrix.service }}.cdx.json"
+
+  secrets-scan:
+    name: Gitleaks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  compose-lint:
+    name: Compose config lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose -f clusters/docker-compose.yml --env-file clusters/.env config -q
+
+  image-digest-drift:
+    name: Image digest drift (compose)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Resolve compose to pinned digests
+        run: |
+          # Non-fatal: emits any float tag as a warning so a Renovate PR
+          # can pin it. Failing here would block every base-image bump.
+          docker compose -f clusters/docker-compose.yml --env-file clusters/.env \
+            config --resolve-image-digests \
+          > /tmp/resolved-compose.yml
+          if grep -E '^\s*image: [^@]+(:[^@]+)?$' /tmp/resolved-compose.yml; then
+            echo "::warning::floating image references above — Renovate should pin them"
+          fi
