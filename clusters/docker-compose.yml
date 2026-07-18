@@ -594,6 +594,8 @@ services:
     environment:
       CONFIG_FILEPATH: /etc/kminion/config.yaml
       SCRAM_KMINION_PASSWORD: "${SCRAM_KMINION_PASSWORD}"
+    volumes:
+      - ../services/tls/certs:/etc/tls:ro
     depends_on:
       - broker1
       - broker2

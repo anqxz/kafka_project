@@ -3,12 +3,13 @@ logger:
 
 kafka:
   brokers:
-    - broker1:9095
-    - broker2:9095
-    - broker3:9095
+    - broker1:9096
+    - broker2:9096
+    - broker3:9096
   clientId: kminion
   tls:
-    enabled: false
+    enabled: true
+    caFilepath: /etc/tls/ca.pem
   sasl:
     enabled: true
     mechanism: SCRAM-SHA-512
