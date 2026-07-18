@@ -790,6 +790,8 @@ services:
       - broker3
     ports:
       - "127.0.0.1:9095:9090"
+    volumes:
+      - ../services/tls/certs:/etc/kafka/secrets:ro
     networks:
       - kafka-data
       - observability
