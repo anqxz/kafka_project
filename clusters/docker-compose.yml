@@ -840,15 +840,18 @@ services:
     container_name: loadgen
     restart: on-failure
     environment:
-      KAFKA_BOOTSTRAP_SERVERS: "broker1:9095,broker2:9095,broker3:9095"
-      KAFKA_SECURITY_PROTOCOL: "SASL_PLAINTEXT"
+      KAFKA_BOOTSTRAP_SERVERS: "broker1:9096,broker2:9096,broker3:9096"
+      KAFKA_SECURITY_PROTOCOL: "SASL_SSL"
       KAFKA_SASL_MECHANISM: "SCRAM-SHA-512"
       KAFKA_SASL_USERNAME: "loadgen"
       KAFKA_SASL_PASSWORD: "${SCRAM_LOADGEN_PASSWORD}"
+      KAFKA_SSL_CAFILE: "/etc/tls/ca.pem"
       LOADGEN_TOPIC: "events"
       LOADGEN_RATE: "5"
       LOADGEN_DURATION: "0"
       OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"
+    volumes:
+      - ../services/tls/certs:/etc/tls:ro
     depends_on:
       - broker1
       - otel-collector

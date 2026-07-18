@@ -24,6 +24,7 @@ SASL_MECHANISM = os.getenv("KAFKA_SASL_MECHANISM", "")
 SASL_USERNAME = os.getenv("KAFKA_SASL_USERNAME", "")
 SASL_PASSWORD = os.getenv("KAFKA_SASL_PASSWORD", "")
 SECURITY_PROTOCOL = os.getenv("KAFKA_SECURITY_PROTOCOL", "PLAINTEXT")
+SSL_CAFILE = os.getenv("KAFKA_SSL_CAFILE", "")
 TOPIC = os.getenv("LOADGEN_TOPIC", "events")
 RATE = float(os.getenv("LOADGEN_RATE", "5"))
 DURATION = float(os.getenv("LOADGEN_DURATION", "0"))  # 0 = run until SIGTERM
@@ -85,6 +86,8 @@ def main() -> int:
             sasl_plain_username=SASL_USERNAME,
             sasl_plain_password=SASL_PASSWORD,
         )
+    if SSL_CAFILE:
+        producer_kwargs["ssl_cafile"] = SSL_CAFILE
     producer = KafkaProducer(**producer_kwargs)
     log.info("loadgen started", extra={"bootstrap": BOOTSTRAP, "topic": TOPIC, "rate": RATE})
 
