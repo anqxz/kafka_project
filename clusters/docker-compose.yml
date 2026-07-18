@@ -394,7 +394,19 @@ services:
         BASE_TAG: "${CONNECT_TAG}"
     container_name: kafka-connect
     environment:
-      CONNECT_BOOTSTRAP_SERVERS: "broker1:9092,broker2:9092,broker3:9092"
+      CONNECT_BOOTSTRAP_SERVERS: "broker1:9095,broker2:9095,broker3:9095"
+      CONNECT_SECURITY_PROTOCOL: "SASL_PLAINTEXT"
+      CONNECT_SASL_MECHANISM: "SCRAM-SHA-512"
+      CONNECT_SASL_JAAS_CONFIG: 'org.apache.kafka.common.security.scram.ScramLoginModule required username="connect" password="${SCRAM_CONNECT_PASSWORD}";'
+      CONNECT_PRODUCER_SECURITY_PROTOCOL: "SASL_PLAINTEXT"
+      CONNECT_PRODUCER_SASL_MECHANISM: "SCRAM-SHA-512"
+      CONNECT_PRODUCER_SASL_JAAS_CONFIG: 'org.apache.kafka.common.security.scram.ScramLoginModule required username="connect" password="${SCRAM_CONNECT_PASSWORD}";'
+      CONNECT_CONSUMER_SECURITY_PROTOCOL: "SASL_PLAINTEXT"
+      CONNECT_CONSUMER_SASL_MECHANISM: "SCRAM-SHA-512"
+      CONNECT_CONSUMER_SASL_JAAS_CONFIG: 'org.apache.kafka.common.security.scram.ScramLoginModule required username="connect" password="${SCRAM_CONNECT_PASSWORD}";'
+      CONNECT_ADMIN_SECURITY_PROTOCOL: "SASL_PLAINTEXT"
+      CONNECT_ADMIN_SASL_MECHANISM: "SCRAM-SHA-512"
+      CONNECT_ADMIN_SASL_JAAS_CONFIG: 'org.apache.kafka.common.security.scram.ScramLoginModule required username="connect" password="${SCRAM_CONNECT_PASSWORD}";'
       CONNECT_REST_PORT: 8083
       CONNECT_REST_ADVERTISED_HOST_NAME: "kafka-connect"
       CONNECT_GROUP_ID: "kafka-connect-cluster"
