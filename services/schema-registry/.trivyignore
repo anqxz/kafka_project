@@ -23,6 +23,7 @@ CVE-2024-11168  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-ba
 CVE-2024-12133  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2024-12243  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2024-12718  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
+CVE-2024-12797  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2024-13009  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2024-1488  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2024-28757  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
@@ -38,6 +39,7 @@ CVE-2024-4032  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-bas
 CVE-2024-45490  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2024-45491  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2024-45492  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
+CVE-2024-47081  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2024-4741  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2024-47535  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2024-47554  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
@@ -48,6 +50,8 @@ CVE-2024-52533  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-ba
 CVE-2024-53990  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2024-5535  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2024-56171  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
+CVE-2024-56201  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
+CVE-2024-56326  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2024-5642  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2024-57699  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2024-6232  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
@@ -79,6 +83,7 @@ CVE-2025-24528  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-ba
 CVE-2025-24928  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2025-24970  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2025-25193  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
+CVE-2025-27516  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2025-32414  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2025-32415  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2025-32988  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
@@ -97,6 +102,8 @@ CVE-2025-48734  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-ba
 CVE-2025-48924  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2025-49794  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2025-49796  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
+CVE-2025-50181  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
+CVE-2025-50182  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2025-5115  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2025-5318  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2025-5372  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
@@ -120,6 +127,7 @@ CVE-2025-66471  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-ba
 CVE-2025-67030  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2025-67735  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2025-68973  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
+CVE-2025-69277  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2025-69419  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2025-6965  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2025-7425  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
@@ -144,15 +152,18 @@ CVE-2026-23949  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-ba
 CVE-2026-24049  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2026-24281  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2026-24308  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
+CVE-2026-25645  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2026-26007  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2026-27135  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2026-28390  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
+CVE-2026-28684  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2026-33117  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2026-33701  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2026-33845  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2026-33846  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2026-33870  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2026-33871  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
+CVE-2026-34073  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2026-3833  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2026-40355  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2026-40356  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
@@ -193,6 +204,7 @@ CVE-2026-45186  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-ba
 CVE-2026-4519  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2026-45292  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2026-45300  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
+CVE-2026-45409  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2026-45416  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2026-45447  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 CVE-2026-45536  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
@@ -223,3 +235,4 @@ CVE-2026-6100  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-bas
 CVE-2026-6860  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 GHSA-537c-gmf6-5ccf  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
 GHSA-72hv-8253-57qq  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
+GHSA-h4gh-qq45-vh27  # expiry:2026-10-31  ticket:SEC-TBD  reason:confluent-jvm-jar-baseline
