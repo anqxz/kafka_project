@@ -75,7 +75,7 @@
       },
       "targets": [
         {
-          "expr": "sum(probe_success==0)",
+          "expr": "sum(1 - probe_success)",
           "refId": "A"
         }
       ]

@@ -56,15 +56,11 @@ scrape_configs:
           env: 'development'
           cluster: 'kafka-kraft-cluster'
 
-  # Prometheus exporter output from otel-collector — the collector
-  # forwards ingested OTLP metrics here for Prometheus to scrape.
-  # otelcol self-telemetry metrics use the SDK default at :8888 but
-  # v0.156 no longer exposes that port unless explicitly wired via
-  # `service.telemetry.metrics.readers` (contrib schema is unstable);
-  # skipping until the contrib schema settles.
+  # otel-collector self-telemetry (:8888, wired via service.telemetry.metrics.readers)
+  # plus the prometheus exporter output (:8889) that forwards ingested OTLP metrics.
   - job_name: 'otel-collector'
     static_configs:
-      - targets: ['otel-collector:8889']
+      - targets: ['otel-collector:8888', 'otel-collector:8889']
         labels:
           env: 'development'
 
