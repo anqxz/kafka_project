@@ -959,12 +959,12 @@
       "pluginVersion": "8.0.0",
       "targets": [
         {
-          "expr": "kafka_server_replicamanager_isrshrinkspersec",
+          "expr": "kafka_server_replicamanager_isrshrinkspersec_total",
           "legendFormat": "ISR Shrinks - {{instance}}",
           "refId": "A"
         },
         {
-          "expr": "kafka_server_replicamanager_isrexpandspersec",
+          "expr": "kafka_server_replicamanager_isrexpandspersec_total",
           "legendFormat": "ISR Expands - {{instance}}",
           "refId": "B"
         }
@@ -1124,17 +1124,22 @@
       "pluginVersion": "8.0.0",
       "targets": [
         {
-          "expr": "kafka_server_replicamanager_leaderelectionspersec",
-          "legendFormat": "Leader Elections - {{instance}}",
+          "expr": "kafka_controller_kafkacontroller_activebrokercount",
+          "legendFormat": "Active Brokers - {{instance}}",
           "refId": "A"
         },
         {
-          "expr": "kafka_server_replicamanager_uncleanleaderelectionspersec",
-          "legendFormat": "Unclean Leader Elections - {{instance}}",
+          "expr": "kafka_controller_kafkacontroller_fencedbrokercount",
+          "legendFormat": "Fenced Brokers - {{instance}}",
           "refId": "B"
+        },
+        {
+          "expr": "kafka_controller_kafkacontroller_metadataerrorcount",
+          "legendFormat": "Metadata Errors - {{instance}}",
+          "refId": "C"
         }
       ],
-      "title": "Leader Elections",
+      "title": "KRaft Controller Health (Active/Fenced Brokers, Metadata Errors)",
       "type": "timeseries"
     },
     {

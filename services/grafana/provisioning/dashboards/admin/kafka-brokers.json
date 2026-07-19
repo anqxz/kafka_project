@@ -272,7 +272,7 @@
       },
       "targets": [
         {
-          "expr": "jvm_memory_heap_used{area=\"heap\",instance=~\"$broker\"}",
+          "expr": "jvm_memory_heap_used{instance=~\"$broker\"}",
           "refId": "A",
           "legendFormat": "{{instance}}"
         }
