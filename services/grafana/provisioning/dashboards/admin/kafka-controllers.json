@@ -163,7 +163,7 @@
       },
       "targets": [
         {
-          "expr": "jvm_memory_bytes_used{area=\"heap\",job=\"kafka-controllers\"}",
+          "expr": "jvm_memory_heap_used{area=\"heap\",job=\"kafka-controllers\"}",
           "refId": "A",
           "legendFormat": "{{instance}}"
         }

@@ -626,12 +626,12 @@
       "pluginVersion": "8.0.0",
       "targets": [
         {
-          "expr": "kafka_network_requestmetrics_totaltimems_total{request=\"Produce\",quantile=\"0.99\"}",
+          "expr": "kafka_network_requestmetrics_totaltimems{request=\"Produce\",quantile=\"0.99\"}",
           "legendFormat": "Produce p99 - {{instance}}",
           "refId": "A"
         },
         {
-          "expr": "kafka_network_requestmetrics_totaltimems_total{request=\"FetchConsumer\",quantile=\"0.99\"}",
+          "expr": "kafka_network_requestmetrics_totaltimems{request=\"FetchConsumer\",quantile=\"0.99\"}",
           "legendFormat": "Fetch p99 - {{instance}}",
           "refId": "B"
         }
