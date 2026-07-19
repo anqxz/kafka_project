@@ -2,4 +2,4 @@ kafka-python-ng>=2.2.3
 opentelemetry-distro>=0.65b0
 opentelemetry-exporter-otlp>=1.27.0
 opentelemetry-instrumentation-kafka-python>=0.65b0
-opentelemetry-instrumentation-logging>=0.48b0
+opentelemetry-instrumentation-logging>=0.65b0
