@@ -19,6 +19,6 @@ COPY config/pyroscope.yaml /etc/pyroscope/config.yaml
 USER nobody
 EXPOSE 4040
 VOLUME ["/data"]
-WORKDIR /data
+WORKDIR /
 ENTRYPOINT ["/usr/bin/pyroscope"]
 CMD ["--config.file=/etc/pyroscope/config.yaml"]

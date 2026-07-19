@@ -17,7 +17,7 @@ COPY --from=vendor /usr/bin/ntfy /usr/bin/ntfy
 COPY config/ntfy.yml /etc/ntfy/ntfy.yml
 
 USER nobody
-EXPOSE 80
+EXPOSE 8080
 VOLUME ["/var/lib/ntfy"]
 ENTRYPOINT ["/usr/bin/ntfy"]
 CMD ["serve", "--config", "/etc/ntfy/ntfy.yml"]

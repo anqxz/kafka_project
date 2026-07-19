@@ -38,6 +38,7 @@ RUN confluent-hub install --no-prompt confluentinc/kafka-connect-s3:${S3_CONNECT
 # secret backing (K8s Secret mount, Vault sidecar, SPIRE issuance,
 # ephemeral tmpfs render) is a runtime decision — no vendor JAR baked
 # in. See services/kafka-connect/entrypoint-secrets.sh.
+RUN mkdir -p /etc/kafka/connect-secrets && chown -R appuser:appuser /etc/kafka/connect-secrets && chmod 0700 /etc/kafka/connect-secrets
 COPY --chmod=0755 entrypoint-secrets.sh /usr/local/bin/entrypoint-secrets.sh
 
 COPY config/jmx/kafka-config.yml /opt/jmx_exporter/kafka-config.yml

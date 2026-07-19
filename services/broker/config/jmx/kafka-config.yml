@@ -64,6 +64,18 @@ rules:
       request: "$2"
       quantile: "$3"
 
+  # Yammer-style Timer percentiles: the MBean has attributes like
+  # "99thPercentile" / "999thPercentile" that Kafka does not expose via
+  # a quantile= JMX property. Convert the attribute name into a
+  # Prometheus label so dashboard queries filtering by quantile="0.99"
+  # keep working.
+  - pattern: kafka.network<type=RequestMetrics, name=(.+), request=(.+)><>(99|999|95|75|50)thPercentile
+    name: kafka_network_requestmetrics_$1
+    type: GAUGE
+    labels:
+      request: "$2"
+      quantile: "0.$3"
+
   - pattern: kafka.network<type=RequestMetrics, name=(.+), request=(.+)><>Count
     name: kafka_network_requestmetrics_$1_total
     type: COUNTER

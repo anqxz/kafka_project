@@ -8,6 +8,8 @@
 # 04-SECURITY-GUARDRAILS §2 phase 2.
 set -euo pipefail
 
+unset KAFKA_OPTS   # Avoid re-binding the JMX exporter port from CLI.
+
 : "${BOOTSTRAP:=broker1:9092}"
 
 scram() {

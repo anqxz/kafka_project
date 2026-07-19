@@ -19,9 +19,14 @@ if [ -f "$TLS_DIR/ca.pem" ] && [ "$FORCE" != "1" ]; then
 fi
 
 echo "Generating lab CA under $TLS_DIR..."
+# -addext bakes the CA extensions Python's ssl module requires:
+# basicConstraints=CA:TRUE + keyCertSign in keyUsage. Without either
+# flag, opentelemetry-python + Node.js clients reject the chain.
 openssl req -x509 -new -newkey "rsa:${KEYSIZE}" -nodes \
   -keyout "$TLS_DIR/ca.key" -out "$TLS_DIR/ca.pem" \
-  -subj "/CN=kafka-project lab CA/O=lab" -days "$DAYS"
+  -subj "/CN=kafka-project lab CA/O=lab" -days "$DAYS" \
+  -addext "basicConstraints=critical,CA:TRUE" \
+  -addext "keyUsage=critical,keyCertSign,cRLSign,digitalSignature"
 
 : "${STORE_PASSWORD:=changeit}"
 
@@ -60,6 +65,15 @@ for svc in broker1 broker2 broker3 controller1 controller2 controller3 \
            mcp-kafka otel-collector prometheus grafana akhq; do
   leaf "$svc" "DNS:${svc},DNS:localhost,IP:127.0.0.1"
 done
+
+printf '%s' "${STORE_PASSWORD}" > "$TLS_DIR/keystore_creds"
+printf '%s' "${STORE_PASSWORD}" > "$TLS_DIR/truststore_creds"
+printf '%s' "${STORE_PASSWORD}" > "$TLS_DIR/key_creds"
+# Lab: TLS material is world-readable so non-root service users
+# (grafana, otel-collector, pyroscope, etc.) can consume it via the
+# same read-only bind mount. In production, the secret backing
+# (K8s Secret, Vault) enforces per-service ACLs.
+chmod 0644 "$TLS_DIR"/*
 
 echo "Done. Certs under $TLS_DIR — bind mount or COPY into service images."
 ls -1 "$TLS_DIR"

@@ -10,18 +10,21 @@ if [ -n "${CRUISE_CONTROL_ADMIN_USER:-}" ] && [ -n "${CRUISE_CONTROL_ADMIN_PASSW
   chmod 0600 /opt/cruise-control/config/auth.properties
 fi
 
-# Render the analyzer's SASL/SCRAM credentials into a private properties
-# file, then hand it to CC's main class alongside the checked-in config.
-# CC merges positional --config-file arguments left-to-right, so later
-# entries override earlier ones.
+# Render the analyzer's SASL/SCRAM credentials into a working copy of
+# cruisecontrol.properties. KafkaCruiseControlMain accepts a single
+# config-file positional arg; a second arg is parsed as port. So we
+# concatenate rather than pass two files.
+WORK_CONFIG=/opt/cruise-control/config/cruisecontrol.runtime.properties
+cp /opt/cruise-control/config/cruisecontrol.properties "$WORK_CONFIG"
 if [ -n "${SCRAM_CC_PASSWORD:-}" ]; then
-  umask 0177
-  cat > /opt/cruise-control/config/sasl.properties <<PROPS
-sasl.jaas.config=org.apache.kafka.common.security.scram.ScramLoginModule required username="cruise-control" password="${SCRAM_CC_PASSWORD}";
-PROPS
+  {
+    echo
+    echo "# rendered by entrypoint-auth.sh from SCRAM_CC_PASSWORD"
+    echo "sasl.jaas.config=org.apache.kafka.common.security.scram.ScramLoginModule required username=\"cruise-control\" password=\"${SCRAM_CC_PASSWORD}\";"
+  } >> "$WORK_CONFIG"
 fi
+chmod 0600 "$WORK_CONFIG"
 
 exec java -cp "libs/*" \
   com.linkedin.kafka.cruisecontrol.KafkaCruiseControlMain \
-  config/cruisecontrol.properties \
-  config/sasl.properties
+  "$WORK_CONFIG"

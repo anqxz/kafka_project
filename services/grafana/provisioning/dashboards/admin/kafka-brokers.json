@@ -201,7 +201,7 @@
       },
       "targets": [
         {
-          "expr": "max by (request) (kafka_network_requestmetrics_totaltimems_total{quantile=\"0.99\",instance=~\"$broker\"})",
+          "expr": "max by (request) (kafka_network_requestmetrics_totaltimems{quantile=\"0.99\",instance=~\"$broker\"})",
           "refId": "A",
           "legendFormat": "{{request}}"
         }
@@ -250,7 +250,7 @@
       },
       "targets": [
         {
-          "expr": "max by (instance) (kafka_log_logflushstats_logflushrateandtimems_total{quantile=\"0.99\",instance=~\"$broker\"})",
+          "expr": "max by (instance) (kafka_log_logflushstats_logflushrateandtimems{quantile=\"0.99\",instance=~\"$broker\"})",
           "refId": "A",
           "legendFormat": "{{instance}}"
         }
@@ -272,7 +272,7 @@
       },
       "targets": [
         {
-          "expr": "jvm_memory_bytes_used{area=\"heap\",instance=~\"$broker\"}",
+          "expr": "jvm_memory_heap_used{area=\"heap\",instance=~\"$broker\"}",
           "refId": "A",
           "legendFormat": "{{instance}}"
         }
