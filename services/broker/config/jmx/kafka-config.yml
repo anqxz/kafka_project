@@ -18,6 +18,28 @@ whitelistObjectNames:
 
 # Rules to extract and transform metrics
 rules:
+  # Kafka Server - ReplicaManager (ISR events, leader count, etc.)
+  - pattern: kafka.server<type=ReplicaManager, name=(.+)><>Count
+    name: kafka_server_replicamanager_$1_total
+    type: COUNTER
+  - pattern: kafka.server<type=ReplicaManager, name=(.+)><>OneMinuteRate
+    name: kafka_server_replicamanager_$1_rate
+    type: GAUGE
+  - pattern: kafka.server<type=ReplicaManager, name=(.+)><>Value
+    name: kafka_server_replicamanager_$1
+    type: GAUGE
+
+  # Kafka Controller - ControllerStats + KafkaController
+  - pattern: kafka.controller<type=ControllerStats, name=(.+)><>Count
+    name: kafka_controller_controllerstats_$1_count
+    type: COUNTER
+  - pattern: kafka.controller<type=ControllerStats, name=(.+)><>OneMinuteRate
+    name: kafka_controller_controllerstats_$1_rate
+    type: GAUGE
+  - pattern: kafka.controller<type=KafkaController, name=(.+)><>Value
+    name: kafka_controller_kafkacontroller_$1
+    type: GAUGE
+
   # Kafka Server - BrokerTopicMetrics
   - pattern: kafka.server<type=BrokerTopicMetrics, name=(.+), topic=(.+)><>Count
     name: kafka_server_brokertopicmetrics_$1_total

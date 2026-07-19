@@ -23,7 +23,7 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "query": "label_values(kafka_server_replicamanager_partitioncount, topic_name)",
+        "query": "label_values(kafka_cluster_partition_atminisr, topic)",
         "includeAll": true,
         "multi": true,
         "refresh": 2,
@@ -37,7 +37,7 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "query": "label_values(kminion_kafka_consumer_group_topic_lag{topic_name=~\"$topic\"}, group_id)",
+        "query": "label_values(kminion_kafka_consumer_group_topic_lag{topic=~\"$topic\"}, group_id)",
         "includeAll": true,
         "multi": true,
         "refresh": 2,
@@ -73,7 +73,7 @@
       },
       "targets": [
         {
-          "expr": "count(count by (topic_name) (kafka_server_replicamanager_partitioncount{topic_name=~\"$topic\"}))",
+          "expr": "count(count by (topic) (kafka_cluster_partition_atminisr{topic=~\"$topic\"}))",
           "refId": "A"
         }
       ]
@@ -94,7 +94,7 @@
       },
       "targets": [
         {
-          "expr": "sum(kafka_server_replicamanager_partitioncount{topic_name=~\"$topic\"})",
+          "expr": "count(kafka_cluster_partition_atminisr{topic=~\"$topic\"})",
           "refId": "A"
         }
       ]
@@ -115,7 +115,7 @@
       },
       "targets": [
         {
-          "expr": "sum(kminion_kafka_consumer_group_topic_lag{topic_name=~\"$topic\",group_id=~\"$group\"})",
+          "expr": "sum(kminion_kafka_consumer_group_topic_lag{topic=~\"$topic\",group_id=~\"$group\"})",
           "refId": "A"
         }
       ]
@@ -136,7 +136,7 @@
       },
       "targets": [
         {
-          "expr": "count(count by (group_id) (kminion_kafka_consumer_group_topic_lag{topic_name=~\"$topic\",group_id=~\"$group\"}))",
+          "expr": "count(count by (group_id) (kminion_kafka_consumer_group_topic_lag{topic=~\"$topic\",group_id=~\"$group\"}))",
           "refId": "A"
         }
       ]
@@ -168,9 +168,9 @@
       },
       "targets": [
         {
-          "expr": "sum by (topic_name) (kminion_kafka_topic_partition_high_water_mark{topic_name=~\"$topic\"})",
+          "expr": "sum by (topic) (kminion_kafka_topic_partition_high_water_mark{topic=~\"$topic\"})",
           "refId": "A",
-          "legendFormat": "{{topic_name}}"
+          "legendFormat": "{{topic}}"
         }
       ]
     },
@@ -190,9 +190,9 @@
       },
       "targets": [
         {
-          "expr": "sum by (topic_name) (rate(kminion_kafka_topic_partition_high_water_mark{topic_name=~\"$topic\"}[5m]))",
+          "expr": "sum by (topic) (rate(kminion_kafka_topic_partition_high_water_mark{topic=~\"$topic\"}[5m]))",
           "refId": "A",
-          "legendFormat": "{{topic_name}}"
+          "legendFormat": "{{topic}}"
         }
       ]
     },
@@ -212,9 +212,9 @@
       },
       "targets": [
         {
-          "expr": "sum by (topic_name) (kminion_kafka_topic_log_dir_size_total_bytes{topic_name=~\"$topic\"})",
+          "expr": "sum by (topic) (kminion_kafka_topic_log_dir_size_total_bytes{topic=~\"$topic\"})",
           "refId": "A",
-          "legendFormat": "{{topic_name}}"
+          "legendFormat": "{{topic}}"
         }
       ]
     },
@@ -366,9 +366,9 @@
       },
       "targets": [
         {
-          "expr": "sum by (group_id, topic_name) (kminion_kafka_consumer_group_topic_lag{topic_name=~\"$topic\",group_id=~\"$group\"})",
+          "expr": "sum by (group_id, topic) (kminion_kafka_consumer_group_topic_lag{topic=~\"$topic\",group_id=~\"$group\"})",
           "refId": "A",
-          "legendFormat": "{{group_id}} / {{topic_name}}"
+          "legendFormat": "{{group_id}} / {{topic}}"
         }
       ]
     },
@@ -388,7 +388,7 @@
       },
       "targets": [
         {
-          "expr": "topk(50, sum by (group_id, topic_name, partition_id) (kminion_kafka_consumer_group_topic_lag{topic_name=~\"$topic\",group_id=~\"$group\"}))",
+          "expr": "topk(50, sum by (group_id, topic, partition_id) (kminion_kafka_consumer_group_topic_lag{topic=~\"$topic\",group_id=~\"$group\"}))",
           "refId": "A",
           "format": "table",
           "instant": true
@@ -422,9 +422,9 @@
       },
       "targets": [
         {
-          "expr": "sum by (topic_name) (rate(kminion_kafka_topic_partition_high_water_mark{topic_name=~\"_connect-.*\"}[5m]))",
+          "expr": "sum by (topic) (rate(kminion_kafka_topic_partition_high_water_mark{topic=~\"_connect-.*\"}[5m]))",
           "refId": "A",
-          "legendFormat": "{{topic_name}}"
+          "legendFormat": "{{topic}}"
         }
       ]
     },
@@ -444,9 +444,9 @@
       },
       "targets": [
         {
-          "expr": "sum by (group_id, topic_name) (kminion_kafka_consumer_group_topic_lag{group_id=~\"connect-.*\"})",
+          "expr": "sum by (group_id, topic) (kminion_kafka_consumer_group_topic_lag{group_id=~\"connect-.*\"})",
           "refId": "A",
-          "legendFormat": "{{group_id}} / {{topic_name}}"
+          "legendFormat": "{{group_id}} / {{topic}}"
         }
       ]
     },
@@ -466,7 +466,7 @@
       },
       "targets": [
         {
-          "expr": "sum by (group_id, topic_name) (kminion_kafka_consumer_group_topic_lag{group_id=~\"connect-.*\"})",
+          "expr": "sum by (group_id, topic) (kminion_kafka_consumer_group_topic_lag{group_id=~\"connect-.*\"})",
           "refId": "A",
           "format": "table",
           "instant": true

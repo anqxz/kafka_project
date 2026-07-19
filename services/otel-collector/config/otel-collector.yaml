@@ -54,10 +54,13 @@ exporters:
 service:
   telemetry:
     metrics:
-      # Expose the collector's own pipeline counters (otelcol_receiver_*,
-      # otelcol_processor_*, otelcol_exporter_*) on :8888 so Prometheus
-      # can scrape them.
-      address: 0.0.0.0:8888
+      level: detailed
+      readers:
+        - pull:
+            exporter:
+              prometheus:
+                host: '0.0.0.0'
+                port: 8888
   pipelines:
     logs:
       receivers: [otlp]
