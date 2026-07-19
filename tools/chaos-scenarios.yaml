@@ -1,0 +1,44 @@
+# Chaos scenarios for tools/chaos-run.sh — asserts doc 03 §6 failure map.
+# Each scenario applies a toxic to the "connect-to-localstack" proxy and expects
+# a specific Alertmanager alert to fire within max_detect_seconds. All toxics
+# carry a Toxiproxy `timeout` label so they auto-expire even if the harness
+# crashes.
+
+scenarios:
+
+  - name: s3-latency-800ms
+    description: Adds 800 ms of upstream latency between Connect and LocalStack S3.
+    toxic:
+      type: latency
+      stream: upstream
+      attributes:
+        latency: 800   # ms; toxiproxy field name
+        jitter: 100
+    duration_seconds: 420        # 7 min: give the alert 5 min to fire + buffer
+    expect_alert: ConnectTaskFailed
+    max_detect_seconds: 300
+    failure_map_row: "LocalStack down (partial — high latency)"
+
+  - name: s3-timeout
+    description: Times out Connect → LocalStack connection (drops downstream after 0 bytes).
+    toxic:
+      type: timeout
+      stream: upstream
+      attributes:
+        timeout: 1     # ms — closes connection almost immediately
+    duration_seconds: 420
+    expect_alert: ConnectTaskFailed
+    max_detect_seconds: 300
+    failure_map_row: "LocalStack down"
+
+  - name: s3-bandwidth-64kb
+    description: Throttles upstream bandwidth to 64 KB/s.
+    toxic:
+      type: bandwidth
+      stream: upstream
+      attributes:
+        rate: 64       # KB/s
+    duration_seconds: 600
+    expect_alert: TopicBacklogHigh
+    max_detect_seconds: 480
+    failure_map_row: "LocalStack down (partial — throughput starved)"

@@ -106,3 +106,15 @@ Read path touches **zero** data-plane writes; `tail_topic` uses an ephemeral con
 | toxiproxy stuck toxic (forgot cleanup) | permanent artificial S3 latency | lag SLO burns "for real" | auto-expiring toxics + `chaos_status` audit |
 
 The retention window on `events` is the **recovery budget** for any sink outage: outage longer than `retention.ms` = permanent data loss to S3. This is formalized as an SLO in doc 05 §6.
+
+### Chaos scenarios asserting this map
+
+Each row above that is directly injectable is covered by a scenario in [`tools/chaos-scenarios.yaml`](../tools/chaos-scenarios.yaml) and run by [`tools/chaos-run.sh`](../tools/chaos-run.sh) (harness docs: [`tools/README-chaos.md`](../tools/README-chaos.md)).
+
+| Failure row | Scenario | Asserts alert | Budget |
+|---|---|---|---|
+| LocalStack down (partial — high latency) | `s3-latency-800ms` | `ConnectTaskFailed` | 5 min |
+| LocalStack down | `s3-timeout` | `ConnectTaskFailed` | 5 min |
+| LocalStack down (partial — throughput starved) | `s3-bandwidth-64kb` | `TopicBacklogHigh` | 8 min |
+
+The harness exits non-zero if any assertion misses its budget — this map becomes a test suite instead of a wall of prose.

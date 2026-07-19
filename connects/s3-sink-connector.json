@@ -19,7 +19,7 @@
     "key.converter": "org.apache.kafka.connect.storage.StringConverter",
     "value.converter": "org.apache.kafka.connect.json.JsonConverter",
     "value.converter.schemas.enable": "false",
-    "store.url": "http://localstack:4566",
+    "store.url": "http://toxiproxy:4566",
     "aws.access.key.id": "test",
     "aws.secret.access.key": "test",
     "errors.tolerance": "all",
