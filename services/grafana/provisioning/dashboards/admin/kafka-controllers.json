@@ -84,7 +84,7 @@
     {
       "id": 4,
       "type": "timeseries",
-      "title": "Leader Elections /sec",
+      "title": "Offline Partitions",
       "gridPos": {
         "h": 8,
         "w": 12,
@@ -97,16 +97,16 @@
       },
       "targets": [
         {
-          "expr": "sum(rate(kafka_controller_controllerstats_leaderelectionrateandtimems_count[5m]))",
+          "expr": "sum(kafka_controller_kafkacontroller_offlinepartitionscount)",
           "refId": "A",
-          "legendFormat": "elections"
+          "legendFormat": "offline"
         }
       ]
     },
     {
       "id": 5,
       "type": "timeseries",
-      "title": "Unclean Leader Elections /sec",
+      "title": "Preferred Replica Imbalance",
       "gridPos": {
         "h": 8,
         "w": 12,
@@ -119,9 +119,9 @@
       },
       "targets": [
         {
-          "expr": "sum(rate(kafka_controller_controllerstats_uncleanleaderelectionspersec_count[5m]))",
+          "expr": "sum(kafka_controller_kafkacontroller_preferredreplicaimbalancecount)",
           "refId": "A",
-          "legendFormat": "unclean"
+          "legendFormat": "imbalance"
         }
       ]
     },
@@ -163,7 +163,7 @@
       },
       "targets": [
         {
-          "expr": "jvm_memory_heap_used{area=\"heap\",job=\"kafka-controllers\"}",
+          "expr": "jvm_memory_heap_used{job=\"kafka-controllers\"}",
           "refId": "A",
           "legendFormat": "{{instance}}"
         }

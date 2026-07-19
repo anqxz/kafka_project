@@ -18,6 +18,13 @@ whitelistObjectNames:
 
 # Rules to extract and transform metrics
 rules:
+  # Kafka Log - LogFlushStats percentile (yammer Timer attribute names).
+  - pattern: kafka.log<type=LogFlushStats, name=(.+)><>(99|999|95|75|50)thPercentile
+    name: kafka_log_logflushstats_$1
+    type: GAUGE
+    labels:
+      quantile: "0.$2"
+
   # Kafka Server - ReplicaManager (ISR events, leader count, etc.)
   - pattern: kafka.server<type=ReplicaManager, name=(.+)><>Count
     name: kafka_server_replicamanager_$1_total
@@ -29,13 +36,7 @@ rules:
     name: kafka_server_replicamanager_$1
     type: GAUGE
 
-  # Kafka Controller - ControllerStats + KafkaController
-  - pattern: kafka.controller<type=ControllerStats, name=(.+)><>Count
-    name: kafka_controller_controllerstats_$1_count
-    type: COUNTER
-  - pattern: kafka.controller<type=ControllerStats, name=(.+)><>OneMinuteRate
-    name: kafka_controller_controllerstats_$1_rate
-    type: GAUGE
+  # Kafka Controller (KRaft) - KafkaController MBean only. ControllerStats is ZK-era; KRaft does not emit it.
   - pattern: kafka.controller<type=KafkaController, name=(.+)><>Value
     name: kafka_controller_kafkacontroller_$1
     type: GAUGE
@@ -118,14 +119,6 @@ rules:
   - pattern: kafka.controller<type=KafkaController, name=(.+)><>Value
     name: kafka_controller_kafkacontroller_$1
     type: GAUGE
-
-  - pattern: kafka.controller<type=ControllerStats, name=(.+)><>OneMinuteRate
-    name: kafka_controller_controllerstats_$1_rate
-    type: GAUGE
-
-  - pattern: kafka.controller<type=ControllerStats, name=(.+)><>Count
-    name: kafka_controller_controllerstats_$1_total
-    type: COUNTER
 
   # Kafka Log metrics
   - pattern: kafka.log<type=Log, name=(.+), topic=(.+), partition=(.+)><>Value
