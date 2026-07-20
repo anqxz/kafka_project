@@ -87,6 +87,10 @@ The MCP server turns the cluster into something an AI agent can *inspect and dia
 | `get_schema` | GET /subjects/{s}/versions/latest | contract inspection |
 | `query_metrics` | Prometheus HTTP API (allowlisted queries) | SLI evaluation |
 | `tail_topic` | bounded consumer (max N msgs, max T secs) | payload sampling |
+| `search_logs` | Loki `/loki/api/v1/query_range` (LogQL) | root-cause on error spikes |
+| `get_trace` | Tempo `/api/traces/{id}` | drill from an alert into a specific request |
+| `get_profile` | Pyroscope `/pyroscope/render` (merged profile over window) | CPU/alloc regression triage |
+| `cluster_balance_status` | Cruise Control `/kafkacruisecontrol/state` (analyzer,monitor,executor,anomaly_detector) | goal violations + anomaly state |
 
 **Tier 1 — mutating (opt-in via `MCP_MODE=admin`, per-tool allowlist)**
 
