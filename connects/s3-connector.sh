@@ -3,8 +3,14 @@
 # Script para gerenciar o S3 Sink Connector
 # Uso: ./s3-connector.sh [comando]
 
-CONNECT_URL="http://localhost:8083"
+CONNECT_URL="${CONNECT_URL:-http://localhost:8083}"
 CONNECTOR_NAME="s3-sink-connector"
+CONNECT_REST_BASIC_USER="${CONNECT_REST_BASIC_USER:-}"
+CONNECT_REST_BASIC_PASSWORD="${CONNECT_REST_BASIC_PASSWORD:-}"
+_CURL_AUTH=()
+if [ -n "$CONNECT_REST_BASIC_USER" ] && [ -n "$CONNECT_REST_BASIC_PASSWORD" ]; then
+  _CURL_AUTH=(-u "$CONNECT_REST_BASIC_USER:$CONNECT_REST_BASIC_PASSWORD")
+fi
 
 # Cores
 GREEN='\033[0;32m'
@@ -15,7 +21,7 @@ NC='\033[0m'
 # Aguardar Kafka Connect
 wait_connect() {
     echo -e "${YELLOW}Aguardando Kafka Connect...${NC}"
-    until curl -s -f -o /dev/null "${CONNECT_URL}"; do
+    until curl -s -f -o /dev/null "${_CURL_AUTH[@]}" "${CONNECT_URL}"; do
         printf '.'
         sleep 2
     done
@@ -27,7 +33,7 @@ create() {
     echo -e "${YELLOW}Criando S3 Sink Connector...${NC}"
     wait_connect
     
-    curl -s -X POST \
+    curl -s "${_CURL_AUTH[@]}" -X POST \
         -H "Content-Type: application/json" \
         --data @s3-sink-connector.json \
         "${CONNECT_URL}/connectors" | jq '.'
@@ -42,26 +48,26 @@ create() {
 # Status do conector
 status() {
     echo -e "${YELLOW}Status do conector:${NC}"
-    curl -s "${CONNECT_URL}/connectors/${CONNECTOR_NAME}/status" | jq '.'
+    curl -s "${_CURL_AUTH[@]}" "${CONNECT_URL}/connectors/${CONNECTOR_NAME}/status" | jq '.'
 }
 
 # Listar conectores
 list() {
     echo -e "${YELLOW}Conectores disponíveis:${NC}"
-    curl -s "${CONNECT_URL}/connectors" | jq '.'
+    curl -s "${_CURL_AUTH[@]}" "${CONNECT_URL}/connectors" | jq '.'
 }
 
 # Deletar conector
 delete() {
     echo -e "${YELLOW}Deletando conector...${NC}"
-    curl -s -X DELETE "${CONNECT_URL}/connectors/${CONNECTOR_NAME}"
+    curl -s "${_CURL_AUTH[@]}" -X DELETE "${CONNECT_URL}/connectors/${CONNECTOR_NAME}"
     echo -e "${GREEN}✓ Conector deletado${NC}"
 }
 
 # Restart conector
 restart() {
     echo -e "${YELLOW}Reiniciando conector...${NC}"
-    curl -s -X POST "${CONNECT_URL}/connectors/${CONNECTOR_NAME}/restart"
+    curl -s "${_CURL_AUTH[@]}" -X POST "${CONNECT_URL}/connectors/${CONNECTOR_NAME}/restart"
     echo -e "${GREEN}✓ Conector reiniciado${NC}"
 }
 
