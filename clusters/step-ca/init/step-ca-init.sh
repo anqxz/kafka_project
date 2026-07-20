@@ -4,6 +4,8 @@ set -euo pipefail
 STEPPATH="${STEPPATH:-/step}"
 export STEPPATH
 
+mkdir -p "$STEPPATH/certs" "$STEPPATH/secrets"
+
 if [ -f "$STEPPATH/certs/root_ca.crt" ]; then
   echo "PKI already initialised — skipping."
   exit 0
