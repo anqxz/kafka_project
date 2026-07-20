@@ -8,6 +8,11 @@ OUT="${OUT:-/certs}"
 CSV="${CSV:-/init/services.csv}"
 PASS="changeit-dev-only"
 
+if [ -f "$OUT/ca/root.crt" ] && [ -f "$OUT/jks/controller1/truststore.p12" ]; then
+  echo "Certs already issued at $OUT — skipping."
+  exit 0
+fi
+
 # Publish CA material
 mkdir -p "$OUT/ca"
 cp "$STEPPATH/certs/root_ca.crt"         "$OUT/ca/root.crt"
@@ -54,13 +59,24 @@ tail -n +2 "$CSV" | while IFS=, read -r svc cn sans; do
     -passout "pass:$PASS" \
     -out "$jks_dir/keystore.p12"
 
-  # PKCS12 truststore (root + intermediate)
-  openssl pkcs12 -export \
-    -nokeys \
-    -in "$OUT/ca/ca-bundle.pem" \
-    -passout "pass:$PASS" \
-    -out "$jks_dir/truststore.p12"
+  # PKCS12 truststore (root + intermediate) — built with keytool so entries
+  # are stored as trustedCertEntry with aliases (openssl -nokeys drops the
+  # entry type, causing Java PKIX to see an empty trust anchor set).
+  rm -f "$jks_dir/truststore.p12"
+  keytool -importcert -noprompt -trustcacerts \
+    -alias root -file "$OUT/ca/root.crt" \
+    -keystore "$jks_dir/truststore.p12" -storetype PKCS12 \
+    -storepass "$PASS"
+  keytool -importcert -noprompt -trustcacerts \
+    -alias intermediate -file "$OUT/ca/intermediate.crt" \
+    -keystore "$jks_dir/truststore.p12" -storetype PKCS12 \
+    -storepass "$PASS"
 done
+
+# Kafka/JVM services run as uid 1000; certs are written by root here.
+# Make everything world-readable, keys stay readable but not writable.
+chmod -R a+rX "$OUT"
+find "$OUT" -type f \( -name '*.key' -o -name '*.p12' \) -exec chmod a+r {} \;
 
 # Host admin client.properties
 mkdir -p "$OUT/host"

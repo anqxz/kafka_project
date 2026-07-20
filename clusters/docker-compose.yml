@@ -9,8 +9,11 @@ services:
     build: ./step-ca
     image: kafka-lab/step-ca:local
     entrypoint: ["/init/step-ca-init.sh"]
+    environment:
+      STEPPATH: /step
     volumes:
       - pki-root:/step
+    network_mode: none
     restart: "no"
 
   bootstrap-certs:
@@ -20,10 +23,13 @@ services:
       step-ca-init:
         condition: service_completed_successfully
     entrypoint: ["/init/bootstrap-certs.sh"]
+    environment:
+      STEPPATH: /step
     volumes:
       - pki-root:/step:ro
       - pki-certs:/certs
       - ./step-ca/init/services.csv:/init/services.csv:ro
+    network_mode: none
     restart: "no"
 
   # Controllers (KRaft controllers) — kafka-quorum only + observability for scrape.
@@ -42,7 +48,7 @@ services:
       KAFKA_LISTENERS: "CONTROLLER://:9093"
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "CONTROLLER:SSL"
       KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
-      KAFKA_SUPER_USERS: "User:admin;User:ANONYMOUS"
+      KAFKA_SUPER_USERS: "User:admin;User:ANONYMOUS;User:controller1;User:controller2;User:controller3"
       KAFKA_AUTHORIZER_CLASS_NAME: "org.apache.kafka.metadata.authorizer.StandardAuthorizer"
       KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "false"
       KAFKA_SSL_KEYSTORE_LOCATION: "/certs/jks/controller1/keystore.p12"
@@ -54,7 +60,7 @@ services:
       KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ""
       KAFKA_SSL_TRUSTSTORE_TYPE: "PKCS12"
       KAFKA_SSL_CLIENT_AUTH: "required"
-      KAFKA_SSL_PRINCIPAL_MAPPING_RULES: "RULE:^CN=(.*?),.*$$/$$1/L,DEFAULT"
+      KAFKA_SSL_PRINCIPAL_MAPPING_RULES: "RULE:^CN=([^,]+).*$$/$$1/L,DEFAULT"
       KAFKA_LOG4J_LOGGERS: "org.apache.kafka=INFO"
       KAFKA_JMX_PORT: "9101"
       KAFKA_JMX_HOSTNAME: "controller1"
@@ -81,6 +87,12 @@ services:
     networks:
       - kafka-quorum
       - observability
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/localhost/9093' 2>/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
 
   controller2:
     build:
@@ -97,7 +109,7 @@ services:
       KAFKA_LISTENERS: "CONTROLLER://:9093"
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "CONTROLLER:SSL"
       KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
-      KAFKA_SUPER_USERS: "User:admin;User:ANONYMOUS"
+      KAFKA_SUPER_USERS: "User:admin;User:ANONYMOUS;User:controller1;User:controller2;User:controller3"
       KAFKA_AUTHORIZER_CLASS_NAME: "org.apache.kafka.metadata.authorizer.StandardAuthorizer"
       KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "false"
       KAFKA_SSL_KEYSTORE_LOCATION: "/certs/jks/controller2/keystore.p12"
@@ -109,7 +121,7 @@ services:
       KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ""
       KAFKA_SSL_TRUSTSTORE_TYPE: "PKCS12"
       KAFKA_SSL_CLIENT_AUTH: "required"
-      KAFKA_SSL_PRINCIPAL_MAPPING_RULES: "RULE:^CN=(.*?),.*$$/$$1/L,DEFAULT"
+      KAFKA_SSL_PRINCIPAL_MAPPING_RULES: "RULE:^CN=([^,]+).*$$/$$1/L,DEFAULT"
       KAFKA_LOG4J_LOGGERS: "org.apache.kafka=INFO"
       KAFKA_JMX_PORT: "9101"
       KAFKA_JMX_HOSTNAME: "controller2"
@@ -136,6 +148,12 @@ services:
     networks:
       - kafka-quorum
       - observability
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/localhost/9093' 2>/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
 
   controller3:
     build:
@@ -152,7 +170,7 @@ services:
       KAFKA_LISTENERS: "CONTROLLER://:9093"
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "CONTROLLER:SSL"
       KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
-      KAFKA_SUPER_USERS: "User:admin;User:ANONYMOUS"
+      KAFKA_SUPER_USERS: "User:admin;User:ANONYMOUS;User:controller1;User:controller2;User:controller3"
       KAFKA_AUTHORIZER_CLASS_NAME: "org.apache.kafka.metadata.authorizer.StandardAuthorizer"
       KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "false"
       KAFKA_SSL_KEYSTORE_LOCATION: "/certs/jks/controller3/keystore.p12"
@@ -164,7 +182,7 @@ services:
       KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ""
       KAFKA_SSL_TRUSTSTORE_TYPE: "PKCS12"
       KAFKA_SSL_CLIENT_AUTH: "required"
-      KAFKA_SSL_PRINCIPAL_MAPPING_RULES: "RULE:^CN=(.*?),.*$$/$$1/L,DEFAULT"
+      KAFKA_SSL_PRINCIPAL_MAPPING_RULES: "RULE:^CN=([^,]+).*$$/$$1/L,DEFAULT"
       KAFKA_LOG4J_LOGGERS: "org.apache.kafka=INFO"
       KAFKA_JMX_PORT: "9101"
       KAFKA_JMX_HOSTNAME: "controller3"
@@ -191,6 +209,12 @@ services:
     networks:
       - kafka-quorum
       - observability
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/localhost/9093' 2>/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
 
   # Brokers — quorum (talk to controllers), data (clients), observability (scrape),
   # edge (EXTERNAL listener published to 127.0.0.1 for host producers/consumers).
@@ -220,7 +244,7 @@ services:
       KAFKA_SSL_KEY_PASSWORD: "changeit-dev-only"
       KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ""
       KAFKA_SSL_CLIENT_AUTH: "required"
-      KAFKA_SSL_PRINCIPAL_MAPPING_RULES: "RULE:^CN=(.*?),.*$$/$$1/L,DEFAULT"
+      KAFKA_SSL_PRINCIPAL_MAPPING_RULES: "RULE:^CN=([^,]+).*$$/$$1/L,DEFAULT"
       KAFKA_SUPER_USERS: "User:admin;User:host-admin;User:broker1;User:broker2;User:broker3;User:controller1;User:controller2;User:controller3"
       KAFKA_AUTHORIZER_CLASS_NAME: "org.apache.kafka.metadata.authorizer.StandardAuthorizer"
       KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "false"
@@ -300,7 +324,7 @@ services:
       KAFKA_SSL_KEY_PASSWORD: "changeit-dev-only"
       KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ""
       KAFKA_SSL_CLIENT_AUTH: "required"
-      KAFKA_SSL_PRINCIPAL_MAPPING_RULES: "RULE:^CN=(.*?),.*$$/$$1/L,DEFAULT"
+      KAFKA_SSL_PRINCIPAL_MAPPING_RULES: "RULE:^CN=([^,]+).*$$/$$1/L,DEFAULT"
       KAFKA_SUPER_USERS: "User:admin;User:host-admin;User:broker1;User:broker2;User:broker3;User:controller1;User:controller2;User:controller3"
       KAFKA_AUTHORIZER_CLASS_NAME: "org.apache.kafka.metadata.authorizer.StandardAuthorizer"
       KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "false"
@@ -382,7 +406,7 @@ services:
       KAFKA_SSL_KEY_PASSWORD: "changeit-dev-only"
       KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ""
       KAFKA_SSL_CLIENT_AUTH: "required"
-      KAFKA_SSL_PRINCIPAL_MAPPING_RULES: "RULE:^CN=(.*?),.*$$/$$1/L,DEFAULT"
+      KAFKA_SSL_PRINCIPAL_MAPPING_RULES: "RULE:^CN=([^,]+).*$$/$$1/L,DEFAULT"
       KAFKA_SUPER_USERS: "User:admin;User:host-admin;User:broker1;User:broker2;User:broker3;User:controller1;User:controller2;User:controller3"
       KAFKA_AUTHORIZER_CLASS_NAME: "org.apache.kafka.metadata.authorizer.StandardAuthorizer"
       KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "false"
