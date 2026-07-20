@@ -70,32 +70,17 @@ $ACL --add --allow-principal User:akhq \
   --operation Describe --cluster
 
 # ---------- mcp-kafka ----------
-$ACL --add --allow-principal User:mcp-kafka \
-  --operation Describe --topic '*'
-$ACL --add --allow-principal User:mcp-kafka \
-  --operation Read    --topic '*'
-$ACL --add --allow-principal User:mcp-kafka \
-  --operation Describe --group '*' --group-pattern-type prefixed --group 'mcp-tail-'
-$ACL --add --allow-principal User:mcp-kafka \
-  --operation Describe --cluster
+$ACL --add --allow-principal User:mcp-kafka --operation Describe --cluster
+$ACL --add --allow-principal User:mcp-kafka --operation Read --topic '*'
+$ACL --add --allow-principal User:mcp-kafka --operation Describe --topic '*'
+$ACL --add --allow-principal User:mcp-kafka --operation Read --group 'mcp-tail-*'
 
 # ---------- cruise-control ----------
-$ACL --add --allow-principal User:cruise-control \
-  --operation Alter --cluster
-$ACL --add --allow-principal User:cruise-control \
-  --operation AlterConfigs --cluster
-$ACL --add --allow-principal User:cruise-control \
-  --operation Describe --cluster
-$ACL --add --allow-principal User:cruise-control \
-  --operation DescribeConfigs --cluster
-$ACL --add --allow-principal User:cruise-control \
-  --operation Create --cluster
-$ACL --add --allow-principal User:cruise-control \
-  --operation ClusterAction --cluster
-$ACL --add --allow-principal User:cruise-control \
-  --operation Read --operation Describe --topic '*'
-$ACL --add --allow-principal User:cruise-control \
-  --operation Read --group '*'
+for op in Describe DescribeConfigs Alter AlterConfigs; do
+  $ACL --add --allow-principal User:cruise-control --operation "$op" --cluster
+done
+$ACL --add --allow-principal User:cruise-control --operation Describe --topic '*'
+$ACL --add --allow-principal User:cruise-control --operation Read --topic '*'
 
 echo "ACL bootstrap complete."
 $ACL --list
