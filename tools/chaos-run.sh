@@ -18,6 +18,11 @@ ALERTMANAGER_API="${ALERTMANAGER_API:-}"
 ALERTMANAGER_EXEC_CONTAINER="${ALERTMANAGER_EXEC_CONTAINER:-prometheus}"
 POLL_INTERVAL_SECONDS="${POLL_INTERVAL_SECONDS:-10}"
 RESOLVE_TIMEOUT_SECONDS="${RESOLVE_TIMEOUT_SECONDS:-600}"
+CONNECT_URL="${CONNECT_URL:-http://localhost:8083}"
+CONNECTOR_NAME="${CONNECTOR_NAME:-s3-sink-connector}"
+CONNECTOR_CONFIG="${CONNECTOR_CONFIG:-$HERE/../connects/s3-sink-connector.json}"
+CONNECTOR_READY_TIMEOUT_SECONDS="${CONNECTOR_READY_TIMEOUT_SECONDS:-60}"
+SKIP_CONNECTOR_RELOAD="${SKIP_CONNECTOR_RELOAD:-0}"
 
 for dep in yq jq curl; do
   command -v "$dep" >/dev/null || { echo "missing: $dep" >&2; exit 3; }
@@ -40,6 +45,43 @@ _alert_firing() {
 }
 
 _all_alerts() { _alerts | jq -r '.[] | "  \(.labels.alertname) → \(.status.state)"' | sort -u; }
+
+# Ensure the connector exists and its live config matches CONNECTOR_CONFIG.
+# Uses PUT /connectors/{name}/config (idempotent upsert). Polls until RUNNING.
+ensure_connector() {
+  [ "$SKIP_CONNECTOR_RELOAD" = "1" ] && { log "connector reload skipped (SKIP_CONNECTOR_RELOAD=1)"; return 0; }
+  [ -f "$CONNECTOR_CONFIG" ] || { echo "connector config not found: $CONNECTOR_CONFIG" >&2; return 2; }
+
+  local desired live
+  desired=$(jq -c '.config' "$CONNECTOR_CONFIG")
+
+  live=$(curl -sS "$CONNECT_URL/connectors/$CONNECTOR_NAME/config" 2>/dev/null || echo '{}')
+  if [ "$(jq -cS . <<<"$live")" = "$(jq -cS . <<<"$desired")" ]; then
+    log "connector $CONNECTOR_NAME already matches desired config"
+  else
+    log "applying $CONNECTOR_NAME config → $CONNECT_URL"
+    curl -sS --fail -X PUT -H 'Content-Type: application/json' \
+      --data "$desired" \
+      "$CONNECT_URL/connectors/$CONNECTOR_NAME/config" >/dev/null
+  fi
+
+  local start elapsed state
+  start=$(date +%s)
+  while :; do
+    state=$(curl -sS "$CONNECT_URL/connectors/$CONNECTOR_NAME/status" 2>/dev/null \
+      | jq -r '.connector.state // "UNKNOWN"')
+    if [ "$state" = "RUNNING" ]; then
+      log "connector $CONNECTOR_NAME state=RUNNING"
+      return 0
+    fi
+    elapsed=$(( $(date +%s) - start ))
+    if [ "$elapsed" -ge "$CONNECTOR_READY_TIMEOUT_SECONDS" ]; then
+      log "✗ connector not RUNNING after ${elapsed}s (state=$state)"
+      return 1
+    fi
+    sleep 2
+  done
+}
 
 run_scenario() {
   local name="$1"
@@ -92,6 +134,8 @@ if [ $# -gt 0 ]; then
 else
   mapfile -t names < <(yq -r '.scenarios[].name' "$SCENARIOS_FILE")
 fi
+
+ensure_connector || { echo "connector setup failed" >&2; exit 2; }
 
 fail=0
 for n in "${names[@]}"; do

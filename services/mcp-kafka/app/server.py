@@ -52,6 +52,10 @@ def _kafka_client_kwargs() -> dict[str, object]:
 CONNECT_URL = os.getenv("CONNECT_URL", "http://kafka-connect:8083")
 SCHEMA_REGISTRY_URL = os.getenv("SCHEMA_REGISTRY_URL", "http://schema-registry:8081")
 PROMETHEUS_URL = os.getenv("PROMETHEUS_URL", "http://prometheus:9090")
+LOKI_URL = os.getenv("LOKI_URL", "http://loki:3100")
+TEMPO_URL = os.getenv("TEMPO_URL", "http://tempo:3200")
+PYROSCOPE_URL = os.getenv("PYROSCOPE_URL", "http://pyroscope:4040")
+CRUISE_CONTROL_URL = os.getenv("CRUISE_CONTROL_URL", "http://cruise-control:9090")
 MCP_MODE = os.getenv("MCP_MODE", "read-only")
 MCP_AUTH_TOKEN = os.getenv("MCP_AUTH_TOKEN", "")
 
@@ -189,6 +193,106 @@ def tail_topic(topic: str, max_messages: int = 20, timeout_seconds: int = 5) -> 
     finally:
         consumer.close()
     return out
+
+
+@mcp.tool()
+def search_logs(
+    query: str,
+    minutes: int = 15,
+    limit: int = 100,
+    direction: str = "backward",
+) -> dict[str, Any]:
+    """Run a LogQL query against Loki over the last `minutes` window.
+
+    `query` is a LogQL expression (e.g. `{container="kafka-connect"} |= "ERROR"`).
+    Bounded: `limit` capped at 1000, `minutes` capped at 1440 (24 h),
+    `direction` restricted to backward|forward.
+    """
+    limit = max(1, min(limit, 1000))
+    minutes = max(1, min(minutes, 1440))
+    if direction not in ("backward", "forward"):
+        return {"error": "direction must be 'backward' or 'forward'"}
+    import time
+    end_ns = int(time.time() * 1e9)
+    start_ns = end_ns - int(minutes * 60 * 1e9)
+    r = requests.get(
+        f"{LOKI_URL}/loki/api/v1/query_range",
+        params={
+            "query": query,
+            "start": str(start_ns),
+            "end": str(end_ns),
+            "limit": str(limit),
+            "direction": direction,
+        },
+        timeout=10,
+    )
+    if r.status_code >= 400:
+        return {"error": f"loki {r.status_code}: {r.text[:500]}"}
+    return r.json()
+
+
+@mcp.tool()
+def get_trace(trace_id: str) -> dict[str, Any]:
+    """Fetch a full trace from Tempo by trace ID (hex).
+
+    Returns the raw OTLP-JSON trace document. Use for root-cause analysis
+    when a metric or log points at a specific request.
+    """
+    if not trace_id or not all(c in "0123456789abcdefABCDEF" for c in trace_id):
+        return {"error": "trace_id must be a hex string"}
+    r = requests.get(f"{TEMPO_URL}/api/traces/{trace_id}", timeout=10)
+    if r.status_code == 404:
+        return {"error": f"trace {trace_id!r} not found"}
+    if r.status_code >= 400:
+        return {"error": f"tempo {r.status_code}: {r.text[:500]}"}
+    return r.json()
+
+
+@mcp.tool()
+def get_profile(
+    query: str,
+    minutes: int = 15,
+    profile_type: str = "process_cpu:cpu:nanoseconds:cpu:nanoseconds",
+) -> dict[str, Any]:
+    """Fetch a merged profile from Pyroscope over the last `minutes` window.
+
+    `query` is a Pyroscope selector (e.g. `{service_name="kafka-connect"}`).
+    `profile_type` defaults to process CPU nanoseconds; override for allocs,
+    inuse_space, goroutines, etc. `minutes` capped at 1440.
+    """
+    minutes = max(1, min(minutes, 1440))
+    import time
+    now_ms = int(time.time() * 1000)
+    start_ms = now_ms - minutes * 60 * 1000
+    selector = f"{profile_type}{query}" if query.startswith("{") else f'{profile_type}{{{query}}}'
+    r = requests.get(
+        f"{PYROSCOPE_URL}/pyroscope/render",
+        params={
+            "query": selector,
+            "from": str(start_ms),
+            "until": str(now_ms),
+            "format": "json",
+        },
+        timeout=15,
+    )
+    if r.status_code >= 400:
+        return {"error": f"pyroscope {r.status_code}: {r.text[:500]}"}
+    return r.json()
+
+
+@mcp.tool()
+def cluster_balance_status() -> dict[str, Any]:
+    """Report Cruise Control's view of the cluster: state, monitored windows,
+    goal violations, anomaly detector status. Read-only — no rebalance kicked off.
+    """
+    r = requests.get(
+        f"{CRUISE_CONTROL_URL}/kafkacruisecontrol/state",
+        params={"json": "true", "substates": "analyzer,monitor,executor,anomaly_detector"},
+        timeout=10,
+    )
+    if r.status_code >= 400:
+        return {"error": f"cruise-control {r.status_code}: {r.text[:500]}"}
+    return r.json()
 
 
 if __name__ == "__main__":
