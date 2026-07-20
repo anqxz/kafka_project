@@ -143,13 +143,15 @@ tail -n +2 "$CSV" | while IFS=, read -r svc cn sans; do
 
   if [ ! -f "$pem_dir/tls.crt" ]; then
     echo "issuing leaf: cn=$cn sans=$sans"
-    step ca certificate "$cn" "$pem_dir/tls.crt" "$pem_dir/tls.key" \
+    # OFFLINE signing via intermediate — no long-lived CA server (dev-only)
+    step certificate create "$cn" "$pem_dir/tls.crt" "$pem_dir/tls.key" \
+      --profile leaf \
+      --ca "$STEPPATH/certs/intermediate_ca.crt" \
+      --ca-key "$STEPPATH/secrets/intermediate_ca_key" \
+      --ca-password-file "$STEPPATH/secrets/password" \
       --san "$sans" \
-      --provisioner "admin" \
-      --provisioner-password-file "$STEPPATH/secrets/password" \
-      --ca-url "https://step-ca:9000" \
-      --root "$STEPPATH/certs/root_ca.crt" \
-      --not-after 2160h  # 90d
+      --not-after 2160h \
+      --no-password --insecure --force
     ln -sf ../../ca/ca-bundle.pem "$pem_dir/ca-bundle.pem"
 
     openssl pkcs12 -export \
