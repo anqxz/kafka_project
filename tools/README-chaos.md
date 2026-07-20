@@ -8,8 +8,8 @@ map in [`03-DATA-FLOW-ARCHITECTURE.md §6`](../03-DATA-FLOW-ARCHITECTURE.md#6-ba
 ## Prerequisites
 
 - Stack running (`docker compose up -d` in `clusters/`).
-- S3 sink connector deployed and pointing at Toxiproxy: `connects/s3-sink-connector.json` uses `"store.url": "http://toxiproxy:4566"`. Reload via `connects/s3-connector.sh` if the connector was created before this repoint.
 - `loadgen` producing to `events` (default in compose).
+- S3 sink connector config in `connects/s3-sink-connector.json` (points at `"store.url": "http://toxiproxy:4566"`). `chaos-run.sh` upserts it automatically — no manual reload needed.
 - Host tools: `bash`, `curl`, `jq`, `yq` (v4+). `docker` if you use the default Alertmanager-via-exec route.
 
 ## Scenarios
@@ -42,9 +42,20 @@ tools/chaos-run.sh                              # run all scenarios
 tools/chaos-run.sh s3-latency-800ms s3-timeout  # run a subset
 ```
 
+Setup step (once, before the loop): `ensure_connector` PUTs `connects/s3-sink-connector.json` `.config` to `$CONNECT_URL/connectors/$CONNECTOR_NAME/config` (idempotent — no-op if the live config already matches) and polls until state=`RUNNING` (timeout `CONNECTOR_READY_TIMEOUT_SECONDS`, default 60 s). Skip with `SKIP_CONNECTOR_RELOAD=1` if you manage the connector out-of-band.
+
 Per scenario: `clear` → `apply` → poll Alertmanager `/api/v2/alerts` every `POLL_INTERVAL_SECONDS` (default 10 s) until the expected alert becomes `active` — asserts elapsed ≤ `max_detect_seconds` — `clear` → wait for the alert to resolve.
 
-Non-zero exit = at least one scenario missed its budget.
+Non-zero exit = connector setup failed OR at least one scenario missed its budget.
+
+### Connector-reload overrides
+
+```bash
+CONNECT_URL=http://localhost:8083 tools/chaos-run.sh
+CONNECTOR_NAME=s3-sink-connector  tools/chaos-run.sh
+CONNECTOR_CONFIG=/path/to/other.json tools/chaos-run.sh
+SKIP_CONNECTOR_RELOAD=1           tools/chaos-run.sh
+```
 
 ### Alertmanager access
 
