@@ -206,24 +206,22 @@ services:
       KAFKA_CLUSTER_ID: "1490b9b6-15d4-40fc-b963-5ffa822835fd"
       CLUSTER_ID: "1490b9b6-15d4-40fc-b963-5ffa822835fd"
       KAFKA_CONTROLLER_QUORUM_VOTERS: "1@controller1:9093,2@controller2:9093,3@controller3:9093"
-      KAFKA_LISTENERS: "PLAINTEXT://:9092,EXTERNAL://:29092,SASL_PLAINTEXT://:9095,SASL_SSL://:9096"
-      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://broker1:9092,EXTERNAL://localhost:9092,SASL_PLAINTEXT://broker1:9095,SASL_SSL://broker1:9096"
-      KAFKA_INTER_BROKER_LISTENER_NAME: "PLAINTEXT"
+      KAFKA_LISTENERS: "SSL://:9096,SSL_INTER://:9094,SSL_EXTERNAL://:29092"
+      KAFKA_ADVERTISED_LISTENERS: "SSL://broker1:9096,SSL_INTER://broker1:9094,SSL_EXTERNAL://127.0.0.1:9092"
+      KAFKA_INTER_BROKER_LISTENER_NAME: "SSL_INTER"
       KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT,SASL_PLAINTEXT:SASL_PLAINTEXT,SASL_SSL:SASL_SSL"
-      KAFKA_SSL_KEYSTORE_FILENAME: "broker1.keystore.p12"
-      KAFKA_SSL_KEYSTORE_CREDENTIALS: "keystore_creds"
-      KAFKA_SSL_KEY_CREDENTIALS: "key_creds"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "SSL:SSL,SSL_INTER:SSL,SSL_EXTERNAL:SSL,CONTROLLER:SSL"
+      KAFKA_SSL_KEYSTORE_LOCATION: "/certs/jks/broker1/keystore.p12"
+      KAFKA_SSL_KEYSTORE_PASSWORD: "changeit-dev-only"
       KAFKA_SSL_KEYSTORE_TYPE: "PKCS12"
-      KAFKA_SSL_TRUSTSTORE_FILENAME: "broker1.truststore.p12"
-      KAFKA_SSL_TRUSTSTORE_CREDENTIALS: "truststore_creds"
+      KAFKA_SSL_TRUSTSTORE_LOCATION: "/certs/jks/broker1/truststore.p12"
+      KAFKA_SSL_TRUSTSTORE_PASSWORD: "changeit-dev-only"
       KAFKA_SSL_TRUSTSTORE_TYPE: "PKCS12"
-      KAFKA_LISTENER_NAME_SASL_SSL_SASL_ENABLED_MECHANISMS: "SCRAM-SHA-512"
-      SCRAM_ADMIN_PASSWORD: "${SCRAM_ADMIN_PASSWORD}"
-      KAFKA_ALLOW_PLAINTEXT_LISTENER: "yes"
-      KAFKA_SASL_ENABLED_MECHANISMS: "SCRAM-SHA-512"
-      KAFKA_LISTENER_NAME_SASL_PLAINTEXT_SASL_ENABLED_MECHANISMS: "SCRAM-SHA-512"
-      KAFKA_SUPER_USERS: "User:admin;User:ANONYMOUS"
+      KAFKA_SSL_KEY_PASSWORD: "changeit-dev-only"
+      KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ""
+      KAFKA_SSL_CLIENT_AUTH: "required"
+      KAFKA_SSL_PRINCIPAL_MAPPING_RULES: "RULE:^CN=(.*?),.*$$/$$1/L,DEFAULT"
+      KAFKA_SUPER_USERS: "User:admin;User:host-admin;User:broker1;User:broker2;User:broker3;User:controller1;User:controller2;User:controller3"
       KAFKA_AUTHORIZER_CLASS_NAME: "org.apache.kafka.metadata.authorizer.StandardAuthorizer"
       KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "false"
       KAFKA_DEFAULT_REPLICATION_FACTOR: "3"
@@ -254,12 +252,23 @@ services:
     ports:
       - "127.0.0.1:9092:29092"
     depends_on:
-      - controller1
-      - controller2
-      - controller3
+      controller1:
+        condition: service_healthy
+      controller2:
+        condition: service_healthy
+      controller3:
+        condition: service_healthy
+      bootstrap-certs:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "bash", "-c", "kafka-broker-api-versions --bootstrap-server localhost:9096 --command-config /certs/host/broker1-client.properties >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
     volumes:
       - broker1-data:/var/lib/kafka/data
-      - ../services/tls/certs:/etc/kafka/secrets:ro
+      - pki-certs:/certs:ro
       - ../services/tls/certs:/etc/tls:ro
     networks:
       - kafka-quorum
@@ -279,26 +288,24 @@ services:
       KAFKA_CLUSTER_ID: "1490b9b6-15d4-40fc-b963-5ffa822835fd"
       CLUSTER_ID: "1490b9b6-15d4-40fc-b963-5ffa822835fd"
       KAFKA_CONTROLLER_QUORUM_VOTERS: "1@controller1:9093,2@controller2:9093,3@controller3:9093"
-      KAFKA_LISTENERS: "PLAINTEXT://:9092,EXTERNAL://:29092,SASL_PLAINTEXT://:9095,SASL_SSL://:9096"
-      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://broker2:9092,EXTERNAL://localhost:9093,SASL_PLAINTEXT://broker2:9095,SASL_SSL://broker2:9096"
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT,SASL_PLAINTEXT:SASL_PLAINTEXT,SASL_SSL:SASL_SSL"
-      KAFKA_SSL_KEYSTORE_FILENAME: "broker2.keystore.p12"
-      KAFKA_SSL_KEYSTORE_CREDENTIALS: "keystore_creds"
-      KAFKA_SSL_KEY_CREDENTIALS: "key_creds"
+      KAFKA_LISTENERS: "SSL://:9096,SSL_INTER://:9094,SSL_EXTERNAL://:29092"
+      KAFKA_ADVERTISED_LISTENERS: "SSL://broker2:9096,SSL_INTER://broker2:9094,SSL_EXTERNAL://127.0.0.1:9093"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "SSL:SSL,SSL_INTER:SSL,SSL_EXTERNAL:SSL,CONTROLLER:SSL"
+      KAFKA_SSL_KEYSTORE_LOCATION: "/certs/jks/broker2/keystore.p12"
+      KAFKA_SSL_KEYSTORE_PASSWORD: "changeit-dev-only"
       KAFKA_SSL_KEYSTORE_TYPE: "PKCS12"
-      KAFKA_SSL_TRUSTSTORE_FILENAME: "broker2.truststore.p12"
-      KAFKA_SSL_TRUSTSTORE_CREDENTIALS: "truststore_creds"
+      KAFKA_SSL_TRUSTSTORE_LOCATION: "/certs/jks/broker2/truststore.p12"
+      KAFKA_SSL_TRUSTSTORE_PASSWORD: "changeit-dev-only"
       KAFKA_SSL_TRUSTSTORE_TYPE: "PKCS12"
-      KAFKA_LISTENER_NAME_SASL_SSL_SASL_ENABLED_MECHANISMS: "SCRAM-SHA-512"
-      SCRAM_ADMIN_PASSWORD: "${SCRAM_ADMIN_PASSWORD}"
-      KAFKA_SASL_ENABLED_MECHANISMS: "SCRAM-SHA-512"
-      KAFKA_LISTENER_NAME_SASL_PLAINTEXT_SASL_ENABLED_MECHANISMS: "SCRAM-SHA-512"
-      KAFKA_SUPER_USERS: "User:admin;User:ANONYMOUS"
+      KAFKA_SSL_KEY_PASSWORD: "changeit-dev-only"
+      KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ""
+      KAFKA_SSL_CLIENT_AUTH: "required"
+      KAFKA_SSL_PRINCIPAL_MAPPING_RULES: "RULE:^CN=(.*?),.*$$/$$1/L,DEFAULT"
+      KAFKA_SUPER_USERS: "User:admin;User:host-admin;User:broker1;User:broker2;User:broker3;User:controller1;User:controller2;User:controller3"
       KAFKA_AUTHORIZER_CLASS_NAME: "org.apache.kafka.metadata.authorizer.StandardAuthorizer"
       KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "false"
-      KAFKA_INTER_BROKER_LISTENER_NAME: "PLAINTEXT"
+      KAFKA_INTER_BROKER_LISTENER_NAME: "SSL_INTER"
       KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
-      KAFKA_ALLOW_PLAINTEXT_LISTENER: "yes"
       KAFKA_DEFAULT_REPLICATION_FACTOR: "3"
       KAFKA_MIN_INSYNC_REPLICAS: "2"
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: "3"
@@ -327,12 +334,23 @@ services:
     ports:
       - "127.0.0.1:9093:29092"
     depends_on:
-      - controller1
-      - controller2
-      - controller3
+      controller1:
+        condition: service_healthy
+      controller2:
+        condition: service_healthy
+      controller3:
+        condition: service_healthy
+      bootstrap-certs:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "bash", "-c", "kafka-broker-api-versions --bootstrap-server localhost:9096 --command-config /certs/host/broker2-client.properties >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
     volumes:
       - broker2-data:/var/lib/kafka/data
-      - ../services/tls/certs:/etc/kafka/secrets:ro
+      - pki-certs:/certs:ro
       - ../services/tls/certs:/etc/tls:ro
     networks:
       - kafka-quorum
@@ -352,26 +370,24 @@ services:
       KAFKA_CLUSTER_ID: "1490b9b6-15d4-40fc-b963-5ffa822835fd"
       CLUSTER_ID: "1490b9b6-15d4-40fc-b963-5ffa822835fd"
       KAFKA_CONTROLLER_QUORUM_VOTERS: "1@controller1:9093,2@controller2:9093,3@controller3:9093"
-      KAFKA_LISTENERS: "PLAINTEXT://:9092,EXTERNAL://:29092,SASL_PLAINTEXT://:9095,SASL_SSL://:9096"
-      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://broker3:9092,EXTERNAL://localhost:9094,SASL_PLAINTEXT://broker3:9095,SASL_SSL://broker3:9096"
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT,SASL_PLAINTEXT:SASL_PLAINTEXT,SASL_SSL:SASL_SSL"
-      KAFKA_SSL_KEYSTORE_FILENAME: "broker3.keystore.p12"
-      KAFKA_SSL_KEYSTORE_CREDENTIALS: "keystore_creds"
-      KAFKA_SSL_KEY_CREDENTIALS: "key_creds"
+      KAFKA_LISTENERS: "SSL://:9096,SSL_INTER://:9094,SSL_EXTERNAL://:29092"
+      KAFKA_ADVERTISED_LISTENERS: "SSL://broker3:9096,SSL_INTER://broker3:9094,SSL_EXTERNAL://127.0.0.1:9094"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "SSL:SSL,SSL_INTER:SSL,SSL_EXTERNAL:SSL,CONTROLLER:SSL"
+      KAFKA_SSL_KEYSTORE_LOCATION: "/certs/jks/broker3/keystore.p12"
+      KAFKA_SSL_KEYSTORE_PASSWORD: "changeit-dev-only"
       KAFKA_SSL_KEYSTORE_TYPE: "PKCS12"
-      KAFKA_SSL_TRUSTSTORE_FILENAME: "broker3.truststore.p12"
-      KAFKA_SSL_TRUSTSTORE_CREDENTIALS: "truststore_creds"
+      KAFKA_SSL_TRUSTSTORE_LOCATION: "/certs/jks/broker3/truststore.p12"
+      KAFKA_SSL_TRUSTSTORE_PASSWORD: "changeit-dev-only"
       KAFKA_SSL_TRUSTSTORE_TYPE: "PKCS12"
-      KAFKA_LISTENER_NAME_SASL_SSL_SASL_ENABLED_MECHANISMS: "SCRAM-SHA-512"
-      SCRAM_ADMIN_PASSWORD: "${SCRAM_ADMIN_PASSWORD}"
-      KAFKA_SASL_ENABLED_MECHANISMS: "SCRAM-SHA-512"
-      KAFKA_LISTENER_NAME_SASL_PLAINTEXT_SASL_ENABLED_MECHANISMS: "SCRAM-SHA-512"
-      KAFKA_SUPER_USERS: "User:admin;User:ANONYMOUS"
+      KAFKA_SSL_KEY_PASSWORD: "changeit-dev-only"
+      KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ""
+      KAFKA_SSL_CLIENT_AUTH: "required"
+      KAFKA_SSL_PRINCIPAL_MAPPING_RULES: "RULE:^CN=(.*?),.*$$/$$1/L,DEFAULT"
+      KAFKA_SUPER_USERS: "User:admin;User:host-admin;User:broker1;User:broker2;User:broker3;User:controller1;User:controller2;User:controller3"
       KAFKA_AUTHORIZER_CLASS_NAME: "org.apache.kafka.metadata.authorizer.StandardAuthorizer"
       KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "false"
-      KAFKA_INTER_BROKER_LISTENER_NAME: "PLAINTEXT"
+      KAFKA_INTER_BROKER_LISTENER_NAME: "SSL_INTER"
       KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
-      KAFKA_ALLOW_PLAINTEXT_LISTENER: "yes"
       KAFKA_DEFAULT_REPLICATION_FACTOR: "3"
       KAFKA_MIN_INSYNC_REPLICAS: "2"
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: "3"
@@ -400,12 +416,23 @@ services:
     ports:
       - "127.0.0.1:9094:29092"
     depends_on:
-      - controller1
-      - controller2
-      - controller3
+      controller1:
+        condition: service_healthy
+      controller2:
+        condition: service_healthy
+      controller3:
+        condition: service_healthy
+      bootstrap-certs:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "bash", "-c", "kafka-broker-api-versions --bootstrap-server localhost:9096 --command-config /certs/host/broker3-client.properties >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
     volumes:
       - broker3-data:/var/lib/kafka/data
-      - ../services/tls/certs:/etc/kafka/secrets:ro
+      - pki-certs:/certs:ro
       - ../services/tls/certs:/etc/tls:ro
     networks:
       - kafka-quorum
