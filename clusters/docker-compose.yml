@@ -1016,6 +1016,23 @@ services:
       - kafka-data
       - observability
 
+  acl-bootstrap:
+    image: apache/kafka:3.8.0
+    restart: "no"
+    depends_on:
+      broker1:
+        condition: service_healthy
+      broker2:
+        condition: service_healthy
+      broker3:
+        condition: service_healthy
+    volumes:
+      - pki-certs:/certs:ro
+      - ./kafka/acl-bootstrap.sh:/opt/acl-bootstrap.sh:ro
+    entrypoint: ["/bin/bash", "/opt/acl-bootstrap.sh"]
+    networks:
+      - kafka-data
+
 networks:
   kafka-quorum:
     name: kafka-quorum
