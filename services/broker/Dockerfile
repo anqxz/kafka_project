@@ -59,22 +59,5 @@ RUN chmod 0644 /opt/jmx_exporter/jmx_prometheus_javaagent.jar \
 
 COPY config/jmx/kafka-config.yml /opt/jmx_exporter/kafka-config.yml
 
-# Phase 2 SASL helper scripts. Not on the boot path — invoked via
-# `docker exec` to seed SCRAM users, render admin.properties, or
-# apply ACLs. See 04-SECURITY-GUARDRAILS §2.
-COPY --chmod=0755 render-admin-props.sh          /usr/local/bin/render-admin-props.sh
-COPY --chmod=0755 bootstrap-scram-users.sh       /usr/local/bin/bootstrap-scram-users.sh
-COPY --chmod=0755 bootstrap-acls.sh              /usr/local/bin/bootstrap-acls.sh
-COPY --chmod=0755 run-init.sh                    /usr/local/bin/run-init.sh
-COPY config/client-sasl.properties.template      /etc/kafka/client-sasl.properties.template
-COPY config/kafka_server_jaas.conf               /etc/kafka/kafka_server_jaas.conf.template
-COPY --chmod=0755 entrypoint-jaas.sh             /usr/local/bin/entrypoint-jaas.sh
-
-# Boot-path: bake the admin SCRAM credential into the metadata log at
-# first-time format so the inter-broker SASL listener can be enabled
-# without a chicken-and-egg client bootstrap.
-COPY --chmod=0755 entrypoint-format-scram.sh     /usr/local/bin/entrypoint-format-scram.sh
-
 USER appuser
 
-ENTRYPOINT ["/usr/local/bin/entrypoint-jaas.sh"]

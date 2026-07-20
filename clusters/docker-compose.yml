@@ -467,32 +467,6 @@ services:
   # One-shot bootstrap: seeds SCRAM users + ACL matrix once brokers are up.
   # Idempotent; restart:no so it stays terminated on subsequent `up` calls.
   # 04-SECURITY-GUARDRAILS §2 phase 3.
-  kafka-init:
-    build:
-      context: ../services/broker
-      args:
-        BASE_TAG: "${KAFKA_TAG}"
-    container_name: kafka-init
-    restart: "no"
-    depends_on:
-      - broker1
-      - broker2
-      - broker3
-    environment:
-      BOOTSTRAP: "broker1:9092"
-      SCRAM_ADMIN_USER: "${SCRAM_ADMIN_USER}"
-      SCRAM_ADMIN_PASSWORD: "${SCRAM_ADMIN_PASSWORD}"
-      SCRAM_CONNECT_PASSWORD: "${SCRAM_CONNECT_PASSWORD}"
-      SCRAM_SR_PASSWORD: "${SCRAM_SR_PASSWORD}"
-      SCRAM_KMINION_PASSWORD: "${SCRAM_KMINION_PASSWORD}"
-      SCRAM_CC_PASSWORD: "${SCRAM_CC_PASSWORD}"
-      SCRAM_MCP_PASSWORD: "${SCRAM_MCP_PASSWORD}"
-      SCRAM_LOADGEN_PASSWORD: "${SCRAM_LOADGEN_PASSWORD}"
-      SCRAM_AKHQ_PASSWORD: "${SCRAM_AKHQ_PASSWORD}"
-    entrypoint: ["/usr/local/bin/run-init.sh"]
-    networks:
-      - kafka-data
-
   # AKHQ — data (client connectivity to brokers, JMX via container hostnames) + edge (UI on 127.0.0.1).
   akhq:
     build:
