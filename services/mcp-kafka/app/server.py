@@ -50,6 +50,14 @@ def _kafka_client_kwargs() -> dict[str, object]:
         kw["ssl_cafile"] = KAFKA_SSL_CAFILE
     return kw
 CONNECT_URL = os.getenv("CONNECT_URL", "http://kafka-connect:8083")
+CONNECT_REST_BASIC_USER = os.getenv("CONNECT_REST_BASIC_USER", "")
+CONNECT_REST_BASIC_PASSWORD = os.getenv("CONNECT_REST_BASIC_PASSWORD", "")
+
+
+def _connect_auth() -> tuple[str, str] | None:
+    if CONNECT_REST_BASIC_USER and CONNECT_REST_BASIC_PASSWORD:
+        return (CONNECT_REST_BASIC_USER, CONNECT_REST_BASIC_PASSWORD)
+    return None
 SCHEMA_REGISTRY_URL = os.getenv("SCHEMA_REGISTRY_URL", "http://schema-registry:8081")
 PROMETHEUS_URL = os.getenv("PROMETHEUS_URL", "http://prometheus:9090")
 LOKI_URL = os.getenv("LOKI_URL", "http://loki:3100")
@@ -136,7 +144,11 @@ def cluster_health() -> dict[str, Any]:
 @mcp.tool()
 def connect_status(connector: str) -> dict[str, Any]:
     """Fetch a Kafka Connect connector + task status."""
-    r = requests.get(f"{CONNECT_URL}/connectors/{connector}/status", timeout=5)
+    r = requests.get(
+        f"{CONNECT_URL}/connectors/{connector}/status",
+        auth=_connect_auth(),
+        timeout=5,
+    )
     if r.status_code == 404:
         return {"error": f"connector {connector!r} not found"}
     r.raise_for_status()

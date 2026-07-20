@@ -5,6 +5,13 @@
 
 set -e
 
+CONNECT_REST_BASIC_USER="${CONNECT_REST_BASIC_USER:-}"
+CONNECT_REST_BASIC_PASSWORD="${CONNECT_REST_BASIC_PASSWORD:-}"
+_CURL_AUTH=()
+if [ -n "$CONNECT_REST_BASIC_USER" ] && [ -n "$CONNECT_REST_BASIC_PASSWORD" ]; then
+  _CURL_AUTH=(-u "$CONNECT_REST_BASIC_USER:$CONNECT_REST_BASIC_PASSWORD")
+fi
+
 # Cores
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -25,7 +32,7 @@ wait_for_service() {
     local count=0
     
     echo -e "${YELLOW}⏳ Aguardando $service...${NC}"
-    until curl -s -f -o /dev/null "$url"; do
+    until curl -s -f -o /dev/null "${_CURL_AUTH[@]}" "$url"; do
         count=$((count + 1))
         if [ $count -ge $max_tries ]; then
             echo -e "${RED}✗ Timeout aguardando $service${NC}"
@@ -74,13 +81,13 @@ echo ""
 
 # 5. Criar conector S3 Sink
 echo -e "${YELLOW}[5/8] Criando S3 Sink Connector...${NC}"
-if curl -s http://localhost:8083/connectors | grep -q "s3-sink-connector"; then
+if curl -s "${_CURL_AUTH[@]}" http://localhost:8083/connectors | grep -q "s3-sink-connector"; then
     echo -e "${YELLOW}⚠ Conector já existe, deletando...${NC}"
-    curl -s -X DELETE http://localhost:8083/connectors/s3-sink-connector > /dev/null
+    curl -s "${_CURL_AUTH[@]}" -X DELETE http://localhost:8083/connectors/s3-sink-connector > /dev/null
     sleep 2
 fi
 
-curl -s -X POST \
+curl -s "${_CURL_AUTH[@]}" -X POST \
     -H "Content-Type: application/json" \
     --data @../connects/s3-sink-connector.json \
     http://localhost:8083/connectors > /dev/null
@@ -88,7 +95,7 @@ curl -s -X POST \
 # Aguardar conector ficar RUNNING
 echo -e "${YELLOW}⏳ Aguardando conector iniciar...${NC}"
 sleep 5
-STATUS=$(curl -s http://localhost:8083/connectors/s3-sink-connector/status | jq -r '.connector.state')
+STATUS=$(curl -s "${_CURL_AUTH[@]}" http://localhost:8083/connectors/s3-sink-connector/status | jq -r '.connector.state')
 if [ "$STATUS" == "RUNNING" ]; then
     echo -e "${GREEN}✓ Conector RUNNING${NC}"
 else

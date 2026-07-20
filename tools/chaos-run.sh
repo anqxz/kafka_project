@@ -19,6 +19,12 @@ ALERTMANAGER_EXEC_CONTAINER="${ALERTMANAGER_EXEC_CONTAINER:-prometheus}"
 POLL_INTERVAL_SECONDS="${POLL_INTERVAL_SECONDS:-10}"
 RESOLVE_TIMEOUT_SECONDS="${RESOLVE_TIMEOUT_SECONDS:-600}"
 CONNECT_URL="${CONNECT_URL:-http://localhost:8083}"
+CONNECT_REST_BASIC_USER="${CONNECT_REST_BASIC_USER:-}"
+CONNECT_REST_BASIC_PASSWORD="${CONNECT_REST_BASIC_PASSWORD:-}"
+_connect_curl_auth=()
+if [ -n "$CONNECT_REST_BASIC_USER" ] && [ -n "$CONNECT_REST_BASIC_PASSWORD" ]; then
+  _connect_curl_auth=(-u "$CONNECT_REST_BASIC_USER:$CONNECT_REST_BASIC_PASSWORD")
+fi
 CONNECTOR_NAME="${CONNECTOR_NAME:-s3-sink-connector}"
 CONNECTOR_CONFIG="${CONNECTOR_CONFIG:-$HERE/../connects/s3-sink-connector.json}"
 CONNECTOR_READY_TIMEOUT_SECONDS="${CONNECTOR_READY_TIMEOUT_SECONDS:-60}"
@@ -55,12 +61,12 @@ ensure_connector() {
   local desired live
   desired=$(jq -c '.config' "$CONNECTOR_CONFIG")
 
-  live=$(curl -sS "$CONNECT_URL/connectors/$CONNECTOR_NAME/config" 2>/dev/null || echo '{}')
+  live=$(curl -sS "${_connect_curl_auth[@]}" "$CONNECT_URL/connectors/$CONNECTOR_NAME/config" 2>/dev/null || echo '{}')
   if [ "$(jq -cS . <<<"$live")" = "$(jq -cS . <<<"$desired")" ]; then
     log "connector $CONNECTOR_NAME already matches desired config"
   else
     log "applying $CONNECTOR_NAME config → $CONNECT_URL"
-    curl -sS --fail -X PUT -H 'Content-Type: application/json' \
+    curl -sS --fail "${_connect_curl_auth[@]}" -X PUT -H 'Content-Type: application/json' \
       --data "$desired" \
       "$CONNECT_URL/connectors/$CONNECTOR_NAME/config" >/dev/null
   fi
@@ -68,7 +74,7 @@ ensure_connector() {
   local start elapsed state
   start=$(date +%s)
   while :; do
-    state=$(curl -sS "$CONNECT_URL/connectors/$CONNECTOR_NAME/status" 2>/dev/null \
+    state=$(curl -sS "${_connect_curl_auth[@]}" "$CONNECT_URL/connectors/$CONNECTOR_NAME/status" 2>/dev/null \
       | jq -r '.connector.state // "UNKNOWN"')
     if [ "$state" = "RUNNING" ]; then
       log "connector $CONNECTOR_NAME state=RUNNING"

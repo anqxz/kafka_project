@@ -18,4 +18,19 @@ if [ -n "${SCRAM_CONNECT_PASSWORD:-}" ]; then
     > "${SECRETS_DIR}/connect.properties"
 fi
 
+# REST basic-auth (04-SECURITY-GUARDRAILS §2 phase 2 — Connect REST hardening).
+# BasicAuthSecurityRestExtension reads a JAAS entry named `KafkaConnect`
+# whose PropertyFileLoginModule points at a colon-delimited user file.
+if [ -n "${CONNECT_REST_BASIC_USER:-}" ] && [ -n "${CONNECT_REST_BASIC_PASSWORD:-}" ]; then
+  printf '%s: %s,admin\n' \
+    "$CONNECT_REST_BASIC_USER" "$CONNECT_REST_BASIC_PASSWORD" \
+    > "${SECRETS_DIR}/rest-auth.properties"
+  cat > "${SECRETS_DIR}/rest-auth.jaas" <<JAAS
+KafkaConnect {
+  org.apache.kafka.connect.rest.basic.auth.extension.PropertyFileLoginModule required
+  file="${SECRETS_DIR}/rest-auth.properties";
+};
+JAAS
+fi
+
 exec /etc/confluent/docker/run "$@"

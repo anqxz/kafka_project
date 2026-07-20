@@ -80,8 +80,12 @@ Nothing leaves the laptop. Documented in [01-NETWORK-ARCHITECTURE.md].
   cut-over, then flip clients one by one.
 - Create SCRAM-SHA-512 principals: `mcp`, `kminion`, `connect`,
   `schema-registry`, `cruise-control`, `loadgen`, `akhq`.
-- Kafka Connect REST → basic auth via `rest.extension.classes` +
-  `PropertyFileLoginModule`.
+- Kafka Connect REST → basic auth via
+  `rest.extension.classes=org.apache.kafka.connect.rest.basic.auth.extension.BasicAuthSecurityRestExtension`
+  + JAAS `KafkaConnect` entry backed by `PropertyFileLoginModule`, rendered by
+  `services/kafka-connect/entrypoint-secrets.sh` from `CONNECT_REST_BASIC_USER` /
+  `CONNECT_REST_BASIC_PASSWORD`. Callers (mcp-kafka, chaos scripts, s3-connector.sh)
+  read the same env vars.
 - Schema Registry → HTTP basic + JAAS.
 - Cruise Control → `webserver.security.enable=true` + basic auth.
 - MCP-Kafka → shared-token (`Authorization: Bearer …`) SSE guard.
