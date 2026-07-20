@@ -4,6 +4,28 @@
 
 services:
 
+  # PKI one-shots — must run before any service that needs certs.
+  step-ca-init:
+    build: ./step-ca
+    image: kafka-lab/step-ca:local
+    entrypoint: ["/init/step-ca-init.sh"]
+    volumes:
+      - pki-root:/step
+    restart: "no"
+
+  bootstrap-certs:
+    build: ./step-ca
+    image: kafka-lab/step-ca:local
+    depends_on:
+      step-ca-init:
+        condition: service_completed_successfully
+    entrypoint: ["/init/bootstrap-certs.sh"]
+    volumes:
+      - pki-root:/step:ro
+      - pki-certs:/certs
+      - ./step-ca/init/services.csv:/init/services.csv:ro
+    restart: "no"
+
   # Controllers (KRaft controllers) — kafka-quorum only + observability for scrape.
   controller1:
     build:
@@ -973,3 +995,5 @@ volumes:
   pyroscope-data:
   alertmanager-data:
   ntfy-data:
+  pki-root:
+  pki-certs:

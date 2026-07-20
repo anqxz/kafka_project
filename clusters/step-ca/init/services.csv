@@ -1,0 +1,16 @@
+svc,cn,sans
+broker1,broker1,broker1
+broker2,broker2,broker2
+broker3,broker3,broker3
+controller1,controller1,controller1
+controller2,controller2,controller2
+controller3,controller3,controller3
+kafka-connect,kafka-connect,kafka-connect
+schema-registry,schema-registry,schema-registry
+akhq,akhq,akhq
+kminion,kminion,kminion
+cruise-control,cruise-control,cruise-control
+loadgen,loadgen,loadgen
+mcp-kafka,mcp-kafka,mcp-kafka
+admin,admin,admin
+host-admin,host-admin,localhost
