@@ -23,7 +23,23 @@ ssl.endpoint.identification.algorithm=
 EOF
 
 KAFKA_ACLS_BIN="$(command -v kafka-acls || command -v kafka-acls.sh)"
+KAFKA_APIVER_BIN="$(command -v kafka-broker-api-versions || command -v kafka-broker-api-versions.sh)"
 ACL="$KAFKA_ACLS_BIN --bootstrap-server $BS --command-config $CC"
+
+# Compose re-runs completed one-shots on every `up -d`, which can race a
+# broker restart. Poll AdminClient readiness before touching ACLs so a
+# transient "no node available" doesn't fail the script.
+echo "waiting for $BS to accept AdminClient calls..."
+for i in $(seq 1 60); do
+  if "$KAFKA_APIVER_BIN" --bootstrap-server "$BS" --command-config "$CC" \
+       >/dev/null 2>&1; then
+    echo "broker reachable after ${i}s"; break
+  fi
+  if [ "$i" -eq 60 ]; then
+    echo "broker never became reachable" >&2; exit 1
+  fi
+  sleep 1
+done
 
 # ---------- kafka-connect ----------
 # Consume events, own internal topics, manage connector group
