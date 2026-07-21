@@ -59,5 +59,16 @@ RUN chmod 0644 /opt/jmx_exporter/jmx_prometheus_javaagent.jar \
 
 COPY config/jmx/kafka-config.yml /opt/jmx_exporter/kafka-config.yml
 
+# cp-kafka's `ensure` step runs kafka-storage in a short-lived JVM that
+# loads javaagents from KAFKA_OPTS — the JMX exporter binds :7071, exits,
+# and TIME_WAIT keeps the port unusable long enough to race the real
+# `launch` JVM into "Address already in use". Zero out KAFKA_OPTS for the
+# ensure phase only; launch re-reads it fresh from container env.
+RUN sed -i '2i export KAFKA_OPTS=""' /etc/confluent/docker/ensure
+
+COPY --chmod=0755 entrypoint-ssl.sh /usr/local/bin/entrypoint-ssl.sh
+
 USER appuser
+
+ENTRYPOINT ["/usr/local/bin/entrypoint-ssl.sh"]
 
