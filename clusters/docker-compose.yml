@@ -285,7 +285,7 @@ services:
       bootstrap-certs:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD", "bash", "-c", "kafka-broker-api-versions --bootstrap-server localhost:9096 --command-config /certs/host/broker1-client.properties >/dev/null 2>&1"]
+      test: ["CMD", "bash", "-c", "KAFKA_OPTS='' kafka-broker-api-versions --bootstrap-server broker1:9096 --command-config /certs/host/broker1-client.properties >/dev/null 2>&1"]
       interval: 10s
       timeout: 10s
       retries: 10
@@ -367,7 +367,7 @@ services:
       bootstrap-certs:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD", "bash", "-c", "kafka-broker-api-versions --bootstrap-server localhost:9096 --command-config /certs/host/broker2-client.properties >/dev/null 2>&1"]
+      test: ["CMD", "bash", "-c", "KAFKA_OPTS='' kafka-broker-api-versions --bootstrap-server broker2:9096 --command-config /certs/host/broker2-client.properties >/dev/null 2>&1"]
       interval: 10s
       timeout: 10s
       retries: 10
@@ -449,7 +449,7 @@ services:
       bootstrap-certs:
         condition: service_completed_successfully
     healthcheck:
-      test: ["CMD", "bash", "-c", "kafka-broker-api-versions --bootstrap-server localhost:9096 --command-config /certs/host/broker3-client.properties >/dev/null 2>&1"]
+      test: ["CMD", "bash", "-c", "KAFKA_OPTS='' kafka-broker-api-versions --bootstrap-server broker3:9096 --command-config /certs/host/broker3-client.properties >/dev/null 2>&1"]
       interval: 10s
       timeout: 10s
       retries: 10

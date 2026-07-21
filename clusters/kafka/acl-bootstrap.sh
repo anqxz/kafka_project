@@ -5,8 +5,10 @@
 # Safe to re-run: kafka-acls --add is idempotent.
 set -euo pipefail
 
+export PATH="/opt/kafka/bin:${PATH}"
+
 BS="${BOOTSTRAP:-broker1:9096}"
-CC="/certs/admin.properties"
+CC="/tmp/admin.properties"
 
 cat > "$CC" <<EOF
 security.protocol=SSL
@@ -20,7 +22,8 @@ ssl.key.password=changeit-dev-only
 ssl.endpoint.identification.algorithm=
 EOF
 
-ACL="kafka-acls --bootstrap-server $BS --command-config $CC"
+KAFKA_ACLS_BIN="$(command -v kafka-acls || command -v kafka-acls.sh)"
+ACL="$KAFKA_ACLS_BIN --bootstrap-server $BS --command-config $CC"
 
 # ---------- kafka-connect ----------
 # Consume events, own internal topics, manage connector group
