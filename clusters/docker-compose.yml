@@ -245,7 +245,7 @@ services:
       KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: "https"
       KAFKA_SSL_CLIENT_AUTH: "required"
       KAFKA_SSL_PRINCIPAL_MAPPING_RULES: "RULE:^CN=([^,]+).*$$/$$1/L,DEFAULT"
-      KAFKA_SUPER_USERS: "User:admin;User:host-admin;User:broker1;User:broker2;User:broker3;User:controller1;User:controller2;User:controller3"
+      KAFKA_SUPER_USERS: "User:admin;User:host-admin;User:broker1;User:broker2;User:broker3;User:controller1;User:controller2;User:controller3;User:kroxylicious"
       KAFKA_AUTHORIZER_CLASS_NAME: "org.apache.kafka.metadata.authorizer.StandardAuthorizer"
       KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "false"
       KAFKA_DEFAULT_REPLICATION_FACTOR: "3"
@@ -335,7 +335,7 @@ services:
       KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: "https"
       KAFKA_SSL_CLIENT_AUTH: "required"
       KAFKA_SSL_PRINCIPAL_MAPPING_RULES: "RULE:^CN=([^,]+).*$$/$$1/L,DEFAULT"
-      KAFKA_SUPER_USERS: "User:admin;User:host-admin;User:broker1;User:broker2;User:broker3;User:controller1;User:controller2;User:controller3"
+      KAFKA_SUPER_USERS: "User:admin;User:host-admin;User:broker1;User:broker2;User:broker3;User:controller1;User:controller2;User:controller3;User:kroxylicious"
       KAFKA_AUTHORIZER_CLASS_NAME: "org.apache.kafka.metadata.authorizer.StandardAuthorizer"
       KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "false"
       KAFKA_INTER_BROKER_LISTENER_NAME: "SSL_INTER"
@@ -427,7 +427,7 @@ services:
       KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: "https"
       KAFKA_SSL_CLIENT_AUTH: "required"
       KAFKA_SSL_PRINCIPAL_MAPPING_RULES: "RULE:^CN=([^,]+).*$$/$$1/L,DEFAULT"
-      KAFKA_SUPER_USERS: "User:admin;User:host-admin;User:broker1;User:broker2;User:broker3;User:controller1;User:controller2;User:controller3"
+      KAFKA_SUPER_USERS: "User:admin;User:host-admin;User:broker1;User:broker2;User:broker3;User:controller1;User:controller2;User:controller3;User:kroxylicious"
       KAFKA_AUTHORIZER_CLASS_NAME: "org.apache.kafka.metadata.authorizer.StandardAuthorizer"
       KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "false"
       KAFKA_INTER_BROKER_LISTENER_NAME: "SSL_INTER"
@@ -969,6 +969,13 @@ services:
       - localstack
     ports:
       - "127.0.0.1:9192:9192"
+      - "127.0.0.1:9193:9193"
+      - "127.0.0.1:9194:9194"
+      - "127.0.0.1:9195:9195"
+    volumes:
+      - pki-certs:/certs:ro
+      - ../services/kroxylicious/config/proxy.yaml:/opt/kroxylicious/config/proxy.yaml:ro
+      - ../services/kroxylicious/config/tls-password:/etc/kroxylicious/tls-password:ro
     networks:
       - kafka-data
       - observability
