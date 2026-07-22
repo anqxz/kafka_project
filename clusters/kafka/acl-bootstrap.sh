@@ -46,8 +46,11 @@ done
 $ACL --add --allow-principal User:kafka-connect \
   --operation Read --operation Describe \
   --group connect-s3-sink
+$ACL --add --allow-principal User:kafka-connect \
+  --operation Read --operation Describe \
+  --group kafka-connect-cluster
 
-for t in events __connect-configs __connect-offsets __connect-status; do
+for t in events _connect-configs _connect-offsets _connect-status; do
   $ACL --add --allow-principal User:kafka-connect --operation All --topic "$t"
 done
 
@@ -61,7 +64,7 @@ $ACL --add --allow-principal User:loadgen \
   --operation Write --operation Describe --topic events
 
 # ---------- schema-registry ----------
-for op in Read Write Describe Create; do
+for op in Read Write Describe Create DescribeConfigs AlterConfigs; do
   $ACL --add --allow-principal User:schema-registry \
     --operation "$op" --topic _schemas
 done
@@ -77,6 +80,10 @@ $ACL --add --allow-principal User:kminion \
   --operation Describe --group '*'
 $ACL --add --allow-principal User:kminion \
   --operation Describe --cluster
+$ACL --add --allow-principal User:kminion \
+  --operation DescribeConfigs --topic '*'
+$ACL --add --allow-principal User:kminion \
+  --operation DescribeConfigs --cluster
 
 # ---------- akhq ----------
 $ACL --add --allow-principal User:akhq \

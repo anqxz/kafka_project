@@ -9,12 +9,9 @@ kafka:
   clientId: kminion
   tls:
     enabled: true
-    caFilepath: /etc/tls/ca.pem
-  sasl:
-    enabled: true
-    mechanism: SCRAM-SHA-512
-    username: kminion
-    password: change-me-in-real-deployments
+    caFilepath: /certs/ca/ca-bundle.pem
+    certFilepath: /certs/pem/kminion/tls.crt
+    keyFilepath: /certs/pem/kminion/tls.key
 
 minion:
   consumerGroups:
