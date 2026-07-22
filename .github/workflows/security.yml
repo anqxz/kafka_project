@@ -24,34 +24,44 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        service:
-          - broker
-          - controller
-          - kafka-connect
-          - schema-registry
-          - cruise-control
-          - kroxylicious
-          - toxiproxy
-          - mcp-kafka
-          - loadgen
-          - grafana
-          - prometheus
-          - loki
-          - tempo
-          - pyroscope
-          - alertmanager
-          - blackbox-exporter
-          - otel-collector
-          - kminion
-          - ntfy
-          - localstack
-          - akhq
+        include:
+          # Services whose CVEs come from OUR code + OUR base pick
+          # (Python 3.13-slim, alpine). Trivy failure blocks the merge.
+          - { service: mcp-kafka,         blocking: true  }
+          - { service: loadgen,           blocking: true  }
+          - { service: kminion,           blocking: true  }
+          # Confluent CP lineage (broker / controller / kafka-connect /
+          # schema-registry / cruise-control). We layer `microdnf update`
+          # so OS deltas from UBI8 are patched, but the JVM + Kafka jars
+          # + Connect libs are Confluent's to fix. Findings still upload
+          # as SARIF for tracking; job soft-fails so a fresh upstream
+          # CVE doesn't block an unrelated merge.
+          - { service: broker,            blocking: false }
+          - { service: controller,        blocking: false }
+          - { service: kafka-connect,     blocking: false }
+          - { service: schema-registry,   blocking: false }
+          - { service: cruise-control,    blocking: false }
+          # Vendor images we consume as-is — upstream's CVEs.
+          - { service: kroxylicious,      blocking: false }
+          - { service: toxiproxy,         blocking: false }
+          - { service: grafana,           blocking: false }
+          - { service: prometheus,        blocking: false }
+          - { service: loki,              blocking: false }
+          - { service: tempo,             blocking: false }
+          - { service: pyroscope,         blocking: false }
+          - { service: alertmanager,      blocking: false }
+          - { service: blackbox-exporter, blocking: false }
+          - { service: otel-collector,    blocking: false }
+          - { service: ntfy,              blocking: false }
+          - { service: localstack,        blocking: false }
+          - { service: akhq,              blocking: false }
     steps:
       - uses: actions/checkout@v7
       - name: Build image
         run: docker build -t "kproj-${{ matrix.service }}:ci" "services/${{ matrix.service }}"
       - name: Trivy — CRITICAL/HIGH
         uses: aquasecurity/trivy-action@master
+        continue-on-error: ${{ !matrix.blocking }}
         with:
           image-ref: "kproj-${{ matrix.service }}:ci"
           format: sarif
@@ -121,9 +131,26 @@ jobs:
         run: |
           # Non-fatal: emits any float tag as a warning so a Renovate PR
           # can pin it. Failing here would block every base-image bump.
+          # `docker compose config --resolve-image-digests` will error on
+          # locally-built images that carry an `image:` tag (e.g.
+          # kafka-lab/step-ca:local) because they're not on any registry.
+          # List the images first, filter out local-only tags, then
+          # inspect each remaining reference. Whole step is || true so a
+          # transient registry failure never blocks a merge.
+          set +e
           docker compose -f clusters/docker-compose.yml --env-file clusters/.env \
-            config --resolve-image-digests \
-          > /tmp/resolved-compose.yml
-          if grep -E '^\s*image: [^@]+(:[^@]+)?$' /tmp/resolved-compose.yml; then
-            echo "::warning::floating image references above — Renovate should pin them"
+            config --images \
+          | grep -v '^kafka-lab/' \
+          > /tmp/remote-images.txt
+          floating=0
+          while read -r img; do
+            [ -z "$img" ] && continue
+            case "$img" in
+              *@sha256:*) ;;                                   # already pinned
+              *) echo "::warning::floating image reference: $img"; floating=1 ;;
+            esac
+          done < /tmp/remote-images.txt
+          if [ "$floating" = 1 ]; then
+            echo "::warning::Renovate should pin the images listed above"
           fi
+          exit 0
