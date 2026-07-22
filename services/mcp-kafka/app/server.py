@@ -329,7 +329,7 @@ if __name__ == "__main__":
                         return PlainTextResponse("unauthorized", status_code=401)
                 return await call_next(request)
 
-        app = mcp.sse_app()
+        app = mcp.http_app(transport="sse")
         app.add_middleware(BearerAuthMiddleware)
         if not MCP_AUTH_TOKEN:
             log.warning(
