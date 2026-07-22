@@ -3,12 +3,15 @@ akhq:
     kafka-kraft-cluster:
       properties:
         bootstrap.servers: "broker1:9096,broker2:9096,broker3:9096"
-        security.protocol: SASL_SSL
-        sasl.mechanism: SCRAM-SHA-512
-        sasl.jaas.config: 'org.apache.kafka.common.security.scram.ScramLoginModule required username="akhq" password="${SCRAM_AKHQ_PASSWORD:change-me-in-real-deployments}";'
-        ssl.truststore.location: /etc/kafka/secrets/akhq.truststore.p12
+        security.protocol: SSL
+        ssl.truststore.location: /certs/jks/akhq/truststore.p12
         ssl.truststore.type: PKCS12
-        ssl.truststore.password: changeit
+        ssl.truststore.password: changeit-dev-only
+        ssl.keystore.location: /certs/jks/akhq/keystore.p12
+        ssl.keystore.type: PKCS12
+        ssl.keystore.password: changeit-dev-only
+        ssl.key.password: changeit-dev-only
+        ssl.endpoint.identification.algorithm: https
       jmx:
         - name: broker1
           url: "broker1:9101"

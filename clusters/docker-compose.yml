@@ -505,12 +505,11 @@ services:
         BASE_TAG: "${AKHQ_TAG}"
     container_name: akhq
     environment:
-      SCRAM_AKHQ_PASSWORD: "${SCRAM_AKHQ_PASSWORD}"
       SCHEMA_REGISTRY_ADMIN_USER: "${SCHEMA_REGISTRY_ADMIN_USER}"
       SCHEMA_REGISTRY_ADMIN_PASSWORD: "${SCHEMA_REGISTRY_ADMIN_PASSWORD}"
     volumes:
-      - ../services/tls/certs:/etc/kafka/secrets:ro
-      - ../services/tls/certs:/etc/tls:ro
+      - pki-certs:/certs:ro
+      - ../services/akhq/config/application.yml:/app/application.yml:ro
     ports:
       - "127.0.0.1:8080:8080"
     depends_on:
@@ -566,13 +565,16 @@ services:
     container_name: schema-registry
     environment:
       SCHEMA_REGISTRY_HOST_NAME: schema-registry
-      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: "SASL_SSL://broker1:9096,SASL_SSL://broker2:9096,SASL_SSL://broker3:9096"
-      SCHEMA_REGISTRY_KAFKASTORE_SECURITY_PROTOCOL: "SASL_SSL"
-      SCHEMA_REGISTRY_KAFKASTORE_SASL_MECHANISM: "SCRAM-SHA-512"
-      SCHEMA_REGISTRY_KAFKASTORE_SASL_JAAS_CONFIG: 'org.apache.kafka.common.security.scram.ScramLoginModule required username="schema-registry" password="${SCRAM_SR_PASSWORD}";'
-      SCHEMA_REGISTRY_KAFKASTORE_SSL_TRUSTSTORE_LOCATION: "/etc/kafka/secrets/schema-registry.truststore.p12"
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: "SSL://broker1:9096,SSL://broker2:9096,SSL://broker3:9096"
+      SCHEMA_REGISTRY_KAFKASTORE_SECURITY_PROTOCOL: "SSL"
+      SCHEMA_REGISTRY_KAFKASTORE_SSL_TRUSTSTORE_LOCATION: "/certs/jks/schema-registry/truststore.p12"
       SCHEMA_REGISTRY_KAFKASTORE_SSL_TRUSTSTORE_TYPE: "PKCS12"
-      SCHEMA_REGISTRY_KAFKASTORE_SSL_TRUSTSTORE_PASSWORD: "${TLS_STORE_PASSWORD}"
+      SCHEMA_REGISTRY_KAFKASTORE_SSL_TRUSTSTORE_PASSWORD: "changeit-dev-only"
+      SCHEMA_REGISTRY_KAFKASTORE_SSL_KEYSTORE_LOCATION: "/certs/jks/schema-registry/keystore.p12"
+      SCHEMA_REGISTRY_KAFKASTORE_SSL_KEYSTORE_TYPE: "PKCS12"
+      SCHEMA_REGISTRY_KAFKASTORE_SSL_KEYSTORE_PASSWORD: "changeit-dev-only"
+      SCHEMA_REGISTRY_KAFKASTORE_SSL_KEY_PASSWORD: "changeit-dev-only"
+      SCHEMA_REGISTRY_KAFKASTORE_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: "https"
       SCHEMA_REGISTRY_LISTENERS: "http://0.0.0.0:8081"
       SCHEMA_REGISTRY_DEBUG: "true"
       SCHEMA_REGISTRY_AUTHENTICATION_METHOD: BASIC
@@ -581,7 +583,6 @@ services:
       SCHEMA_REGISTRY_OPTS: "-Djava.security.auth.login.config=/etc/schema-registry/jaas.conf"
       SCHEMA_REGISTRY_ADMIN_USER: "${SCHEMA_REGISTRY_ADMIN_USER}"
       SCHEMA_REGISTRY_ADMIN_PASSWORD: "${SCHEMA_REGISTRY_ADMIN_PASSWORD}"
-      SCRAM_SR_PASSWORD: "${SCRAM_SR_PASSWORD}"
       KAFKA_OPTS: "-javaagent:/opt/agents/opentelemetry-javaagent.jar -javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml"
       OTEL_SERVICE_NAME: "schema-registry"
       OTEL_EXPORTER_OTLP_ENDPOINT: "https://otel-collector:4318"
@@ -619,30 +620,42 @@ services:
     container_name: kafka-connect
     environment:
       CONNECT_BOOTSTRAP_SERVERS: "broker1:9096,broker2:9096,broker3:9096"
-      CONNECT_SECURITY_PROTOCOL: "SASL_SSL"
-      CONNECT_SASL_MECHANISM: "SCRAM-SHA-512"
-      CONNECT_SASL_JAAS_CONFIG: 'org.apache.kafka.common.security.scram.ScramLoginModule required username="connect" password="${SCRAM_CONNECT_PASSWORD}";'
-      CONNECT_SSL_TRUSTSTORE_LOCATION: "/etc/kafka/secrets/kafka-connect.truststore.p12"
+      CONNECT_SECURITY_PROTOCOL: "SSL"
+      CONNECT_SSL_TRUSTSTORE_LOCATION: "/certs/jks/kafka-connect/truststore.p12"
       CONNECT_SSL_TRUSTSTORE_TYPE: "PKCS12"
-      CONNECT_SSL_TRUSTSTORE_PASSWORD: "${TLS_STORE_PASSWORD}"
-      CONNECT_PRODUCER_SECURITY_PROTOCOL: "SASL_SSL"
-      CONNECT_PRODUCER_SASL_MECHANISM: "SCRAM-SHA-512"
-      CONNECT_PRODUCER_SASL_JAAS_CONFIG: 'org.apache.kafka.common.security.scram.ScramLoginModule required username="connect" password="${SCRAM_CONNECT_PASSWORD}";'
-      CONNECT_PRODUCER_SSL_TRUSTSTORE_LOCATION: "/etc/kafka/secrets/kafka-connect.truststore.p12"
+      CONNECT_SSL_TRUSTSTORE_PASSWORD: "changeit-dev-only"
+      CONNECT_SSL_KEYSTORE_LOCATION: "/certs/jks/kafka-connect/keystore.p12"
+      CONNECT_SSL_KEYSTORE_TYPE: "PKCS12"
+      CONNECT_SSL_KEYSTORE_PASSWORD: "changeit-dev-only"
+      CONNECT_SSL_KEY_PASSWORD: "changeit-dev-only"
+      CONNECT_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: "https"
+      CONNECT_PRODUCER_SECURITY_PROTOCOL: "SSL"
+      CONNECT_PRODUCER_SSL_TRUSTSTORE_LOCATION: "/certs/jks/kafka-connect/truststore.p12"
       CONNECT_PRODUCER_SSL_TRUSTSTORE_TYPE: "PKCS12"
-      CONNECT_PRODUCER_SSL_TRUSTSTORE_PASSWORD: "${TLS_STORE_PASSWORD}"
-      CONNECT_CONSUMER_SECURITY_PROTOCOL: "SASL_SSL"
-      CONNECT_CONSUMER_SASL_MECHANISM: "SCRAM-SHA-512"
-      CONNECT_CONSUMER_SASL_JAAS_CONFIG: 'org.apache.kafka.common.security.scram.ScramLoginModule required username="connect" password="${SCRAM_CONNECT_PASSWORD}";'
-      CONNECT_CONSUMER_SSL_TRUSTSTORE_LOCATION: "/etc/kafka/secrets/kafka-connect.truststore.p12"
+      CONNECT_PRODUCER_SSL_TRUSTSTORE_PASSWORD: "changeit-dev-only"
+      CONNECT_PRODUCER_SSL_KEYSTORE_LOCATION: "/certs/jks/kafka-connect/keystore.p12"
+      CONNECT_PRODUCER_SSL_KEYSTORE_TYPE: "PKCS12"
+      CONNECT_PRODUCER_SSL_KEYSTORE_PASSWORD: "changeit-dev-only"
+      CONNECT_PRODUCER_SSL_KEY_PASSWORD: "changeit-dev-only"
+      CONNECT_PRODUCER_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: "https"
+      CONNECT_CONSUMER_SECURITY_PROTOCOL: "SSL"
+      CONNECT_CONSUMER_SSL_TRUSTSTORE_LOCATION: "/certs/jks/kafka-connect/truststore.p12"
       CONNECT_CONSUMER_SSL_TRUSTSTORE_TYPE: "PKCS12"
-      CONNECT_CONSUMER_SSL_TRUSTSTORE_PASSWORD: "${TLS_STORE_PASSWORD}"
-      CONNECT_ADMIN_SECURITY_PROTOCOL: "SASL_SSL"
-      CONNECT_ADMIN_SASL_MECHANISM: "SCRAM-SHA-512"
-      CONNECT_ADMIN_SASL_JAAS_CONFIG: 'org.apache.kafka.common.security.scram.ScramLoginModule required username="connect" password="${SCRAM_CONNECT_PASSWORD}";'
-      CONNECT_ADMIN_SSL_TRUSTSTORE_LOCATION: "/etc/kafka/secrets/kafka-connect.truststore.p12"
+      CONNECT_CONSUMER_SSL_TRUSTSTORE_PASSWORD: "changeit-dev-only"
+      CONNECT_CONSUMER_SSL_KEYSTORE_LOCATION: "/certs/jks/kafka-connect/keystore.p12"
+      CONNECT_CONSUMER_SSL_KEYSTORE_TYPE: "PKCS12"
+      CONNECT_CONSUMER_SSL_KEYSTORE_PASSWORD: "changeit-dev-only"
+      CONNECT_CONSUMER_SSL_KEY_PASSWORD: "changeit-dev-only"
+      CONNECT_CONSUMER_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: "https"
+      CONNECT_ADMIN_SECURITY_PROTOCOL: "SSL"
+      CONNECT_ADMIN_SSL_TRUSTSTORE_LOCATION: "/certs/jks/kafka-connect/truststore.p12"
       CONNECT_ADMIN_SSL_TRUSTSTORE_TYPE: "PKCS12"
-      CONNECT_ADMIN_SSL_TRUSTSTORE_PASSWORD: "${TLS_STORE_PASSWORD}"
+      CONNECT_ADMIN_SSL_TRUSTSTORE_PASSWORD: "changeit-dev-only"
+      CONNECT_ADMIN_SSL_KEYSTORE_LOCATION: "/certs/jks/kafka-connect/keystore.p12"
+      CONNECT_ADMIN_SSL_KEYSTORE_TYPE: "PKCS12"
+      CONNECT_ADMIN_SSL_KEYSTORE_PASSWORD: "changeit-dev-only"
+      CONNECT_ADMIN_SSL_KEY_PASSWORD: "changeit-dev-only"
+      CONNECT_ADMIN_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: "https"
       CONNECT_REST_PORT: 8083
       CONNECT_REST_ADVERTISED_HOST_NAME: "kafka-connect"
       CONNECT_GROUP_ID: "kafka-connect-cluster"
@@ -660,7 +673,6 @@ services:
       CONNECT_REST_EXTENSION_CLASSES: "org.apache.kafka.connect.rest.basic.auth.extension.BasicAuthSecurityRestExtension"
       CONNECT_REST_BASIC_USER: "${CONNECT_REST_BASIC_USER}"
       CONNECT_REST_BASIC_PASSWORD: "${CONNECT_REST_BASIC_PASSWORD}"
-      SCRAM_CONNECT_PASSWORD: "${SCRAM_CONNECT_PASSWORD}"
       CONNECT_LOG4J_LOGGERS: "org.apache.kafka.connect=INFO"
       AWS_ACCESS_KEY_ID: "test"
       AWS_SECRET_ACCESS_KEY: "test"
@@ -681,9 +693,8 @@ services:
     ports:
       - "127.0.0.1:8083:8083"
     volumes:
-      - ../services/tls/certs:/etc/kafka/secrets:ro
-      - ../services/tls/certs:/etc/tls:ro
       - pki-certs:/certs:ro
+      - ../services/kafka-connect/entrypoint-secrets.sh:/usr/local/bin/entrypoint-secrets.sh:ro
     depends_on:
       localstack:
         condition: service_healthy
@@ -760,11 +771,9 @@ services:
     restart: unless-stopped
     environment:
       CONFIG_FILEPATH: /etc/kminion/config.yaml
-      KAFKA_SASL_PASSWORD: "${SCRAM_KMINION_PASSWORD}"
-      KAFKA_TLS_ENABLED: "true"
-      KAFKA_TLS_CAFILEPATH: "/etc/tls/ca.pem"
     volumes:
-      - ../services/tls/certs:/etc/tls:ro
+      - pki-certs:/certs:ro
+      - ../services/kminion/config/kminion.yaml:/etc/kminion/config.yaml:ro
     depends_on:
       - broker1
       - broker2
@@ -998,16 +1007,15 @@ services:
       MCP_PORT: "3001"
       MCP_AUTH_TOKEN: "${MCP_AUTH_TOKEN}"
       KAFKA_BOOTSTRAP_SERVERS: "broker1:9096,broker2:9096,broker3:9096"
-      KAFKA_SECURITY_PROTOCOL: "SASL_SSL"
-      KAFKA_SASL_MECHANISM: "SCRAM-SHA-512"
-      KAFKA_SASL_USERNAME: "mcp"
-      KAFKA_SASL_PASSWORD: "${SCRAM_MCP_PASSWORD}"
-      KAFKA_SSL_CAFILE: "/etc/tls/ca.pem"
-      MCP_TLS_CERT: "/etc/tls/mcp-kafka.pem"
-      MCP_TLS_KEY: "/etc/tls/mcp-kafka.key"
-      MCP_TLS_CLIENT_CA: "/etc/tls/ca.pem"
+      KAFKA_SECURITY_PROTOCOL: "SSL"
+      KAFKA_SSL_CAFILE: "/certs/ca/ca-bundle.pem"
+      KAFKA_SSL_CERTFILE: "/certs/pem/mcp-kafka/tls.crt"
+      KAFKA_SSL_KEYFILE: "/certs/pem/mcp-kafka/tls.key"
+      MCP_TLS_CERT: "/certs/pem/mcp-kafka/tls.crt"
+      MCP_TLS_KEY: "/certs/pem/mcp-kafka/tls.key"
+      MCP_TLS_CLIENT_CA: "/certs/ca/ca-bundle.pem"
     volumes:
-      - ../services/tls/certs:/etc/tls:ro
+      - pki-certs:/certs:ro
     depends_on:
       - broker1
       - kafka-connect
