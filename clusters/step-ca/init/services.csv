@@ -14,3 +14,4 @@ loadgen,loadgen,loadgen
 mcp-kafka,mcp-kafka,mcp-kafka
 admin,admin,admin
 host-admin,host-admin,localhost
+otel-collector,otel-collector,otel-collector
