@@ -1,7 +1,6 @@
-# Minimal Kroxylicious 0.10.0 config: pass-through proxy on :9192 to the
-# internal broker cluster. Filter chain (RecordEncryption via LocalStack
-# KMS) will be added once the target-cluster + broker discovery flow is
-# validated end-to-end.
+# Kroxylicious pass-through proxy on :9192.
+# Upstream: mTLS to brokers on :9096 with the kroxylicious leaf.
+# Downstream: TLS server for clients; same keystore.
 adminHttp:
   endpoints:
     prometheus: {}
@@ -9,11 +8,32 @@ adminHttp:
 virtualClusters:
   kafka-kraft-cluster:
     targetCluster:
-      bootstrapServers: broker1:9092,broker2:9092,broker3:9092
+      bootstrapServers: broker1:9096,broker2:9096,broker3:9096
+      tls:
+        trust:
+          storeFile: /certs/jks/kroxylicious/truststore.p12
+          storePassword:
+            passwordFile: /etc/kroxylicious/tls-password
+          storeType: PKCS12
+        key:
+          storeFile: /certs/jks/kroxylicious/keystore.p12
+          storePassword:
+            passwordFile: /etc/kroxylicious/tls-password
+          storeType: PKCS12
+    tls:
+      key:
+        storeFile: /certs/jks/kroxylicious/keystore.p12
+        storePassword:
+          passwordFile: /etc/kroxylicious/tls-password
+        storeType: PKCS12
     clusterNetworkAddressConfigProvider:
       type: PortPerBrokerClusterNetworkAddressConfigProvider
       config:
         bootstrapAddress: 0.0.0.0:9192
+        brokerAddressPattern: kroxylicious
+        brokerStartPort: 9193
+        lowestTargetBrokerId: 4
+        numberOfBrokerPorts: 3
     logNetwork: false
     logFrames: false
 
