@@ -19,12 +19,11 @@ from kafka import KafkaProducer
 from opentelemetry import trace
 from opentelemetry.propagate import inject
 
-BOOTSTRAP = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "broker1:9092,broker2:9092,broker3:9092")
-SASL_MECHANISM = os.getenv("KAFKA_SASL_MECHANISM", "")
-SASL_USERNAME = os.getenv("KAFKA_SASL_USERNAME", "")
-SASL_PASSWORD = os.getenv("KAFKA_SASL_PASSWORD", "")
-SECURITY_PROTOCOL = os.getenv("KAFKA_SECURITY_PROTOCOL", "PLAINTEXT")
-SSL_CAFILE = os.getenv("KAFKA_SSL_CAFILE", "")
+BOOTSTRAP = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "broker1:9096,broker2:9096,broker3:9096")
+SECURITY_PROTOCOL = os.getenv("KAFKA_SECURITY_PROTOCOL", "SSL")
+SSL_CAFILE = os.getenv("KAFKA_SSL_CAFILE", "/certs/ca/ca-bundle.pem")
+SSL_CERTFILE = os.getenv("KAFKA_SSL_CERTFILE", "/certs/pem/loadgen/tls.crt")
+SSL_KEYFILE = os.getenv("KAFKA_SSL_KEYFILE", "/certs/pem/loadgen/tls.key")
 TOPIC = os.getenv("LOADGEN_TOPIC", "events")
 RATE = float(os.getenv("LOADGEN_RATE", "5"))
 DURATION = float(os.getenv("LOADGEN_DURATION", "0"))  # 0 = run until SIGTERM
@@ -79,15 +78,11 @@ def main() -> int:
         compression_type="gzip",
         client_id="loadgen",
         security_protocol=SECURITY_PROTOCOL,
+        ssl_cafile=SSL_CAFILE,
+        ssl_certfile=SSL_CERTFILE,
+        ssl_keyfile=SSL_KEYFILE,
+        ssl_check_hostname=True,
     )
-    if SASL_MECHANISM:
-        producer_kwargs.update(
-            sasl_mechanism=SASL_MECHANISM,
-            sasl_plain_username=SASL_USERNAME,
-            sasl_plain_password=SASL_PASSWORD,
-        )
-    if SSL_CAFILE:
-        producer_kwargs["ssl_cafile"] = SSL_CAFILE
     producer = KafkaProducer(**producer_kwargs)
     log.info("loadgen started", extra={"bootstrap": BOOTSTRAP, "topic": TOPIC, "rate": RATE})
 
