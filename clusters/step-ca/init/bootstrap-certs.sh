@@ -8,12 +8,8 @@ OUT="${OUT:-/certs}"
 CSV="${CSV:-/init/services.csv}"
 PASS="changeit-dev-only"
 
-if [ -f "$OUT/ca/root.crt" ] && [ -f "$OUT/jks/controller1/truststore.p12" ]; then
-  echo "Certs already issued at $OUT — skipping."
-  exit 0
-fi
-
-# Publish CA material
+# Publish CA material — idempotent (cp -u overwrites nothing if source is
+# unchanged; safe to re-run).
 mkdir -p "$OUT/ca"
 cp "$STEPPATH/certs/root_ca.crt"         "$OUT/ca/root.crt"
 cp "$STEPPATH/certs/intermediate_ca.crt" "$OUT/ca/intermediate.crt"
@@ -25,6 +21,11 @@ tail -n +2 "$CSV" | while IFS=, read -r svc cn sans; do
   pem_dir="$OUT/pem/$svc"
   jks_dir="$OUT/jks/$svc"
   mkdir -p "$pem_dir" "$jks_dir"
+
+  if [ -s "$pem_dir/tls.crt" ] && [ -s "$jks_dir/keystore.p12" ]; then
+    echo "  -> $svc already issued, skipping"
+    continue
+  fi
 
   # Build --san flags (comma-separated in CSV → multiple flags)
   san_flags=()

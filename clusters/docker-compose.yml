@@ -67,7 +67,7 @@ services:
       KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml -javaagent:/opt/agents/opentelemetry-javaagent.jar"
       OTEL_SERVICE_NAME: "controller1"
       OTEL_EXPORTER_OTLP_ENDPOINT: "https://otel-collector:4318"
-      OTEL_EXPORTER_OTLP_CERTIFICATE: "/etc/tls/ca.pem"
+      OTEL_EXPORTER_OTLP_CERTIFICATE: "/certs/ca/ca-bundle.pem"
       OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
       OTEL_TRACES_EXPORTER: "otlp"
       OTEL_LOGS_EXPORTER: "otlp"
@@ -128,7 +128,7 @@ services:
       KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml -javaagent:/opt/agents/opentelemetry-javaagent.jar"
       OTEL_SERVICE_NAME: "controller2"
       OTEL_EXPORTER_OTLP_ENDPOINT: "https://otel-collector:4318"
-      OTEL_EXPORTER_OTLP_CERTIFICATE: "/etc/tls/ca.pem"
+      OTEL_EXPORTER_OTLP_CERTIFICATE: "/certs/ca/ca-bundle.pem"
       OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
       OTEL_TRACES_EXPORTER: "otlp"
       OTEL_LOGS_EXPORTER: "otlp"
@@ -189,7 +189,7 @@ services:
       KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml -javaagent:/opt/agents/opentelemetry-javaagent.jar"
       OTEL_SERVICE_NAME: "controller3"
       OTEL_EXPORTER_OTLP_ENDPOINT: "https://otel-collector:4318"
-      OTEL_EXPORTER_OTLP_CERTIFICATE: "/etc/tls/ca.pem"
+      OTEL_EXPORTER_OTLP_CERTIFICATE: "/certs/ca/ca-bundle.pem"
       OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
       OTEL_TRACES_EXPORTER: "otlp"
       OTEL_LOGS_EXPORTER: "otlp"
@@ -259,7 +259,7 @@ services:
       KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml -javaagent:/opt/agents/opentelemetry-javaagent.jar"
       OTEL_SERVICE_NAME: "broker1"
       OTEL_EXPORTER_OTLP_ENDPOINT: "https://otel-collector:4318"
-      OTEL_EXPORTER_OTLP_CERTIFICATE: "/etc/tls/ca.pem"
+      OTEL_EXPORTER_OTLP_CERTIFICATE: "/certs/ca/ca-bundle.pem"
       OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
       OTEL_TRACES_EXPORTER: "otlp"
       OTEL_LOGS_EXPORTER: "otlp"
@@ -351,7 +351,7 @@ services:
       KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml -javaagent:/opt/agents/opentelemetry-javaagent.jar"
       OTEL_SERVICE_NAME: "broker2"
       OTEL_EXPORTER_OTLP_ENDPOINT: "https://otel-collector:4318"
-      OTEL_EXPORTER_OTLP_CERTIFICATE: "/etc/tls/ca.pem"
+      OTEL_EXPORTER_OTLP_CERTIFICATE: "/certs/ca/ca-bundle.pem"
       OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
       OTEL_TRACES_EXPORTER: "otlp"
       OTEL_LOGS_EXPORTER: "otlp"
@@ -443,7 +443,7 @@ services:
       KAFKA_OPTS: "-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml -javaagent:/opt/agents/opentelemetry-javaagent.jar"
       OTEL_SERVICE_NAME: "broker3"
       OTEL_EXPORTER_OTLP_ENDPOINT: "https://otel-collector:4318"
-      OTEL_EXPORTER_OTLP_CERTIFICATE: "/etc/tls/ca.pem"
+      OTEL_EXPORTER_OTLP_CERTIFICATE: "/certs/ca/ca-bundle.pem"
       OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
       OTEL_TRACES_EXPORTER: "otlp"
       OTEL_LOGS_EXPORTER: "otlp"
@@ -585,7 +585,7 @@ services:
       KAFKA_OPTS: "-javaagent:/opt/agents/opentelemetry-javaagent.jar -javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml"
       OTEL_SERVICE_NAME: "schema-registry"
       OTEL_EXPORTER_OTLP_ENDPOINT: "https://otel-collector:4318"
-      OTEL_EXPORTER_OTLP_CERTIFICATE: "/etc/tls/ca.pem"
+      OTEL_EXPORTER_OTLP_CERTIFICATE: "/certs/ca/ca-bundle.pem"
       OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
       OTEL_TRACES_EXPORTER: "otlp"
       OTEL_LOGS_EXPORTER: "otlp"
@@ -600,6 +600,7 @@ services:
     volumes:
       - ../services/tls/certs:/etc/kafka/secrets:ro
       - ../services/tls/certs:/etc/tls:ro
+      - pki-certs:/certs:ro
     depends_on:
       - broker1
       - broker2
@@ -667,7 +668,7 @@ services:
       KAFKA_OPTS: "-javaagent:/opt/agents/opentelemetry-javaagent.jar -javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml -Djava.security.auth.login.config=/etc/kafka/connect-secrets/rest-auth.jaas"
       OTEL_SERVICE_NAME: "kafka-connect"
       OTEL_EXPORTER_OTLP_ENDPOINT: "https://otel-collector:4318"
-      OTEL_EXPORTER_OTLP_CERTIFICATE: "/etc/tls/ca.pem"
+      OTEL_EXPORTER_OTLP_CERTIFICATE: "/certs/ca/ca-bundle.pem"
       OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
       OTEL_TRACES_EXPORTER: "otlp"
       OTEL_LOGS_EXPORTER: "otlp"
@@ -682,6 +683,7 @@ services:
     volumes:
       - ../services/tls/certs:/etc/kafka/secrets:ro
       - ../services/tls/certs:/etc/tls:ro
+      - pki-certs:/certs:ro
     depends_on:
       localstack:
         condition: service_healthy
@@ -790,7 +792,7 @@ services:
       - "127.0.0.1:4317:4317"   # OTLP gRPC (TLS)
       - "127.0.0.1:4318:4318"   # OTLP HTTP (TLS)
     volumes:
-      - ../services/tls/certs:/etc/tls:ro
+      - pki-certs:/certs:ro
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:13133/"]
       interval: 15s

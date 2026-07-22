@@ -4,13 +4,13 @@ receivers:
       grpc:
         endpoint: 0.0.0.0:4317
         tls:
-          cert_file: /etc/tls/otel-collector.pem
-          key_file: /etc/tls/otel-collector.key
+          cert_file: /certs/pem/otel-collector/tls.crt
+          key_file: /certs/pem/otel-collector/tls.key
       http:
         endpoint: 0.0.0.0:4318
         tls:
-          cert_file: /etc/tls/otel-collector.pem
-          key_file: /etc/tls/otel-collector.key
+          cert_file: /certs/pem/otel-collector/tls.crt
+          key_file: /certs/pem/otel-collector/tls.key
   # filelog disabled: rootless Docker/Podman doesn't expose /var/lib/docker/containers.
   # Enable in a later PR using a rootless-compatible log source (docker events / OTLP push from apps).
 
