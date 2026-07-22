@@ -536,6 +536,7 @@ services:
       - "127.0.0.1:4566:4566"
     volumes:
       - localstack-data:/var/lib/localstack
+      - ../services/localstack/init-ready.d:/etc/localstack/init/ready.d:ro
       # docker.sock mount disabled: rootless daemon (see LAMBDA_EXECUTOR note above).
       # - /var/run/docker.sock:/var/run/docker.sock
     tmpfs:
@@ -1015,6 +1016,7 @@ services:
       MCP_TLS_CLIENT_CA: "/certs/ca/ca-bundle.pem"
     volumes:
       - pki-certs:/certs:ro
+      - ../services/mcp-kafka/app/server.py:/app/server.py:ro
     depends_on:
       - broker1
       - kafka-connect
