@@ -933,7 +933,6 @@ services:
     environment:
       CRUISE_CONTROL_ADMIN_USER: "${CRUISE_CONTROL_ADMIN_USER}"
       CRUISE_CONTROL_ADMIN_PASSWORD: "${CRUISE_CONTROL_ADMIN_PASSWORD}"
-      SCRAM_CC_PASSWORD: "${SCRAM_CC_PASSWORD}"
     depends_on:
       - broker1
       - broker2
@@ -941,8 +940,9 @@ services:
     ports:
       - "127.0.0.1:9095:9090"
     volumes:
-      - ../services/tls/certs:/etc/kafka/secrets:ro
-      - ../services/tls/certs:/etc/tls:ro
+      - pki-certs:/certs:ro
+      - ../services/cruise-control/config/cruisecontrol.properties:/opt/cruise-control/config/cruisecontrol.properties:ro
+      - ../services/cruise-control/entrypoint-auth.sh:/usr/local/bin/entrypoint-auth.sh:ro
     networks:
       - kafka-data
       - observability
