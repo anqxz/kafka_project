@@ -82,7 +82,6 @@ services:
         condition: service_completed_successfully
     volumes:
       - controller1-data:/var/lib/kafka/data
-      - ../services/tls/certs:/etc/tls:ro
       - pki-certs:/certs:ro
     networks:
       - kafka-quorum
@@ -143,7 +142,6 @@ services:
         condition: service_completed_successfully
     volumes:
       - controller2-data:/var/lib/kafka/data
-      - ../services/tls/certs:/etc/tls:ro
       - pki-certs:/certs:ro
     networks:
       - kafka-quorum
@@ -204,7 +202,6 @@ services:
         condition: service_completed_successfully
     volumes:
       - controller3-data:/var/lib/kafka/data
-      - ../services/tls/certs:/etc/tls:ro
       - pki-certs:/certs:ro
     networks:
       - kafka-quorum
@@ -303,7 +300,6 @@ services:
     volumes:
       - broker1-data:/var/lib/kafka/data
       - pki-certs:/certs:ro
-      - ../services/tls/certs:/etc/tls:ro
     networks:
       - kafka-quorum
       - kafka-data
@@ -395,7 +391,6 @@ services:
     volumes:
       - broker2-data:/var/lib/kafka/data
       - pki-certs:/certs:ro
-      - ../services/tls/certs:/etc/tls:ro
     networks:
       - kafka-quorum
       - kafka-data
@@ -487,7 +482,6 @@ services:
     volumes:
       - broker3-data:/var/lib/kafka/data
       - pki-certs:/certs:ro
-      - ../services/tls/certs:/etc/tls:ro
     networks:
       - kafka-quorum
       - kafka-data
@@ -599,8 +593,6 @@ services:
     ports:
       - "127.0.0.1:8081:8081"
     volumes:
-      - ../services/tls/certs:/etc/kafka/secrets:ro
-      - ../services/tls/certs:/etc/tls:ro
       - pki-certs:/certs:ro
     depends_on:
       - broker1
