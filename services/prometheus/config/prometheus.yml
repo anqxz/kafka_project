@@ -120,15 +120,22 @@ scrape_configs:
         labels:
           env: 'development'
 
-  # Blackbox Exporter self-metrics — plaintext
+  # Blackbox Exporter self-metrics — HTTPS
   - job_name: 'blackbox-exporter'
+    scheme: https
+    tls_config:
+      ca_file: /certs/ca/ca-bundle.pem
     static_configs:
       - targets: ['blackbox-exporter:9115']
         labels:
           env: 'development'
 
-  # Blackbox probes — target scheme matches each backend
+  # Blackbox probes — target scheme matches each backend; scrape the
+  # exporter itself over HTTPS.
   - job_name: 'blackbox-http'
+    scheme: https
+    tls_config:
+      ca_file: /certs/ca/ca-bundle.pem
     metrics_path: /probe
     params:
       module: [http_2xx]

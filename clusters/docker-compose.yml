@@ -955,8 +955,12 @@ services:
     container_name: blackbox-exporter
     command:
       - '--config.file=/etc/blackbox_exporter/blackbox.yml'
+      - '--web.config.file=/etc/blackbox_exporter/web-config.yml'
+    volumes:
+      - pki-certs:/certs:ro
+      - ../services/blackbox-exporter/config/web-config.yml:/etc/blackbox_exporter/web-config.yml:ro
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:9115/-/healthy"]
+      test: ["CMD", "wget", "-qO-", "--no-check-certificate", "https://localhost:9115/-/healthy"]
       interval: 15s
       timeout: 5s
       retries: 5
