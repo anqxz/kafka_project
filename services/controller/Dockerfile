@@ -1,7 +1,7 @@
 # KRaft controller image — JMX exporter + OpenTelemetry javaagent baked in.
 # Controllers do not produce records, so no Cruise Control metrics reporter.
 ARG BASE_IMAGE=confluentinc/cp-kafka
-ARG BASE_TAG=7.7.1
+ARG BASE_TAG=7.9.6
 FROM ${BASE_IMAGE}:${BASE_TAG}
 
 ARG JMX_EXPORTER_VERSION=1.6.0

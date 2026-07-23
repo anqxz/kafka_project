@@ -1,7 +1,7 @@
 # Kafka Connect image with S3 sink connector (baked via confluent-hub) and
 # OpenTelemetry javaagent for trace propagation across Connect tasks.
 ARG BASE_IMAGE=confluentinc/cp-kafka-connect
-ARG BASE_TAG=7.7.1
+ARG BASE_TAG=7.9.6
 FROM ${BASE_IMAGE}:${BASE_TAG}
 
 ARG OTEL_AGENT_VERSION=2.30.0
