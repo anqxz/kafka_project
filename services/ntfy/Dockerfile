@@ -1,7 +1,7 @@
 # ntfy multi-stage rebuild onto a patched alpine.
 # 04-SECURITY-GUARDRAILS §2 phase 6.
 ARG BASE_IMAGE=binwiederhier/ntfy
-ARG BASE_TAG=v2.26.0
+ARG BASE_TAG=v2.26.3
 ARG RUNTIME_TAG=3.21
 
 FROM ${BASE_IMAGE}:${BASE_TAG} AS vendor
