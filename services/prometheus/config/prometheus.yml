@@ -27,8 +27,11 @@ scrape_configs:
     static_configs:
       - targets: ['prometheus:9090']
 
-  # Kafka Controllers — JMX Exporter (plaintext, migration deferred)
+  # Kafka Controllers — JMX Exporter over HTTPS (per-controller leaf)
   - job_name: 'kafka-controllers'
+    scheme: https
+    tls_config:
+      ca_file: /certs/ca/ca-bundle.pem
     static_configs:
       - targets:
           - 'controller1:7071'
