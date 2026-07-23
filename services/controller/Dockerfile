@@ -30,5 +30,8 @@ RUN chmod 0644 /opt/jmx_exporter/jmx_prometheus_javaagent.jar \
                /opt/agents/pyroscope.jar
 
 COPY config/jmx/kafka-config.yml /opt/jmx_exporter/kafka-config.yml
+COPY --chmod=0755 entrypoint-jmx-tls.sh /usr/local/bin/entrypoint-jmx-tls.sh
 
 USER appuser
+
+ENTRYPOINT ["/usr/local/bin/entrypoint-jmx-tls.sh"]
