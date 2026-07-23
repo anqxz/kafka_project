@@ -23,4 +23,5 @@ tempo,tempo,tempo;localhost
 pyroscope,pyroscope,pyroscope;localhost
 pyroscope-tls,pyroscope-tls,pyroscope-tls;localhost
 kroxylicious-admin-tls,kroxylicious-admin-tls,kroxylicious-admin-tls;localhost
+kminion-tls,kminion-tls,kminion-tls;localhost
 alertmanager,alertmanager,alertmanager;localhost

@@ -880,6 +880,19 @@ services:
     networks:
       - observability
 
+  # TLS sidecar in front of kminion's /metrics (:8080) — kminion 2.3.3
+  # net/http ListenAndServe has no TLS mode, so we terminate here.
+  kminion-tls:
+    image: nginx:1.27-alpine
+    container_name: kminion-tls
+    depends_on:
+      - kminion
+    volumes:
+      - pki-certs:/certs:ro
+      - ../services/kminion-tls/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - observability
+
   # TLS sidecar in front of kroxylicious's adminHttp (:9190) — 0.10's
   # AdminHttpConfiguration has no TLS knobs, so we terminate here.
   kroxylicious-admin-tls:
