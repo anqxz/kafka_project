@@ -7,7 +7,7 @@
 # stage COPYs the resulting fat JAR into the Kafka classpath.
 
 ARG BASE_IMAGE=confluentinc/cp-kafka
-ARG BASE_TAG=7.7.1
+ARG BASE_TAG=7.9.6
 ARG GRADLE_TAG=8-jdk11
 ARG CC_VERSION=2.5.146
 
