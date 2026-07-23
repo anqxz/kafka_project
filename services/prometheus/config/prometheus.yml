@@ -92,10 +92,13 @@ scrape_configs:
           env: 'development'
           cluster: 'kafka-kraft-cluster'
 
-  # KMinion — plaintext /metrics (no TLS surface yet)
+  # KMinion — HTTPS via nginx sidecar (kminion 2.3.3 has no native TLS).
   - job_name: 'kminion'
+    scheme: https
+    tls_config:
+      ca_file: /certs/ca/ca-bundle.pem
     static_configs:
-      - targets: ['kminion:8080']
+      - targets: ['kminion-tls:8081']
         labels:
           env: 'development'
           cluster: 'kafka-kraft-cluster'
