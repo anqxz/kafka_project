@@ -54,6 +54,28 @@ scrape_configs:
           cluster: 'kafka-kraft-cluster'
           role: 'broker'
 
+  # Schema Registry — JMX Exporter over HTTPS
+  - job_name: 'schema-registry'
+    scheme: https
+    tls_config:
+      ca_file: /certs/ca/ca-bundle.pem
+    static_configs:
+      - targets: ['schema-registry:7071']
+        labels:
+          env: 'development'
+          cluster: 'kafka-kraft-cluster'
+
+  # Kafka Connect — JMX Exporter over HTTPS
+  - job_name: 'kafka-connect'
+    scheme: https
+    tls_config:
+      ca_file: /certs/ca/ca-bundle.pem
+    static_configs:
+      - targets: ['kafka-connect:7071']
+        labels:
+          env: 'development'
+          cluster: 'kafka-kraft-cluster'
+
   # KMinion — plaintext /metrics (no TLS surface yet)
   - job_name: 'kminion'
     static_configs:

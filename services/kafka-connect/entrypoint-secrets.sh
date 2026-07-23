@@ -33,4 +33,22 @@ KafkaConnect {
 JAAS
 fi
 
+# Render JMX Exporter config that serves :7071 over HTTPS with the
+# kafka-connect leaf. Same pattern as broker/controller entrypoints.
+HOST="${KAFKA_JMX_HOSTNAME:-$(hostname)}"
+JMX_TLS_CONFIG=/tmp/kafka-jmx-tls.yml
+cp /opt/jmx_exporter/kafka-config.yml "$JMX_TLS_CONFIG"
+cat >> "$JMX_TLS_CONFIG" <<EOF
+
+httpServer:
+  ssl:
+    keyStore:
+      filename: /certs/jks/${HOST}/keystore.p12
+      password: changeit-dev-only
+      type: PKCS12
+    certificate:
+      alias: ${HOST}
+EOF
+export KAFKA_OPTS="${KAFKA_OPTS//\/opt\/jmx_exporter\/kafka-config.yml/${JMX_TLS_CONFIG}}"
+
 exec /etc/confluent/docker/run "$@"
