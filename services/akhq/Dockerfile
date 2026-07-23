@@ -2,7 +2,7 @@
 # multiline AKHQ_CONFIGURATION env blob. Path /app/application.yml is the
 # default location the upstream entrypoint looks for.
 ARG BASE_IMAGE=tchiotludo/akhq
-ARG BASE_TAG=0.25.1
+ARG BASE_TAG=0.27.1
 FROM ${BASE_IMAGE}:${BASE_TAG}
 
 USER root
