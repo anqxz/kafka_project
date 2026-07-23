@@ -25,7 +25,7 @@ RUN tar -xzf /tmp/cc.tgz --strip-components=1 -C /src \
 
 FROM ${BASE_IMAGE}:${BASE_TAG}
 
-ARG JMX_EXPORTER_VERSION=1.6.0
+ARG JMX_EXPORTER_VERSION=1.5.0
 ARG OTEL_AGENT_VERSION=2.30.0
 ARG PYROSCOPE_AGENT_VERSION=2.8.0
 
@@ -41,7 +41,7 @@ RUN microdnf update -y \
 
 RUN mkdir -p /opt/agents /opt/jmx_exporter
 
-ADD https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/${JMX_EXPORTER_VERSION}/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar \
+ADD https://github.com/prometheus/jmx_exporter/releases/download/${JMX_EXPORTER_VERSION}/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar \
     /opt/jmx_exporter/jmx_prometheus_javaagent.jar
 
 ADD https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v${OTEL_AGENT_VERSION}/opentelemetry-javaagent.jar \

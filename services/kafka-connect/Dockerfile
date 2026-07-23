@@ -5,7 +5,7 @@ ARG BASE_TAG=7.9.6
 FROM ${BASE_IMAGE}:${BASE_TAG}
 
 ARG OTEL_AGENT_VERSION=2.30.0
-ARG JMX_EXPORTER_VERSION=1.6.0
+ARG JMX_EXPORTER_VERSION=1.5.0
 ARG PYROSCOPE_AGENT_VERSION=2.8.0
 ARG S3_CONNECTOR_VERSION=10.5.25
 
@@ -20,7 +20,7 @@ RUN mkdir -p /opt/agents /opt/jmx_exporter
 ADD https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v${OTEL_AGENT_VERSION}/opentelemetry-javaagent.jar \
     /opt/agents/opentelemetry-javaagent.jar
 
-ADD https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/${JMX_EXPORTER_VERSION}/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar \
+ADD https://github.com/prometheus/jmx_exporter/releases/download/${JMX_EXPORTER_VERSION}/jmx_prometheus_javaagent-${JMX_EXPORTER_VERSION}.jar \
     /opt/jmx_exporter/jmx_prometheus_javaagent.jar
 
 ADD https://github.com/grafana/pyroscope-java/releases/download/v${PYROSCOPE_AGENT_VERSION}/pyroscope.jar \
