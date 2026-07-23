@@ -21,4 +21,5 @@ prometheus,prometheus,prometheus;localhost
 loki,loki,loki;localhost
 tempo,tempo,tempo;localhost
 pyroscope,pyroscope,pyroscope;localhost
+pyroscope-tls,pyroscope-tls,pyroscope-tls;localhost
 alertmanager,alertmanager,alertmanager;localhost
