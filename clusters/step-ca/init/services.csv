@@ -16,3 +16,5 @@ admin,admin,admin
 host-admin,host-admin,localhost
 otel-collector,otel-collector,otel-collector
 kroxylicious,kroxylicious,kroxylicious;localhost
+grafana,grafana,grafana;localhost
+prometheus,prometheus,prometheus;localhost
