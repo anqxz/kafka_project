@@ -574,10 +574,11 @@ services:
       SCHEMA_REGISTRY_AUTHENTICATION_METHOD: BASIC
       SCHEMA_REGISTRY_AUTHENTICATION_REALM: SchemaRegistry
       SCHEMA_REGISTRY_AUTHENTICATION_ROLES: admin
-      SCHEMA_REGISTRY_OPTS: "-Djava.security.auth.login.config=/etc/schema-registry/jaas.conf"
+      SCHEMA_REGISTRY_OPTS: "-Djava.security.auth.login.config=/etc/schema-registry/jaas.conf -javaagent:/opt/agents/opentelemetry-javaagent.jar -javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml"
       SCHEMA_REGISTRY_ADMIN_USER: "${SCHEMA_REGISTRY_ADMIN_USER}"
       SCHEMA_REGISTRY_ADMIN_PASSWORD: "${SCHEMA_REGISTRY_ADMIN_PASSWORD}"
       KAFKA_OPTS: "-javaagent:/opt/agents/opentelemetry-javaagent.jar -javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml"
+      KAFKA_JMX_HOSTNAME: "schema-registry"
       OTEL_SERVICE_NAME: "schema-registry"
       OTEL_EXPORTER_OTLP_ENDPOINT: "https://otel-collector:4318"
       OTEL_EXPORTER_OTLP_CERTIFICATE: "/certs/ca/ca-bundle.pem"
@@ -670,6 +671,7 @@ services:
       AWS_SECRET_ACCESS_KEY: "test"
       AWS_DEFAULT_REGION: "us-east-1"
       KAFKA_OPTS: "-javaagent:/opt/agents/opentelemetry-javaagent.jar -javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/opt/jmx_exporter/kafka-config.yml -Djava.security.auth.login.config=/etc/kafka/connect-secrets/rest-auth.jaas"
+      KAFKA_JMX_HOSTNAME: "kafka-connect"
       OTEL_SERVICE_NAME: "kafka-connect"
       OTEL_EXPORTER_OTLP_ENDPOINT: "https://otel-collector:4318"
       OTEL_EXPORTER_OTLP_CERTIFICATE: "/certs/ca/ca-bundle.pem"
