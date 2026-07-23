@@ -2,8 +2,8 @@
 # Hub with an official image; built from the tagged GitHub release. Broker
 # image will pick up the metrics reporter JAR extracted from libs/ in
 # phase 7.
-ARG GRADLE_TAG=8-jdk11
-ARG RUNTIME_TAG=11-jre
+ARG GRADLE_TAG=8-jdk17
+ARG RUNTIME_TAG=17-jre
 
 FROM gradle:${GRADLE_TAG} AS builder
 ARG CC_VERSION=2.5.146
