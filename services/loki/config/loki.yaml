@@ -6,6 +6,16 @@ server:
   http_tls_config:
     cert_file: /certs/pem/loki/tls.crt
     key_file: /certs/pem/loki/tls.key
+  # grpc_tls_config intentionally omitted: Loki 3.x runs many internal
+  # gRPC clients in single-binary mode (frontend_scheduler_worker,
+  # ingester_client, frontend_worker, ruler ring, pattern_ingester, ...)
+  # and each has its own grpc_client_config with tls_enabled. Even after
+  # setting instance_addr:loki + tls on ingester_client + frontend_worker,
+  # frontend_scheduler_worker still bypasses TLS and self-loops fail. The
+  # gRPC port stays on the observability network only — no external
+  # publish — so risk is bounded. Revisit if we split single-binary into
+  # microservices, at which point every hop gets its own grpc_client_config
+  # and it's worth the surface.
 
 common:
   instance_addr: 127.0.0.1
