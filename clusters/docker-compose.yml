@@ -1046,7 +1046,7 @@ services:
       LOKI_URL: "https://loki:3100"
       TEMPO_URL: "https://tempo:3200"
       PYROSCOPE_URL: "http://pyroscope:4040"
-      CRUISE_CONTROL_URL: "http://cruise-control:9090"
+      CRUISE_CONTROL_URL: "https://cruise-control:9090"
       REQUESTS_CA_BUNDLE: "/certs/ca/ca-bundle.pem"
       MCP_MODE: "read-only"
       MCP_TRANSPORT: "sse"
