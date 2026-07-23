@@ -1,4 +1,4 @@
-FROM smallstep/step-ca:0.26.1
+FROM smallstep/step-ca:0.30.2
 USER root
 RUN apk add --no-cache openssl openjdk11-jre-headless bash
 COPY init/ /init/
