@@ -79,6 +79,19 @@ scrape_configs:
           env: 'development'
           cluster: 'kafka-kraft-cluster'
 
+  # Kroxylicious — admin metrics via the TLS sidecar (kroxylicious:9190
+  # is plaintext-only; AdminHttpConfiguration has no TLS knobs).
+  - job_name: 'kroxylicious'
+    scheme: https
+    tls_config:
+      ca_file: /certs/ca/ca-bundle.pem
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['kroxylicious-admin-tls:9191']
+        labels:
+          env: 'development'
+          cluster: 'kafka-kraft-cluster'
+
   # KMinion — plaintext /metrics (no TLS surface yet)
   - job_name: 'kminion'
     static_configs:

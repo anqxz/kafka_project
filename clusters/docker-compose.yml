@@ -869,6 +869,19 @@ services:
     networks:
       - observability
 
+  # TLS sidecar in front of kroxylicious's adminHttp (:9190) — 0.10's
+  # AdminHttpConfiguration has no TLS knobs, so we terminate here.
+  kroxylicious-admin-tls:
+    image: nginx:1.27-alpine
+    container_name: kroxylicious-admin-tls
+    depends_on:
+      - kroxylicious
+    volumes:
+      - pki-certs:/certs:ro
+      - ../services/kroxylicious-admin-tls/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - observability
+
   # TLS sidecar in front of pyroscope — see services/pyroscope-tls/nginx.conf
   # for why. Ingest path (agents) still hits pyroscope:4040 plaintext.
   pyroscope-tls:
