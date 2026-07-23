@@ -102,11 +102,22 @@ $ACL --add --allow-principal User:mcp-kafka --operation Describe --topic '*'
 $ACL --add --allow-principal User:mcp-kafka --operation Read --group 'mcp-tail-*'
 
 # ---------- cruise-control ----------
-for op in Describe DescribeConfigs Alter AlterConfigs; do
+for op in Describe DescribeConfigs Alter AlterConfigs Create; do
   $ACL --add --allow-principal User:cruise-control --operation "$op" --cluster
 done
 $ACL --add --allow-principal User:cruise-control --operation Describe --topic '*'
+$ACL --add --allow-principal User:cruise-control --operation DescribeConfigs --topic '*'
 $ACL --add --allow-principal User:cruise-control --operation Read --topic '*'
+# Sample-store + metrics-reporter topics that CC needs to write.
+for t in __CruiseControlMetrics \
+         __KafkaCruiseControlPartitionMetricSamples \
+         __KafkaCruiseControlModelTrainingSamples; do
+  $ACL --add --allow-principal User:cruise-control --operation All --topic "$t"
+done
+# CC consumer groups (analyzer + samplers).
+$ACL --add --allow-principal User:cruise-control \
+  --operation Read --operation Describe \
+  --group '*'
 
 echo "ACL bootstrap complete."
 $ACL --list
