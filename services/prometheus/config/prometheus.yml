@@ -123,7 +123,7 @@ scrape_configs:
           - 'https://alertmanager:9093/-/ready'
           - 'https://loki:3100/ready'
           - 'https://tempo:3200/ready'
-          - 'http://pyroscope:4040/ready'
+          - 'https://pyroscope-tls:4041/ready'
           - 'https://grafana:3000/api/health'
     relabel_configs:
       - source_labels: [__address__]
@@ -155,10 +155,14 @@ scrape_configs:
         labels:
           env: 'development'
 
-  # Pyroscope self-metrics — plaintext (1.7.1 ignores http_tls_config)
+  # Pyroscope self-metrics — HTTPS via nginx sidecar (pyroscope:4040 →
+  # pyroscope-tls:4041). Pyroscope 1.7.1 ignores http_tls_config.
   - job_name: 'pyroscope'
+    scheme: https
+    tls_config:
+      ca_file: /certs/ca/ca-bundle.pem
     metrics_path: /metrics
     static_configs:
-      - targets: ['pyroscope:4040']
+      - targets: ['pyroscope-tls:4041']
         labels:
           env: 'development'
