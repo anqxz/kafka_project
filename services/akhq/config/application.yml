@@ -21,7 +21,7 @@ akhq:
           url: "broker3:9101"
       connect:
         - name: "kafka-connect"
-          url: "http://kafka-connect:8083"
+          url: "https://kafka-connect:8083"
       schema-registry:
         url: "https://schema-registry:8081"
         basic-auth:

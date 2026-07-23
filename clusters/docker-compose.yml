@@ -656,6 +656,12 @@ services:
       CONNECT_ADMIN_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: "https"
       CONNECT_REST_PORT: 8083
       CONNECT_REST_ADVERTISED_HOST_NAME: "kafka-connect"
+      CONNECT_LISTENERS: "https://0.0.0.0:8083"
+      CONNECT_REST_ADVERTISED_LISTENER: "https"
+      CONNECT_LISTENERS_HTTPS_SSL_KEYSTORE_LOCATION: "/certs/jks/kafka-connect/keystore.p12"
+      CONNECT_LISTENERS_HTTPS_SSL_KEYSTORE_PASSWORD: "changeit-dev-only"
+      CONNECT_LISTENERS_HTTPS_SSL_KEYSTORE_TYPE: "PKCS12"
+      CONNECT_LISTENERS_HTTPS_SSL_KEY_PASSWORD: "changeit-dev-only"
       CONNECT_GROUP_ID: "kafka-connect-cluster"
       CONNECT_CONFIG_STORAGE_TOPIC: "_connect-configs"
       CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 3
@@ -1032,7 +1038,7 @@ services:
         PYTHON_TAG: "${MCP_KAFKA_PYTHON_TAG}"
     container_name: mcp-kafka
     environment:
-      CONNECT_URL: "http://kafka-connect:8083"
+      CONNECT_URL: "https://kafka-connect:8083"
       CONNECT_REST_BASIC_USER: "${CONNECT_REST_BASIC_USER}"
       CONNECT_REST_BASIC_PASSWORD: "${CONNECT_REST_BASIC_PASSWORD}"
       SCHEMA_REGISTRY_URL: "https://schema-registry:8081"

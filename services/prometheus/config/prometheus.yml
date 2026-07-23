@@ -131,7 +131,7 @@ scrape_configs:
       module: [http_2xx]
     static_configs:
       - targets:
-          - 'http://kafka-connect:8083/'
+          - 'https://kafka-connect:8083/'
           - 'https://prometheus:9090/-/ready'
           - 'https://alertmanager:9093/-/ready'
           - 'https://loki:3100/ready'
