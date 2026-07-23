@@ -1,5 +1,8 @@
 server:
   http_listen_port: 3200
+  http_tls_config:
+    cert_file: /certs/pem/tempo/tls.crt
+    key_file: /certs/pem/tempo/tls.key
 
 distributor:
   receivers:
@@ -7,8 +10,14 @@ distributor:
       protocols:
         grpc:
           endpoint: 0.0.0.0:4317
+          tls:
+            cert_file: /certs/pem/tempo/tls.crt
+            key_file: /certs/pem/tempo/tls.key
         http:
           endpoint: 0.0.0.0:4318
+          tls:
+            cert_file: /certs/pem/tempo/tls.crt
+            key_file: /certs/pem/tempo/tls.key
 
 ingester:
   max_block_duration: 5m

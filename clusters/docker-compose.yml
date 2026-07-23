@@ -818,8 +818,9 @@ services:
     command: ["-config.file=/etc/loki/config.yaml"]
     volumes:
       - loki-data:/loki
+      - pki-certs:/certs:ro
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3100/ready"]
+      test: ["CMD", "wget", "-qO-", "--no-check-certificate", "https://localhost:3100/ready"]
       interval: 15s
       timeout: 5s
       retries: 10
@@ -837,8 +838,9 @@ services:
     command: ["-config.file=/etc/tempo/config.yaml"]
     volumes:
       - tempo-data:/tmp/tempo
+      - pki-certs:/certs:ro
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3200/ready"]
+      test: ["CMD", "wget", "-qO-", "--no-check-certificate", "https://localhost:3200/ready"]
       interval: 15s
       timeout: 5s
       retries: 10
@@ -876,12 +878,15 @@ services:
     command:
       - '--config.file=/etc/alertmanager/alertmanager.yml'
       - '--storage.path=/alertmanager'
+      - '--web.config.file=/etc/alertmanager/web-config.yml'
     volumes:
       - alertmanager-data:/alertmanager
+      - pki-certs:/certs:ro
+      - ../services/alertmanager/config/web-config.yml:/etc/alertmanager/web-config.yml:ro
     depends_on:
       - prometheus
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:9093/-/healthy"]
+      test: ["CMD", "wget", "-qO-", "--no-check-certificate", "https://localhost:9093/-/healthy"]
       interval: 15s
       timeout: 5s
       retries: 5

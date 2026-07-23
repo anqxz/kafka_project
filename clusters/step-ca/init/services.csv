@@ -18,3 +18,7 @@ otel-collector,otel-collector,otel-collector
 kroxylicious,kroxylicious,kroxylicious;localhost
 grafana,grafana,grafana;localhost
 prometheus,prometheus,prometheus;localhost
+loki,loki,loki;localhost
+tempo,tempo,tempo;localhost
+pyroscope,pyroscope,pyroscope;localhost
+alertmanager,alertmanager,alertmanager;localhost

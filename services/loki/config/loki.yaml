@@ -3,6 +3,9 @@ auth_enabled: false
 server:
   http_listen_port: 3100
   grpc_listen_port: 9096
+  http_tls_config:
+    cert_file: /certs/pem/loki/tls.crt
+    key_file: /certs/pem/loki/tls.key
 
 common:
   instance_addr: 127.0.0.1
@@ -42,7 +45,10 @@ compactor:
   retention_enabled: true
 
 ruler:
-  alertmanager_url: http://alertmanager:9093
+  alertmanager_url: https://alertmanager:9093
+  alertmanager_client:
+    tls_ca_path: /certs/ca/ca-bundle.pem
+    tls_server_name: alertmanager
 
 analytics:
   reporting_enabled: false
