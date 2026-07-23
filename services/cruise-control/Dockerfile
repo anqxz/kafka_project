@@ -6,7 +6,7 @@ ARG GRADLE_TAG=8-jdk11
 ARG RUNTIME_TAG=11-jre
 
 FROM gradle:${GRADLE_TAG} AS builder
-ARG CC_VERSION=2.5.138
+ARG CC_VERSION=2.5.146
 WORKDIR /src
 ADD https://github.com/linkedin/cruise-control/archive/refs/tags/${CC_VERSION}.tar.gz /tmp/cc.tgz
 RUN tar -xzf /tmp/cc.tgz --strip-components=1 -C /src \
