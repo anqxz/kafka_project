@@ -18,23 +18,27 @@ datasources:
   - name: Loki
     type: loki
     access: proxy
-    url: http://loki:3100
+    url: https://loki:3100
     uid: loki
     editable: true
     jsonData:
+      tlsAuthWithCACert: true
       derivedFields:
         - name: TraceID
           matcherRegex: "traceID=(\\w+)"
           url: "$${__value.raw}"
           datasourceUid: tempo
+    secureJsonData:
+      tlsCACert: "$__file{/certs/ca/ca-bundle.pem}"
 
   - name: Tempo
     type: tempo
     access: proxy
-    url: http://tempo:3200
+    url: https://tempo:3200
     editable: true
     uid: tempo
     jsonData:
+      tlsAuthWithCACert: true
       tracesToLogsV2:
         datasourceUid: loki
         spanStartTimeShift: "-5m"
@@ -45,6 +49,8 @@ datasources:
         datasourceUid: prometheus
       nodeGraph:
         enabled: true
+    secureJsonData:
+      tlsCACert: "$__file{/certs/ca/ca-bundle.pem}"
 
   - name: Pyroscope
     type: grafana-pyroscope-datasource

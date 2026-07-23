@@ -1,5 +1,8 @@
 server:
   http_listen_port: 4040
+  # NOTE: pyroscope 1.7.1 silently ignores http_tls_config here (dskit
+  # config schema divergence). Endpoint stays plaintext for now; wire
+  # via a reverse-proxy sidecar in a future PR.
 
 storage:
   backend: local

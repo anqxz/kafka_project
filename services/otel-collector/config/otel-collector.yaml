@@ -40,13 +40,13 @@ processors:
 
 exporters:
   otlphttp/loki:
-    endpoint: http://loki:3100/otlp
+    endpoint: https://loki:3100/otlp
     tls:
-      insecure: true
-  otlp/tempo:
-    endpoint: http://tempo:4317
+      ca_file: /certs/ca/ca-bundle.pem
+  otlphttp/tempo:
+    endpoint: https://tempo:4318
     tls:
-      insecure: true
+      ca_file: /certs/ca/ca-bundle.pem
   prometheus:
     endpoint: 0.0.0.0:8889
     namespace: otelcol
@@ -69,7 +69,7 @@ service:
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [otlp/tempo]
+      exporters: [otlphttp/tempo]
     metrics:
       receivers: [otlp]
       processors: [batch]
