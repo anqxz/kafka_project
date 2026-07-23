@@ -22,7 +22,11 @@ fi
 # BasicAuthSecurityRestExtension reads a JAAS entry named `KafkaConnect`
 # whose PropertyFileLoginModule points at a colon-delimited user file.
 if [ -n "${CONNECT_REST_BASIC_USER:-}" ] && [ -n "${CONNECT_REST_BASIC_PASSWORD:-}" ]; then
-  printf '%s: %s,admin\n' \
+  # PropertyFileLoginModule reads java.util.Properties, so the value
+  # after ':' or '=' is the WHOLE password — no Jetty-style ",<role>"
+  # suffix. That syntax mistake made every login fail with 401 after
+  # PR29's HTTPS flip surfaced the extension.
+  printf '%s=%s\n' \
     "$CONNECT_REST_BASIC_USER" "$CONNECT_REST_BASIC_PASSWORD" \
     > "${SECRETS_DIR}/rest-auth.properties"
   cat > "${SECRETS_DIR}/rest-auth.jaas" <<JAAS
