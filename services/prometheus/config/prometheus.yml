@@ -39,8 +39,11 @@ scrape_configs:
           cluster: 'kafka-kraft-cluster'
           role: 'controller'
 
-  # Kafka Brokers — JMX Exporter (plaintext, migration deferred)
+  # Kafka Brokers — JMX Exporter over HTTPS (per-broker leaf cert)
   - job_name: 'kafka-brokers'
+    scheme: https
+    tls_config:
+      ca_file: /certs/ca/ca-bundle.pem
     static_configs:
       - targets:
           - 'broker1:7071'
