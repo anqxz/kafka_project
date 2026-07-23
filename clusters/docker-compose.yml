@@ -503,7 +503,6 @@ services:
       SCHEMA_REGISTRY_ADMIN_PASSWORD: "${SCHEMA_REGISTRY_ADMIN_PASSWORD}"
     volumes:
       - pki-certs:/certs:ro
-      - ../services/akhq/config/application.yml:/app/application.yml:ro
     ports:
       - "127.0.0.1:8080:8080"
     depends_on:
@@ -687,7 +686,6 @@ services:
       - "127.0.0.1:8083:8083"
     volumes:
       - pki-certs:/certs:ro
-      - ../services/kafka-connect/entrypoint-secrets.sh:/usr/local/bin/entrypoint-secrets.sh:ro
     depends_on:
       localstack:
         condition: service_healthy
@@ -766,7 +764,6 @@ services:
       CONFIG_FILEPATH: /etc/kminion/config.yaml
     volumes:
       - pki-certs:/certs:ro
-      - ../services/kminion/config/kminion.yaml:/etc/kminion/config.yaml:ro
     depends_on:
       - broker1
       - broker2
@@ -945,8 +942,6 @@ services:
       - "127.0.0.1:9095:9090"
     volumes:
       - pki-certs:/certs:ro
-      - ../services/cruise-control/config/cruisecontrol.properties:/opt/cruise-control/config/cruisecontrol.properties:ro
-      - ../services/cruise-control/entrypoint-auth.sh:/usr/local/bin/entrypoint-auth.sh:ro
     networks:
       - kafka-data
       - observability
@@ -967,7 +962,6 @@ services:
       - "127.0.0.1:9195:9195"
     volumes:
       - pki-certs:/certs:ro
-      - ../services/kroxylicious/config/proxy.yaml:/opt/kroxylicious/config/proxy.yaml:ro
       - ../services/kroxylicious/config/tls-password:/etc/kroxylicious/tls-password:ro
     networks:
       - kafka-data
@@ -1016,7 +1010,6 @@ services:
       MCP_TLS_CLIENT_CA: "/certs/ca/ca-bundle.pem"
     volumes:
       - pki-certs:/certs:ro
-      - ../services/mcp-kafka/app/server.py:/app/server.py:ro
     depends_on:
       - broker1
       - kafka-connect
