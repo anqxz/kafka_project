@@ -50,6 +50,9 @@ exporters:
   prometheus:
     endpoint: 0.0.0.0:8889
     namespace: otelcol
+    tls:
+      cert_file: /certs/pem/otel-collector/tls.crt
+      key_file: /certs/pem/otel-collector/tls.key
 
 service:
   telemetry:
@@ -61,6 +64,11 @@ service:
               prometheus:
                 host: '0.0.0.0'
                 port: 8888
+                # Prometheus receiver in service.telemetry doesn't
+                # accept a tls: block in the collector 0.156 schema —
+                # only host/port/without_scope_info/without_type_suffix
+                # /without_units. Left plaintext; scrape it via the
+                # blackbox probe if we need transport encryption later.
   pipelines:
     logs:
       receivers: [otlp]
