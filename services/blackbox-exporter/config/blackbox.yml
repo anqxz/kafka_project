@@ -8,6 +8,8 @@ modules:
       method: GET
       follow_redirects: true
       preferred_ip_protocol: "ip4"
+      tls_config:
+        ca_file: /certs/ca/ca-bundle.pem
 
   tcp_connect:
     prober: tcp

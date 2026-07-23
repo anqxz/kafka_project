@@ -24,4 +24,5 @@ pyroscope,pyroscope,pyroscope;localhost
 pyroscope-tls,pyroscope-tls,pyroscope-tls;localhost
 kroxylicious-admin-tls,kroxylicious-admin-tls,kroxylicious-admin-tls;localhost
 kminion-tls,kminion-tls,kminion-tls;localhost
+blackbox-exporter,blackbox-exporter,blackbox-exporter;localhost
 alertmanager,alertmanager,alertmanager;localhost
