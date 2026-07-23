@@ -30,4 +30,25 @@ unset KAFKA_SSL_KEYSTORE_LOCATION KAFKA_SSL_TRUSTSTORE_LOCATION \
       KAFKA_SSL_KEYSTORE_PASSWORD KAFKA_SSL_TRUSTSTORE_PASSWORD \
       KAFKA_SSL_KEY_PASSWORD
 
+# Render a JMX Exporter config that serves :7071 over HTTPS with the
+# broker's own leaf. The agent's rules YAML doesn't do env expansion,
+# so we concat the shipped rules with a runtime httpServer.ssl block
+# pointing at /certs/jks/<hostname>/keystore.p12. Then rewrite
+# KAFKA_OPTS to load this file instead of the plaintext one.
+HOST="${KAFKA_JMX_HOSTNAME:-$(hostname)}"
+JMX_TLS_CONFIG=/tmp/kafka-jmx-tls.yml
+cp /opt/jmx_exporter/kafka-config.yml "$JMX_TLS_CONFIG"
+cat >> "$JMX_TLS_CONFIG" <<EOF
+
+httpServer:
+  ssl:
+    keyStore:
+      filename: /certs/jks/${HOST}/keystore.p12
+      password: changeit-dev-only
+      type: PKCS12
+    certificate:
+      alias: ${HOST}
+EOF
+export KAFKA_OPTS="${KAFKA_OPTS//\/opt\/jmx_exporter\/kafka-config.yml/${JMX_TLS_CONFIG}}"
+
 exec /etc/confluent/docker/run
