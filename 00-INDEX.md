@@ -10,33 +10,39 @@ Design documentation for evolving `kafka_project` from a working lab into a plat
 | [04 — Security Guardrails](04-SECURITY-GUARDRAILS.md) | 11 current-state findings, 6-phase remediation (network → SASL/SCRAM → ACLs → TLS → secrets → supply chain), MCP-specific guardrails, negative-test smoke suite |
 | [05 — Observability, SLI/SLO](05-OBSERVABILITY-SLO-SLI.md) | Full metric inventory per system, 13 SLOs with error budgets, PromQL alert rules, dependency-composition math, implementation checklist |
 
-## Implementation roadmap (suggested PR sequence)
+## Implementation roadmap
 
-**Status:**
-- PR 1 in flight on branch `feat/pr1-network-segmentation` — runbook + verification in [doc 01 §6](01-NETWORK-ARCHITECTURE.md#6-pr-1--implementation-runbook).
-- **PR 2 in flight** on branch `feat/pr2-observability-stack` — runbook in [doc 02 §7](02-INTEGRATION-ARCHITECTURE.md#7-pr-2-runbook--observability--platform-stack).
+### Foundational sequence (PR 1 – PR 11) — ✅ all merged
 
-### Applying PR 1 locally
+| PR | Scope | Landed |
+|---|---|---|
+| 1 | 4-zone network segmentation | ✅ |
+| 2 | Observability + platform stack (kminion, LGTM(P), Alertmanager, Blackbox, CC, ntfy) | ✅ |
+| 3 | Healthchecks + pinned images | ✅ |
+| 4 | Security smoke rules + failure-map alerts | ✅ |
+| 5 | Cruise Control tuning + metrics reporter | ✅ |
+| 6 | Loadgen + toxiproxy chaos harness | ✅ |
+| 7 | MCP server — Tier-0 read-only (search_logs, get_trace, get_profile, cluster_balance_status) | ✅ |
+| 8 | SASL/SCRAM + ACLs (later superseded by mTLS in PR 9-family) | ✅ |
+| 9 | Kroxylicious governance profile + LocalStack KMS envelope encryption | ✅ |
+| 10 | Schema Registry Avro on `events` + BACKWARD compatibility | ✅ |
+| 11 | Security smoke tests in CI + negative-test suite | ✅ |
 
-```bash
-git switch feat/pr1-network-segmentation
-cd clusters
-docker compose down          # ONE-TIME: releases the old flat network
-docker compose up -d
-```
+### mTLS retrofit (post-PR 8) — ✅ merged
 
-Then run the verification block in [doc 01 §6.3](01-NETWORK-ARCHITECTURE.md#63-verification-checklist) and paste the output into the PR. Every check must pass — any `LEAK` line is a merge-blocker.
+SASL/SCRAM from PR 8 was replaced by end-to-end mTLS through a follow-up
+series (PRs 9, 10, 11, 12, 24, 30, 33, 41, 48, 50, 51, 54, 57): PKI + SSL
+listeners, mTLS clients (kminion, akhq, schema-registry, kafka-connect,
+mcp-kafka), HTTPS on CC / Connect / SR REST, ACL alignment, JDK-17 bump
+for CC 2.5.146. Contract lives in [`04-SECURITY-GUARDRAILS.md`](04-SECURITY-GUARDRAILS.md).
 
-### PR sequence
+### Continuous hardening
 
-1. **PR 1 — Networks:** apply doc 01 compose changes (pure infra, no app config). *(in flight)*
-2. **PR 2 — Observability + platform stack:** kminion, OTel collector, Loki, Tempo, Pyroscope, Alertmanager, Blackbox Exporter, Cruise Control, ntfy. *(in flight — [§7 runbook](02-INTEGRATION-ARCHITECTURE.md#7-pr-2-runbook--observability--platform-stack))*
-3. **PR 3 — Healthchecks + pinned images:** doc 02 §4 + doc 04 F8.
-4. **PR 4 — Security smoke tests:** rule files from doc 05 §4, alerting on doc 03 failure map.
-5. **PR 5 — Cruise Control tuning:** metrics-reporter JAR in brokers, CC goals config, anomaly detection (self-healing off) — doc 02 §3.5.
-6. **PR 6 — Validation:** **loadgen** baseline + **toxiproxy** chaos scenarios asserting the doc-03 failure map (detection ≤ 5 min) — doc 02 §3.11.
-7. **PR 7 — MCP server (read-only Tier 0):** doc 02 §3, including `search_logs`, `get_trace`, `get_profile`, `cluster_balance_status` — the headline feature.
-8. **PR 8 — SASL/SCRAM + ACLs:** doc 04 phases 2–3, principals for mcp/kminion/cruise-control/loadgen.
-9. **PR 9 — Governance profile:** **Kroxylicious** + LocalStack KMS envelope encryption, A/B latency SLO — doc 02 §3.10 / doc 03 §4.6.
-10. **PR 10 — Schema Registry integration:** Avro on `events`, BACKWARD compatibility (doc 03 §3).
-11. **PR 11 — Security smoke tests in CI:** doc 04 §4, including CC/toxiproxy/ntfy/encryption negative tests.
+Post-PR 11 the roadmap moves to one-bump-per-PR security refresh
+(`chore(security)` prefix): grafana 11→13, prometheus v2→v3, tempo v2→v3,
+step-ca 0.26→0.30, cruise-control 2.5.138→2.5.146, kroxylicious 0.10→0.11,
+plus pip / gh-action dependabot chain. Convention:
+- One version bump per PR.
+- `.env` + `Dockerfile` `ARG` in parity.
+- Wait for CI (build + Trivy + gitleaks + digest-drift gate) before merge.
+- Bundle only safe patch groups (never mix minor bumps across services).
