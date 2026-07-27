@@ -1,6 +1,6 @@
 # Schema Registry with OpenTelemetry javaagent and JMX exporter.
 ARG BASE_IMAGE=confluentinc/cp-schema-registry
-ARG BASE_TAG=7.9.6
+ARG BASE_TAG=7.9.8
 FROM ${BASE_IMAGE}:${BASE_TAG}
 
 ARG OTEL_AGENT_VERSION=2.30.0
