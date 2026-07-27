@@ -1,48 +1,41 @@
-# Kafka KRaft Cluster com S3 Sink & Monitoring
+# Kafka KRaft Lab — Platform-Engineering Showcase
 
-Este projeto contém um cluster Kafka completo com KRaft (sem Zookeeper), Kafka Connect S3 Sink, LocalStack para testes S3 locais, e monitoramento via Prometheus.
+Production-shaped Kafka lab: 3-controller / 3-broker KRaft cluster with Kafka
+Connect S3 sink, LGTM(P) observability, Cruise Control rebalancing, an
+AI-facing MCP control plane, and end-to-end mTLS between every service.
+Runs on rootless Podman **or** Docker Engine from a single `docker compose`
+file — no cloud, no ZooKeeper.
 
-> 📁 **Estrutura do Projeto**: Este projeto está organizado em pastas modulares. Veja [STRUCTURE.md](STRUCTURE.md) para detalhes da estrutura e use o script helper `./kafka.sh help` para comandos rápidos.
+Design lives under `00-INDEX.md` → `05-OBSERVABILITY-SLO-SLI.md`.
+See `wiki/Home.md` for the operator quickstart.
 
-## 🏗️ Arquitetura
+> Origem PT-BR: as issues antigas e alguns diagramas ainda estão em
+> português. Toda documentação nova segue em inglês para alinhar com o
+> restante da esteira de plataforma.
 
-### Kafka Cluster
-- **3 Controllers** (KRaft): Gerenciam metadados do cluster
-  - controller1: porta 19093 (JMX: 19101)
-  - controller2: porta 19094 (JMX: 19102)
-  - controller3: porta 19095 (JMX: 19103)
+## Stack (25 services)
 
-- **3 Brokers**: Processam mensagens
-  - broker1: porta 9092 (JMX: 9101)
-  - broker2: porta 9093 (JMX: 9102)
-  - broker3: porta 9094 (JMX: 9103)
+| Plane | Services |
+|---|---|
+| Kafka data | `controller1-3`, `broker1-3` (KRaft, no ZK) |
+| Integration | `kafka-connect` (S3 sink), `schema-registry`, `kroxylicious` (record-encryption profile) |
+| Admin UIs | `akhq`, `kminion`, `cruise-control` |
+| Storage emulation | `localstack` (S3, KMS) |
+| Observability | `prometheus`, `grafana`, `loki`, `tempo`, `pyroscope`, `alertmanager`, `blackbox-exporter`, `otel-collector` |
+| Notifications | `ntfy` |
+| Chaos / load | `toxiproxy`, `loadgen` |
+| AI control plane | `mcp-kafka` (Tier-0 read-only MCP server over SSE + Bearer auth) |
+| PKI | `step-ca` (offline, one-shot cert issuance) |
 
-### Kafka Connect & S3
-- **Kafka Connect**: http://localhost:8083
-  - S3 Sink Connector configurado
-  - Streaming de tópicos para S3 (LocalStack)
-  
-- **LocalStack**: http://localhost:4566
-  - Emulador AWS S3 local
-  - Bucket: `kafka-events-bucket`
-  - Sem custos AWS!
+Central version pinning: `clusters/.env`. Per-service Dockerfiles + configs
+under `services/<name>/`.
 
-### Administração
-- **AKHQ**: http://localhost:8080
-  - ✅ **Gerenciamento completo** - Topics, Consumers, Configs
-  - ✅ **Kafka Connect UI** - Gerenciar conectores visualmente
-  - ✅ **Monitoramento JMX** - Métricas de todos os brokers
+## Prerequisites
 
-### Monitoramento
-- **Prometheus**: http://localhost:9090
-- **JMX direto**: AKHQ acessa JMX diretamente, sem exporters extras!
+Validated on rootless Podman 4.9 (Ubuntu 24.04). Docker Engine works with no
+extra setup. Podman requires:
 
-## ⚙️ Prerequisites (Podman rootless)
-
-This stack is validated on rootless Podman 4.9 (Ubuntu 24.04). Docker Engine works with no extra setup, but Podman needs:
-
-1. **netavark backend + aardvark-dns** (container-to-container DNS is required for `broker*`, `schema-registry`, `kafka-connect`, `loki`, `tempo`, etc. to resolve each other).
-
+1. **netavark + aardvark-dns** — container-to-container DNS.
    ```bash
    sudo apt install -y netavark aardvark-dns
    mkdir -p ~/.config/containers
@@ -53,353 +46,141 @@ This stack is validated on rootless Podman 4.9 (Ubuntu 24.04). Docker Engine wor
    systemctl --user restart podman.socket podman.service
    podman info --format '{{.Host.NetworkBackend}}'   # → netavark
    ```
+2. **After `podman system reset`** — `systemctl --user restart
+   podman.socket podman.service`, otherwise the socket returns
+   `attempt to write a readonly database`.
+3. **Explicit `ipam.config`** — set in `clusters/docker-compose.yml`
+   (compose v5.3.1 crashes with `ParseAddr("<nil>")` on internal bridges
+   when the gateway is left implicit).
 
-   Without this, containers cannot resolve each other by name (CNI without `dnsname` plugin) and `kafka-connect` / `schema-registry` fail on broker DNS lookup.
-
-2. **After `podman system reset`** — restart the socket before running compose:
-
-   ```bash
-   systemctl --user restart podman.socket podman.service
-   ```
-
-   Otherwise you'll see `attempt to write a readonly database` from the stale service.
-
-3. **Network `ipam.config`** is set explicitly in `clusters/docker-compose.yml` (compose v5.3.1 crashes with `ParseAddr("<nil>")` on internal bridges when the gateway is left implicit).
-
-## 🚀 Como Usar
-
-### Guia Completo S3 Sink
-
-📖 **Veja o guia detalhado:** [S3-SINK-GUIDE.md](S3-SINK-GUIDE.md)
-
-O guia completo inclui:
-- Arquitetura do S3 Sink
-- Como produzir mensagens de teste
-- Como verificar arquivos no S3
-- Gerenciamento de conectores
-- Troubleshooting completo
-
-### Início Rápido
+## Quick start
 
 ```bash
-# 1. Subir toda a infraestrutura
-cd clusters/
-docker compose up -d
-
-# Ou use o helper script:
-./kafka.sh start
-
-# 2. Aguardar serviços iniciarem (30-60 segundos)
-sleep 60
-
-# 3. Criar tópico 'events'
-docker exec -it broker1 kafka-topics --create \
-    --bootstrap-server localhost:9092 \
-    --topic events \
-    --partitions 3 \
-    --replication-factor 3
-
-# 4. Criar conector S3 Sink
-cd connects/
-./s3-connector.sh create
-
-# Ou use o helper:
-./kafka.sh connector-create
-
-# 5. Produzir mensagens de teste
-docker exec -it broker1 kafka-console-producer \
-    --bootstrap-server localhost:9092 \
-    --topic events
-
-# Digite 3 mensagens JSON:
-# {"id":1,"message":"test1"}
-# {"id":2,"message":"test2"}
-# {"id":3,"message":"test3"}
-# Pressione Ctrl+C para sair
-
-# 6. Verificar arquivos no S3 LocalStack
-cd connects/
-./s3-connector.sh show-s3
-
-# Ou use o helper:
-./kafka.sh s3-list
+./kafka.sh start              # brings up all 25 services
+./kafka.sh doctor             # runtime health probe
+./kafka.sh ui                 # print all host-exposed URLs
+./kafka.sh connector-create   # register S3 sink on kafka-connect
+./kafka.sh run-loadgen        # start continuous traffic
+./kafka.sh stop               # tear down
 ```
 
-### Usar o Script Helper
+Full helper reference: `./kafka.sh help`.
 
-O projeto inclui um script helper para facilitar comandos comuns:
+### Host-exposed UIs (`127.0.0.1` only)
+
+| URL | Service |
+|---|---|
+| http://localhost:8080 | AKHQ |
+| https://localhost:8081 | Schema Registry (mTLS) |
+| https://localhost:8083 | Kafka Connect REST (mTLS + basic auth) |
+| https://localhost:9095 | Cruise Control REST (mTLS + basic auth) |
+| https://localhost:3001 | mcp-kafka (SSE + Bearer) |
+| http://localhost:8082 | ntfy |
+| http://localhost:4566 | LocalStack (AWS API) |
+| http://localhost:9090 | Prometheus |
+| http://localhost:3000 | Grafana (admin/`GRAFANA_ADMIN_PASSWORD`) |
+| http://localhost:8474 | Toxiproxy API |
+| `localhost:9192` | Kroxylicious proxy (Kafka protocol) |
+| `localhost:9092/9093/9094` | Broker bootstrap |
+
+Cluster-internal only: Loki :3100, Tempo :3200, Pyroscope :4040,
+Alertmanager :9093, Blackbox :9115, JMX exporter :7071 on every JVM.
+
+## Architecture docs
+
+| Doc | Focus |
+|---|---|
+| [`00-INDEX.md`](00-INDEX.md) | Doc map + PR roadmap status |
+| [`01-NETWORK-ARCHITECTURE.md`](01-NETWORK-ARCHITECTURE.md) | 4-zone segmentation (`kafka-quorum` / `kafka-data` / `observability` / `edge`), listener + port map |
+| [`02-INTEGRATION-ARCHITECTURE.md`](02-INTEGRATION-ARCHITECTURE.md) | Component contracts, startup ordering, MCP control-plane design |
+| [`03-DATA-FLOW-ARCHITECTURE.md`](03-DATA-FLOW-ARCHITECTURE.md) | Produce → S3 semantics, KRaft metadata, failure-propagation map |
+| [`04-SECURITY-GUARDRAILS.md`](04-SECURITY-GUARDRAILS.md) | Findings F1–F14, 6-phase remediation, MCP guardrails |
+| [`05-OBSERVABILITY-SLO-SLI.md`](05-OBSERVABILITY-SLO-SLI.md) | Metric inventory, 13 SLOs + error budgets, PromQL alert rules |
+| [`PLAN-DOCKERFILES.md`](PLAN-DOCKERFILES.md) | Per-service Dockerfiles migration record (all 7 phases complete) |
+| [`tools/README-chaos.md`](tools/README-chaos.md) | `chaos.sh` + `chaos-run.sh` fault-injection harness |
+| [`wiki/Home.md`](wiki/Home.md) | Operator-oriented quickstart |
+
+## Chaos harness
+
+Toxiproxy-driven; asserts the failure-propagation map from
+`03-DATA-FLOW-ARCHITECTURE.md`.
 
 ```bash
-# Ver todos os comandos disponíveis
-./kafka.sh help
-
-# Exemplos de uso:
-./kafka.sh start              # Inicia o cluster
-./kafka.sh test-connection    # Testa conectividade
-./kafka.sh run-producer       # Executa producer de exemplo
-./kafka.sh connector-status   # Status do S3 connector
-./kafka.sh ui                 # Mostra URLs de todas UIs
-./kafka.sh doctor             # Diagnóstico de podman/DNS/OTLP
-./kafka.sh build [svc]        # Rebuilda imagem(s)
-./kafka.sh run-loadgen        # Sobe container loadgen (tráfego contínuo)
+./tools/chaos.sh list                    # available scenarios
+./tools/chaos-run.sh <scenario>          # run + record detection time
 ```
 
-### Gerenciar Conector S3
+## MCP control plane
+
+`services/mcp-kafka/` exposes a Tier-0 (read-only) FastMCP server over SSE
+with Bearer-token auth (env `MCP_AUTH_TOKEN`). Tools include
+`search_logs`, `get_trace`, `get_profile`, `cluster_balance_status`,
+`get_consumer_lag`, `tail_topic`, and `chaos_status`. Full contract:
+[`02-INTEGRATION-ARCHITECTURE.md`](02-INTEGRATION-ARCHITECTURE.md#3-mcp-integration-layer-the-with-mcp-part).
+
+Tier-1 mutations are gated behind `MCP_MODE=admin` and are off by default.
+
+## Security posture
+
+- **mTLS end-to-end**: every service holds a leaf cert issued by the
+  in-repo Smallstep CA (`clusters/step-ca/`). Brokers accept only SSL
+  clients; Kafka Connect, Schema Registry, and Cruise Control REST all
+  serve HTTPS; MCP-Kafka reads observability backends over HTTPS.
+- **ACLs**: per-principal, no wildcards; enforced on the SSL listener.
+- **Secrets**: `.env` holds placeholders; production uses env-file
+  injection or K8s Secret projected volumes (`KAFKA_SASL_PASSWORD_FILE`
+  pattern in mcp-kafka).
+- **Supply chain**: pinned tags, `.trivyignore` per service, Trivy +
+  gitleaks gates in CI.
+
+## S3 sink quick verify
 
 ```bash
-# Ver status
-cd connects/
-./s3-connector.sh status
-
-# Listar arquivos S3
-./s3-connector.sh show-s3
-
-# Reiniciar conector
-./s3-connector.sh restart
-
-# Deletar conector
-./s3-connector.sh delete
-
-# Ajuda
-./s3-connector.sh help
+# produce a burst
+./kafka.sh run-producer
+# check what landed in the LocalStack bucket
+podman exec localstack awslocal s3 ls s3://kafka-events-bucket --recursive
 ```
 
-### Comandos Úteis
+The connector flushes on **3 messages** OR **60s**, whichever comes first.
+Empty bucket = neither threshold hit yet.
 
-#### Iniciar componentes específicos
-```bash
-# Apenas Kafka (controllers + brokers)
-podman-compose up -d controller1 controller2 controller3 broker1 broker2 broker3
+## Troubleshooting
 
-# Kafka + Connect + LocalStack
-podman-compose up -d controller1 controller2 controller3 broker1 broker2 broker3 kafka-connect localstack
+| Symptom | Check |
+|---|---|
+| Container-to-container DNS fails on Podman | `podman info` → NetworkBackend must be `netavark`; `dpkg -l aardvark-dns` |
+| `attempt to write a readonly database` | `systemctl --user restart podman.socket podman.service` |
+| Brokers accept TCP but Connect fails to bootstrap | Waiting on healthchecks — see `02-INTEGRATION-ARCHITECTURE.md §4` |
+| No files in S3 | Flush threshold not met — send 3 messages or wait 60s |
+| Prometheus targets down | `http://localhost:9090/targets`; JMX exporter on `:7071` inside each JVM container |
+| MCP SSE returns 401 | `Authorization: Bearer $MCP_AUTH_TOKEN` header required |
 
-# Apenas AKHQ
-podman-compose up -d akhq
-
-# Apenas Prometheus
-podman-compose up -d prometheus
-```
-
-#### Verificar status
-```bash
-# Status de todos os serviços
-podman-compose ps
-
-# Verificar saúde do LocalStack
-curl http://localhost:4566/_localstack/health
-
-# Verificar Kafka Connect
-curl http://localhost:8083/ | jq '.'
-```
-
-### Ver logs
-```bash
-# Logs de um serviço específico
-./kafka.sh logs broker1
-./kafka.sh logs kafka-connect
-./kafka.sh logs localstack
-
-# Logs de todos os brokers
-./kafka.sh logs broker1 broker2 broker3
-```
-
-### Parar o ambiente
-```bash
-podman-compose down
-```
-
-### Parar e limpar volumes (dados serão perdidos)
-```bash
-podman-compose down -v
-```
-
-## 📊 Métricas no Prometheus
-
-### Métricas Disponíveis
-
-#### Kafka Brokers/Controllers
-- `kafka_server_*` - Métricas gerais do servidor Kafka
-- `kafka_network_*` - Métricas de rede (requests, responses)
-- `kafka_controller_*` - Métricas específicas do controller
-- `kafka_log_*` - Métricas de logs e segmentos
-- `kafka_cluster_*` - Métricas do cluster (partições, replicas)
-
-#### JVM
-- `jvm_memory_*` - Uso de memória heap e non-heap
-- `jvm_gc_*` - Garbage collection
-- `jvm_threads_*` - Threads da JVM
-
-### Queries Úteis no Prometheus
-
-Acesse http://localhost:9090 e experimente estas queries:
-
-```promql
-# Taxa de mensagens por segundo (entrada)
-rate(kafka_server_brokertopicmetrics_messagesinpersec[1m])
-
-# Taxa de bytes de entrada por broker
-sum by (instance) (rate(kafka_server_brokertopicmetrics_bytesinpersec[1m]))
-
-# Uso de memória heap dos brokers
-jvm_memory_heap_used / jvm_memory_heap_max * 100
-
-# Número de partições under-replicated
-kafka_server_replicamanager_underreplicatedpartitions
-
-# Latência de requisições de produce
-kafka_network_requestmetrics_totaltimems{request="Produce"}
-
-# Número de ISR (In-Sync Replicas) por partição
-kafka_server_replicamanager_isrexpandspersec
-```
-
-## 🔍 Dashboards Grafana (opcional)
-
-Para visualizar as métricas graficamente, você pode adicionar o Grafana:
-
-```yaml
-  grafana:
-    image: grafana/grafana:latest
-    container_name: grafana
-    ports:
-      - "3000:3000"
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-    volumes:
-      - grafana-data:/var/lib/grafana
-    depends_on:
-      - prometheus
-```
-
-Depois:
-1. Acesse http://localhost:3000 (admin/admin)
-2. Adicione Prometheus como datasource (http://prometheus:9090)
-3. Importe dashboards prontos:
-   - Dashboard ID 721 (Kafka Overview)
-   - Dashboard ID 7589 (Kafka Exporter Overview)
-
-## 📝 Configurações Importantes
-
-### JMX Configuration
-Todos os brokers e controllers expõem métricas JMX nas portas 9101.
-
-### Prometheus Scrape Interval
-As métricas são coletadas a cada 15 segundos (configurável em `prometheus.yml`).
-
-### Volumes Persistentes
-Os dados são armazenados em volumes Docker:
-- `controller{1,2,3}-data`: Metadados dos controllers
-- `broker{1,2,3}-data`: Dados das mensagens
-- `prometheus-data`: Métricas históricas
-- `localstack-data`: Dados do S3 (bucket kafka-events-bucket)
-
-## 📁 Estrutura do Projeto
+## Repository layout
 
 ```
-kafka-project/
-├── docker-compose.yml              # Orquestração de todos os serviços
-├── prometheus.yml                  # Configuração do Prometheus
-├── jmx-exporter-config.yml        # Regras de métricas JMX
-├── s3-sink-connector.json         # Configuração do S3 Sink Connector
-├── s3-connector.sh                # Script de gerenciamento do conector
-├── localstack-init/               # Scripts de inicialização LocalStack
-│   └── 01-create-bucket.sh        # Cria bucket S3
-├── S3-SINK-GUIDE.md              # Guia completo S3 Sink
-├── METRICS-ARCHITECTURE.md        # Arquitetura de métricas
-└── README.md                      # Este arquivo
+kafka_project/
+├── clusters/                  # docker-compose.yml + .env (single source of truth)
+├── services/<name>/           # per-service Dockerfile + config + agents
+├── connects/                  # S3 sink connector JSON + helper
+├── producers/                 # sample Python producers
+├── tools/                     # chaos harness + operator helpers
+├── scripts/                   # bootstrap + verification scripts
+├── diagrams/                  # source (.drawio) + rendered .svg
+├── docs/                      # ADRs + deep-dive notes
+├── wiki/                      # operator-facing quickstart
+├── data/                      # sample data for producers
+├── 00-05-*.md                 # architecture doc series
+├── PLAN-DOCKERFILES.md        # migration record
+└── kafka.sh                   # helper — run from anywhere in the repo
 ```
 
-## 🛠️ Troubleshooting
+## References
 
-### Kafka Connect
-
-```bash
-# Verificar se o plugin S3 está instalado
-curl http://localhost:8083/connector-plugins | jq '.[] | select(.class | contains("S3"))'
-
-# Ver logs do Kafka Connect
-./kafka.sh logs kafka-connect
-
-# Verificar status do conector
-./s3-connector.sh status
-```
-
-### LocalStack S3
-
-```bash
-# Verificar saúde do LocalStack
-curl http://localhost:4566/_localstack/health
-
-# Listar buckets
-podman exec -it localstack awslocal s3 ls
-
-# Recriar bucket manualmente
-podman exec -it localstack awslocal s3 mb s3://kafka-events-bucket
-```
-
-### Arquivos Não Aparecem no S3
-
-⚠️ **Lembre-se:** Arquivos só são criados após:
-- **3 mensagens** (flush.size) OU
-- **60 segundos** (rotate.interval.ms)
-
-**Solução:** Envie 3 mensagens de teste para forçar flush.
-
-### Brokers não iniciam
-```bash
-# Verifique os logs
-./kafka.sh logs broker1
-
-# Verifique se os controllers estão rodando
-podman-compose ps | grep controller
-```
-
-### Prometheus não coleta métricas
-```bash
-# Verifique os targets no Prometheus
-# Acesse: http://localhost:9090/targets
-
-# Teste conexão JMX manualmente
-podman exec -it broker1 kafka-broker-api-versions --bootstrap-server localhost:9092
-```
-
-### JMX Exporter não conecta
-```bash
-# Verifique se a porta JMX está acessível
-podman exec -it broker1 nc -zv localhost 9101
-```
-
-## 📚 Documentação
-
-- **[S3-SINK-GUIDE.md](S3-SINK-GUIDE.md)** - Guia completo do S3 Sink Connector
-- **[METRICS-ARCHITECTURE.md](METRICS-ARCHITECTURE.md)** - Arquitetura de métricas
-- [Kafka KRaft Documentation](https://kafka.apache.org/documentation/#kraft)
+- [Kafka KRaft](https://kafka.apache.org/documentation/#kraft)
 - [Confluent S3 Sink Connector](https://docs.confluent.io/kafka-connectors/s3-sink/current/overview.html)
-- [LocalStack Documentation](https://docs.localstack.cloud/)
-- [AKHQ Documentation](https://akhq.io/)
-- [Prometheus JMX Exporter](https://github.com/prometheus/jmx_exporter)
-
-## 🎯 Features Implementadas
-
-✅ Kafka KRaft (3 controllers + 3 brokers)  
-✅ Kafka Connect com S3 Sink Connector  
-✅ LocalStack para testes S3 locais (sem AWS!)  
-✅ AKHQ - Interface completa de administração  
-✅ Prometheus - Monitoramento de métricas  
-✅ JMX direto - Sem containers de exporter desnecessários  
-✅ Scripts de gerenciamento (`s3-connector.sh`)  
-✅ Documentação completa em português  
-
-## 🚀 Próximos Passos Sugeridos
-
-1. **Adicionar Grafana** para dashboards visuais
-2. **Configurar Alertmanager** para alertas de métricas
-3. **Adicionar Schema Registry** para validação Avro/Protobuf
-4. **Implementar mais conectores** (JDBC, Elasticsearch, etc.)
-5. **Configurar autenticação** (SASL/SSL)
-6. **Adicionar Kafka Streams** para processamento em tempo real
-
----
-
-💡 **Dica:** Comece explorando o AKHQ em http://localhost:8080 para ter uma visão visual completa do seu cluster!
+- [LocalStack](https://docs.localstack.cloud/)
+- [FastMCP](https://github.com/jlowin/fastmcp)
+- [Cruise Control](https://github.com/linkedin/cruise-control)
+- [Kroxylicious](https://kroxylicious.io/)
+- [Grafana LGTM stack](https://grafana.com/oss/)

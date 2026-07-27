@@ -50,13 +50,13 @@ controller/broker share one `services/broker/` image with different `command:` i
 - Loadgen uses `restart: on-failure` to survive the broker warm-up race.
 
 ### Phase 1 — skeleton + config migration
-- [ ] Create `services/<name>/` for all 25 (empty dirs first)
-- [ ] `git mv clusters/config/*.yaml services/<owner>/config/`
-- [ ] `git mv metrics/jmx-exporter/` → `services/broker/config/jmx/` (shared source; each JVM Dockerfile copies from build context)
-- [ ] `git mv metrics/grafana/{dashboards,datasources}` → `services/grafana/provisioning/`
-- [ ] `git mv metrics/prometheus/` → `services/prometheus/config/`
-- [ ] Update compose bind mounts to point at new paths. Boot stack. Verify green.
-- [ ] Commit: `refactor: relocate service configs under services/ tree`
+- [x] Create `services/<name>/` for all 25 (empty dirs first)
+- [x] `git mv clusters/config/*.yaml services/<owner>/config/`
+- [x] `git mv metrics/jmx-exporter/` → `services/broker/config/jmx/` (shared source; each JVM Dockerfile copies from build context)
+- [x] `git mv metrics/grafana/{dashboards,datasources}` → `services/grafana/provisioning/`
+- [x] `git mv metrics/prometheus/` → `services/prometheus/config/`
+- [x] Update compose bind mounts to point at new paths. Boot stack. Verify green.
+- [x] Commit: `refactor: relocate service configs under services/ tree`
 
 ### Phase 2 — Java stack Dockerfiles (8 images)
 Order: broker → controller → kafka-connect → schema-registry.
