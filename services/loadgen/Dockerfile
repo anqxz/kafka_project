@@ -1,7 +1,7 @@
 # Continuous synthetic Kafka producer. Multi-stage: deps in builder, only
 # the venv + app copied into slim runtime. OTel auto-instrumentation is
 # activated by the opentelemetry-instrument wrapper.
-ARG PYTHON_TAG=3.13-slim
+ARG PYTHON_TAG=3.14-slim
 
 FROM python:${PYTHON_TAG} AS builder
 WORKDIR /build

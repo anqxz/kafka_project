@@ -1,7 +1,7 @@
 # Tier-0 read-only MCP server for the Kafka cluster. Contract lives in
 # 02-INTEGRATION-ARCHITECTURE.md §3. Multi-stage: deps in a builder image,
 # only the venv and app copied into the slim runtime.
-ARG PYTHON_TAG=3.13-slim
+ARG PYTHON_TAG=3.14-slim
 
 FROM python:${PYTHON_TAG} AS builder
 WORKDIR /build
