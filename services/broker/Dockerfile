@@ -8,7 +8,7 @@
 
 ARG BASE_IMAGE=confluentinc/cp-kafka
 ARG BASE_TAG=7.9.8
-ARG GRADLE_TAG=8-jdk17
+ARG GRADLE_TAG=9.6.1-jdk17
 ARG CC_VERSION=2.5.146
 
 FROM gradle:${GRADLE_TAG} AS cc-reporter
