@@ -1,12 +1,12 @@
 # Kroxylicious pass-through proxy on :9192.
 # Upstream: mTLS to brokers on :9096 with the kroxylicious leaf.
 # Downstream: TLS server for clients; same keystore.
-adminHttp:
+management:
   endpoints:
     prometheus: {}
 
 virtualClusters:
-  kafka-kraft-cluster:
+  - name: kafka-kraft-cluster
     targetCluster:
       bootstrapServers: broker1:9096,broker2:9096,broker3:9096
       tls:
@@ -20,20 +20,20 @@ virtualClusters:
           storePassword:
             passwordFile: /etc/kroxylicious/tls-password
           storeType: PKCS12
-    tls:
-      key:
-        storeFile: /certs/jks/kroxylicious/keystore.p12
-        storePassword:
-          passwordFile: /etc/kroxylicious/tls-password
-        storeType: PKCS12
-    clusterNetworkAddressConfigProvider:
-      type: PortPerBrokerClusterNetworkAddressConfigProvider
-      config:
-        bootstrapAddress: 0.0.0.0:9192
-        brokerAddressPattern: kroxylicious
-        brokerStartPort: 9193
-        lowestTargetBrokerId: 4
-        numberOfBrokerPorts: 3
+    gateways:
+      - name: kroxylicious
+        portIdentifiesNode:
+          bootstrapAddress: kroxylicious:9192
+          nodeIdRanges:
+            - name: default
+              start: 4
+              end: 6
+        tls:
+          key:
+            storeFile: /certs/jks/kroxylicious/keystore.p12
+            storePassword:
+              passwordFile: /etc/kroxylicious/tls-password
+            storeType: PKCS12
     logNetwork: false
     logFrames: false
 
