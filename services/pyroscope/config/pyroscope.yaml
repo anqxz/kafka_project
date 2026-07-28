@@ -9,9 +9,6 @@ storage:
   local:
     path: /data/pyroscope
 
-pyroscopedb:
-  data_path: /data/pyroscope
-
 self-profiling:
   disable_push: false
 
