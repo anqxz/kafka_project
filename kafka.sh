@@ -37,6 +37,7 @@ Tests
 Diagnostics
   ui                 Print every host-exposed UI + Kafka bootstrap
   doctor             Check podman backend + DNS + OTLP endpoint
+  hosts-setup        Add broker.events.local to /etc/hosts (needs sudo)
 
   help               This message
 EOF
@@ -112,7 +113,7 @@ Host-exposed UIs (127.0.0.1):
   Schema Registry      http://localhost:8081
   Kafka Connect REST   http://localhost:8083
   Cruise Control REST  http://localhost:9095
-  Kroxylicious proxy   localhost:9192 (Kafka protocol)
+  Kroxylicious proxy   broker.events.local:9192 (Kafka protocol; run 'hosts-setup' first)
   Toxiproxy API        http://localhost:8474
   MCP-Kafka (SSE)      http://localhost:3001
   ntfy                 http://localhost:8082
@@ -138,6 +139,18 @@ EOF
     printf 'OTLP HTTP :4318: ' ; curl -sf -o /dev/null -w '%{http_code}\n' http://127.0.0.1:4318/v1/traces -X POST -H 'content-type: application/json' -d '{"resourceSpans":[]}' 2>/dev/null || echo down
     printf 'Grafana   :3000: ' ; curl -sf -o /dev/null -w '%{http_code}\n' http://127.0.0.1:3000/api/health 2>/dev/null || echo down
     printf 'Broker    :9092: ' ; timeout 2 bash -c '</dev/tcp/127.0.0.1/9092' 2>/dev/null && echo open || echo closed
+    printf 'broker.events.local /etc/hosts: ' ; grep -q '^[^#]*broker\.events\.local' /etc/hosts && echo present || echo MISSING
+    ;;
+
+  hosts-setup)
+    entry="127.0.0.1 broker.events.local"
+    if grep -q '^[^#]*broker\.events\.local' /etc/hosts; then
+      echo "already present in /etc/hosts"
+    else
+      echo "adding: $entry (sudo required)"
+      echo "$entry" | sudo tee -a /etc/hosts >/dev/null
+      echo "done"
+    fi
     ;;
 
   help|-h|--help|"") show_help ;;
