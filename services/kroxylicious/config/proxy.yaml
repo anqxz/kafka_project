@@ -23,7 +23,7 @@ virtualClusters:
     gateways:
       - name: kroxylicious
         portIdentifiesNode:
-          bootstrapAddress: kroxylicious:9192
+          bootstrapAddress: broker.events.local:9192
           nodeIdRanges:
             - name: default
               start: 4
