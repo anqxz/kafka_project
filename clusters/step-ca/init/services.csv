@@ -15,7 +15,7 @@ mcp-kafka,mcp-kafka,mcp-kafka
 admin,admin,admin
 host-admin,host-admin,localhost
 otel-collector,otel-collector,otel-collector
-kroxylicious,kroxylicious,kroxylicious;localhost
+kroxylicious,kroxylicious,kroxylicious;localhost;broker.events.local
 grafana,grafana,grafana;localhost
 prometheus,prometheus,prometheus;localhost
 loki,loki,loki;localhost

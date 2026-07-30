@@ -1032,9 +1032,11 @@ services:
       - pki-certs:/certs:ro
       - ../services/kroxylicious/config/tls-password:/etc/kroxylicious/tls-password:ro
     networks:
-      - kafka-data
-      - observability
-      - edge
+      kafka-data:
+        aliases:
+          - broker.events.local
+      observability: {}
+      edge: {}
 
   toxiproxy:
     build:
